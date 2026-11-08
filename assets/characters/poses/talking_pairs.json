@@ -1,0 +1,1089 @@
+{
+  "schema": "iron.talking-pairs.v1",
+  "requested_model": "gpt-image-2.5-2k",
+  "created_at": "2026-11-08T22:34:35.976212+00:00",
+  "frame_interval_ms": 170,
+  "method": "Masked Image API mouth edit, then local ellipse blend; source alpha and all pixels outside mouth rectangle preserved exactly",
+  "pairs": [
+    {
+      "character_id": "gemini",
+      "pose": "cat_paws",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/gemini/cat_paws/neutral.png",
+      "talk": "assets/characters/poses/gemini/cat_paws/neutral_talk.png",
+      "mouth_box": [
+        493,
+        254,
+        581,
+        310
+      ],
+      "changed_pixels": 3457,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "5da2aa7516f1d379f886d70feea8b9bb04d9b5cc580544fdda962d47e938e9cc",
+      "bytes": 2203294
+    },
+    {
+      "character_id": "gemini",
+      "pose": "cat_paws",
+      "emotion": "excited",
+      "idle": "assets/characters/poses/gemini/cat_paws/excited.png",
+      "talk": "assets/characters/poses/gemini/cat_paws/excited_talk.png",
+      "mouth_box": [
+        493,
+        254,
+        581,
+        310
+      ],
+      "changed_pixels": 3549,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "790283f98c308f0839b5881b21d1139d9bb524fb1f7a92dcb739158a502cbc66",
+      "bytes": 2206721
+    },
+    {
+      "character_id": "gemini",
+      "pose": "cat_paws",
+      "emotion": "pout",
+      "idle": "assets/characters/poses/gemini/cat_paws/pout.png",
+      "talk": "assets/characters/poses/gemini/cat_paws/pout_talk.png",
+      "mouth_box": [
+        493,
+        254,
+        581,
+        310
+      ],
+      "changed_pixels": 3495,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "d8df1619eeaa90239d31029a7276f8c6f7d0711050f971f81a56b8b46b3ff228",
+      "bytes": 2178722
+    },
+    {
+      "character_id": "gemini",
+      "pose": "cat_paws",
+      "emotion": "surprised",
+      "idle": "assets/characters/poses/gemini/cat_paws/surprised.png",
+      "talk": "assets/characters/poses/gemini/cat_paws/surprised_talk.png",
+      "mouth_box": [
+        493,
+        254,
+        581,
+        310
+      ],
+      "changed_pixels": 3499,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "5c4f68766944d1847dbcc92560038114259ea1632b23733f7c31db7df79d1a9c",
+      "bytes": 2198033
+    },
+    {
+      "character_id": "gemini",
+      "pose": "cat_paws",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/gemini/cat_paws/flustered.png",
+      "talk": "assets/characters/poses/gemini/cat_paws/flustered_talk.png",
+      "mouth_box": [
+        493,
+        254,
+        581,
+        310
+      ],
+      "changed_pixels": 3480,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "e4f777eed1113035e78ab46afccd53bc10708d8933d128182acd9f9ed473255a",
+      "bytes": 2203006
+    },
+    {
+      "character_id": "gemini",
+      "pose": "playful_greeting",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/gemini/playful_greeting/neutral.png",
+      "talk": "assets/characters/poses/gemini/playful_greeting/neutral_talk.png",
+      "mouth_box": [
+        495,
+        256,
+        583,
+        312
+      ],
+      "changed_pixels": 3454,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "0643e8cfda91e5d0759789f4903cf736f54ac070e77488d90c1a098a8df924cd",
+      "bytes": 2189519
+    },
+    {
+      "character_id": "gemini",
+      "pose": "playful_greeting",
+      "emotion": "excited",
+      "idle": "assets/characters/poses/gemini/playful_greeting/excited.png",
+      "talk": "assets/characters/poses/gemini/playful_greeting/excited_talk.png",
+      "mouth_box": [
+        495,
+        256,
+        583,
+        312
+      ],
+      "changed_pixels": 3550,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "f7cbc963a4ab7beeb39be46fa79ae5c91714a6962772d36967714927d58a24ff",
+      "bytes": 2178618
+    },
+    {
+      "character_id": "gemini",
+      "pose": "playful_greeting",
+      "emotion": "pout",
+      "idle": "assets/characters/poses/gemini/playful_greeting/pout.png",
+      "talk": "assets/characters/poses/gemini/playful_greeting/pout_talk.png",
+      "mouth_box": [
+        495,
+        256,
+        583,
+        312
+      ],
+      "changed_pixels": 3410,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "5212d47b5d4f727572c6824b09d715ccf2a78e5eda563bff9ed16d1c3dca844c",
+      "bytes": 2165631
+    },
+    {
+      "character_id": "gemini",
+      "pose": "playful_greeting",
+      "emotion": "surprised",
+      "idle": "assets/characters/poses/gemini/playful_greeting/surprised.png",
+      "talk": "assets/characters/poses/gemini/playful_greeting/surprised_talk.png",
+      "mouth_box": [
+        495,
+        256,
+        583,
+        312
+      ],
+      "changed_pixels": 3455,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "35edcd6d17ea337a33125c9f492a53834679a5402b24d3a9383978303a42ac09",
+      "bytes": 2161824
+    },
+    {
+      "character_id": "gemini",
+      "pose": "playful_greeting",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/gemini/playful_greeting/flustered.png",
+      "talk": "assets/characters/poses/gemini/playful_greeting/flustered_talk.png",
+      "mouth_box": [
+        495,
+        256,
+        583,
+        312
+      ],
+      "changed_pixels": 3460,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "daf550c8d7e727fc401d74111c53faa71f5135d299dc5149c0c7324a82cfbe1f",
+      "bytes": 2162955
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_hold",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/claude/book_hold/neutral.png",
+      "talk": "assets/characters/poses/claude/book_hold/neutral_talk.png",
+      "mouth_box": [
+        469,
+        159,
+        549,
+        212
+      ],
+      "changed_pixels": 2858,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "8714b0cb0aea84a0fb5f515c9e753342f001aa3c23c813ab2456d4316b7e4d8f",
+      "bytes": 2212749
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_hold",
+      "emotion": "amused",
+      "idle": "assets/characters/poses/claude/book_hold/amused.png",
+      "talk": "assets/characters/poses/claude/book_hold/amused_talk.png",
+      "mouth_box": [
+        469,
+        159,
+        549,
+        212
+      ],
+      "changed_pixels": 2867,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "5fea064c4fa1f83284a68f7fb0712fd2abedfb3e6dcd685498b510f7b853e210",
+      "bytes": 2191698
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_hold",
+      "emotion": "questioning",
+      "idle": "assets/characters/poses/claude/book_hold/questioning.png",
+      "talk": "assets/characters/poses/claude/book_hold/questioning_talk.png",
+      "mouth_box": [
+        469,
+        159,
+        549,
+        212
+      ],
+      "changed_pixels": 2879,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "496a9b98db2a027eb63986813d30c5d6e04b1154f5e1bf4aee8aa404a370cd46",
+      "bytes": 2187460
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_hold",
+      "emotion": "concerned",
+      "idle": "assets/characters/poses/claude/book_hold/concerned.png",
+      "talk": "assets/characters/poses/claude/book_hold/concerned_talk.png",
+      "mouth_box": [
+        469,
+        159,
+        549,
+        212
+      ],
+      "changed_pixels": 2903,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "2d96a3e7dea15a5ca912f3f68fe032904fcc0c01e98f2d6c25c2dbc409acaaaa",
+      "bytes": 2182470
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_hold",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/claude/book_hold/flustered.png",
+      "talk": "assets/characters/poses/claude/book_hold/flustered_talk.png",
+      "mouth_box": [
+        469,
+        159,
+        549,
+        212
+      ],
+      "changed_pixels": 2907,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "35e9bcd417078e0089aa8f9d0abf59bcc0454ceec9be212bb18ea7d8e0fd11c9",
+      "bytes": 2180070
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_read",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/claude/book_read/neutral.png",
+      "talk": "assets/characters/poses/claude/book_read/neutral_talk.png",
+      "mouth_box": [
+        461,
+        171,
+        543,
+        224
+      ],
+      "changed_pixels": 3006,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "df4b91634f8cf20bdb0c10726e01ed8d33de473d6e0a525c3399258ff9c538f9",
+      "bytes": 2238195
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_read",
+      "emotion": "amused",
+      "idle": "assets/characters/poses/claude/book_read/amused.png",
+      "talk": "assets/characters/poses/claude/book_read/amused_talk.png",
+      "mouth_box": [
+        461,
+        171,
+        543,
+        224
+      ],
+      "changed_pixels": 3034,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "41edff403bfa915fc7959474a877874969b877197e2b9a96b2e07ad28ccddfda",
+      "bytes": 2173055
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_read",
+      "emotion": "questioning",
+      "idle": "assets/characters/poses/claude/book_read/questioning.png",
+      "talk": "assets/characters/poses/claude/book_read/questioning_talk.png",
+      "mouth_box": [
+        461,
+        171,
+        543,
+        224
+      ],
+      "changed_pixels": 2920,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "fc47c5ba1a3e3b40707bb9206ec7b25fdb0a9d0f64f2c032f1ded88ce19ad4e6",
+      "bytes": 2178944
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_read",
+      "emotion": "concerned",
+      "idle": "assets/characters/poses/claude/book_read/concerned.png",
+      "talk": "assets/characters/poses/claude/book_read/concerned_talk.png",
+      "mouth_box": [
+        461,
+        171,
+        543,
+        224
+      ],
+      "changed_pixels": 3127,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "6430c8765ba166933f84647139502a62ea57d943b8ab2cdbe463ea2e934b4d70",
+      "bytes": 2162635
+    },
+    {
+      "character_id": "claude",
+      "pose": "book_read",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/claude/book_read/flustered.png",
+      "talk": "assets/characters/poses/claude/book_read/flustered_talk.png",
+      "mouth_box": [
+        461,
+        171,
+        543,
+        224
+      ],
+      "changed_pixels": 3002,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "50b301f61a437db10310e89c84bbb53af2b4ca816bae5c7233ccc55895e36d61",
+      "bytes": 2165785
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_greeting",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/qwen/fan_greeting/neutral.png",
+      "talk": "assets/characters/poses/qwen/fan_greeting/neutral_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2568,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "ddd0acce654dae8cc386a380eebf0099fb433958c73f7ea2cf4e0380d62760c4",
+      "bytes": 2115689
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_greeting",
+      "emotion": "confident",
+      "idle": "assets/characters/poses/qwen/fan_greeting/confident.png",
+      "talk": "assets/characters/poses/qwen/fan_greeting/confident_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2683,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "9540bb128ac7c0f457987d5ea4bad16e847d09d1f5d283b12d4a76e4420c1549",
+      "bytes": 2106843
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_greeting",
+      "emotion": "curious",
+      "idle": "assets/characters/poses/qwen/fan_greeting/curious.png",
+      "talk": "assets/characters/poses/qwen/fan_greeting/curious_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2591,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "9edb95657460c1623349c78888415460b7a5943dc37f9f672e1466581873f513",
+      "bytes": 2123830
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_greeting",
+      "emotion": "exasperated",
+      "idle": "assets/characters/poses/qwen/fan_greeting/exasperated.png",
+      "talk": "assets/characters/poses/qwen/fan_greeting/exasperated_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2603,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "c8d75d83f774fafe1d22079ea05f2eb6d872e44fb0bf01c1c28fbf1e09c56dcc",
+      "bytes": 2125205
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_greeting",
+      "emotion": "delighted",
+      "idle": "assets/characters/poses/qwen/fan_greeting/delighted.png",
+      "talk": "assets/characters/poses/qwen/fan_greeting/delighted_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2562,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "91f8edc9a85ecc8880464a9b0b3d4a02c1c561abe3ef6c5e6179a77cfc0757bb",
+      "bytes": 2119970
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_thought",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/qwen/fan_thought/neutral.png",
+      "talk": "assets/characters/poses/qwen/fan_thought/neutral_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2627,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "c7af2f24b10d67a13474ca0208070958b396e36b9cdf45e97e94f68919612518",
+      "bytes": 2067836
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_thought",
+      "emotion": "confident",
+      "idle": "assets/characters/poses/qwen/fan_thought/confident.png",
+      "talk": "assets/characters/poses/qwen/fan_thought/confident_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2558,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "a1624285f419abad45f0dd12ec5a6d7c05464e64aa6c0fee388e753439f66bce",
+      "bytes": 2087280
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_thought",
+      "emotion": "curious",
+      "idle": "assets/characters/poses/qwen/fan_thought/curious.png",
+      "talk": "assets/characters/poses/qwen/fan_thought/curious_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2581,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "cc167c0845da541bf1a81a72acc5fbdd4e4d7241b6d533747117a0bf6f4a0eba",
+      "bytes": 2067854
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_thought",
+      "emotion": "exasperated",
+      "idle": "assets/characters/poses/qwen/fan_thought/exasperated.png",
+      "talk": "assets/characters/poses/qwen/fan_thought/exasperated_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2691,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "3d114a2ecb7163a1e239e320171b6b0b12aec715ff4dc7311be362be2b32a570",
+      "bytes": 2069253
+    },
+    {
+      "character_id": "qwen",
+      "pose": "fan_thought",
+      "emotion": "delighted",
+      "idle": "assets/characters/poses/qwen/fan_thought/delighted.png",
+      "talk": "assets/characters/poses/qwen/fan_thought/delighted_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        557,
+        261
+      ],
+      "changed_pixels": 2604,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "c4e62daee209c6ed5da208c0f18b265108dffd440aab8385605ae8825075ff45",
+      "bytes": 2069394
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "maid_greeting",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+      "talk": "assets/characters/poses/deepseek/maid_greeting/neutral_talk.png",
+      "mouth_box": [
+        478,
+        242,
+        568,
+        297
+      ],
+      "changed_pixels": 3349,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "efa9fc9bbd2ce7a0cb3c4fcf5048568ac1145d00ee927ea2aa4c0a9605ebf505",
+      "bytes": 1951772
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "maid_greeting",
+      "emotion": "happy",
+      "idle": "assets/characters/poses/deepseek/maid_greeting/happy.png",
+      "talk": "assets/characters/poses/deepseek/maid_greeting/happy_talk.png",
+      "mouth_box": [
+        478,
+        242,
+        568,
+        297
+      ],
+      "changed_pixels": 3340,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "2e3e35c49eb22a39c5fa93c32b18b44817b644352d4792dded7b6e6ee4d66d5e",
+      "bytes": 1953632
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "maid_greeting",
+      "emotion": "questioning",
+      "idle": "assets/characters/poses/deepseek/maid_greeting/questioning.png",
+      "talk": "assets/characters/poses/deepseek/maid_greeting/questioning_talk.png",
+      "mouth_box": [
+        478,
+        242,
+        568,
+        297
+      ],
+      "changed_pixels": 3348,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "493f47253bf02137c16d9f5fba08a419ec731e5521b4ab6999a0c2d412047630",
+      "bytes": 1916439
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "maid_greeting",
+      "emotion": "sleepy",
+      "idle": "assets/characters/poses/deepseek/maid_greeting/sleepy.png",
+      "talk": "assets/characters/poses/deepseek/maid_greeting/sleepy_talk.png",
+      "mouth_box": [
+        478,
+        242,
+        568,
+        297
+      ],
+      "changed_pixels": 3304,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "6bcf82193c59506ac59f2c9234a176e7c578e37f30f7660f647258e07137b275",
+      "bytes": 1937410
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "maid_greeting",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/deepseek/maid_greeting/flustered.png",
+      "talk": "assets/characters/poses/deepseek/maid_greeting/flustered_talk.png",
+      "mouth_box": [
+        478,
+        242,
+        568,
+        297
+      ],
+      "changed_pixels": 3430,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "7c1506ea48b0dcad9e69da9a91f03c5b9f24729b8dc794343797356b93afa1e6",
+      "bytes": 1964744
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "notebook",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/deepseek/notebook/neutral.png",
+      "talk": "assets/characters/poses/deepseek/notebook/neutral_talk.png",
+      "mouth_box": [
+        451,
+        275,
+        547,
+        332
+      ],
+      "changed_pixels": 3648,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "b66e37a34121d8aac6905c619e71177359e7a182266fa60dd330c2a00b9d957a",
+      "bytes": 1977398
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "notebook",
+      "emotion": "happy",
+      "idle": "assets/characters/poses/deepseek/notebook/happy.png",
+      "talk": "assets/characters/poses/deepseek/notebook/happy_talk.png",
+      "mouth_box": [
+        451,
+        275,
+        547,
+        332
+      ],
+      "changed_pixels": 3768,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "70b6daefbb137b8273f9cfe86d4fb59090fac276a958f9fb400df6cf32d391fe",
+      "bytes": 1966816
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "notebook",
+      "emotion": "questioning",
+      "idle": "assets/characters/poses/deepseek/notebook/questioning.png",
+      "talk": "assets/characters/poses/deepseek/notebook/questioning_talk.png",
+      "mouth_box": [
+        451,
+        275,
+        547,
+        332
+      ],
+      "changed_pixels": 3727,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "f07240193dedd63e7edbc22182678cfc0a5536e70d212b54ff5d61e0207c8327",
+      "bytes": 1993531
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "notebook",
+      "emotion": "sleepy",
+      "idle": "assets/characters/poses/deepseek/notebook/sleepy.png",
+      "talk": "assets/characters/poses/deepseek/notebook/sleepy_talk.png",
+      "mouth_box": [
+        451,
+        275,
+        547,
+        332
+      ],
+      "changed_pixels": 3826,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "4e9343d2709c5e9abca6a42a033a05252c9d137f828a6422ffa20f4db1fd66c2",
+      "bytes": 2007620
+    },
+    {
+      "character_id": "deepseek",
+      "pose": "notebook",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/deepseek/notebook/flustered.png",
+      "talk": "assets/characters/poses/deepseek/notebook/flustered_talk.png",
+      "mouth_box": [
+        451,
+        275,
+        547,
+        332
+      ],
+      "changed_pixels": 3580,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "9b6adc649d1ece701bbd904ed8712f73edce1cd5426e0116ee7701aeb09299e9",
+      "bytes": 1981448
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_thought",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/glm/book_thought/neutral.png",
+      "talk": "assets/characters/poses/glm/book_thought/neutral_talk.png",
+      "mouth_box": [
+        471,
+        211,
+        551,
+        260
+      ],
+      "changed_pixels": 2614,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "dea68a388bdad4f67584347b7c050eba0d0ece0bd3d2a24c2e51fda9b860a15f",
+      "bytes": 1999178
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_thought",
+      "emotion": "deadpan",
+      "idle": "assets/characters/poses/glm/book_thought/deadpan.png",
+      "talk": "assets/characters/poses/glm/book_thought/deadpan_talk.png",
+      "mouth_box": [
+        471,
+        211,
+        551,
+        260
+      ],
+      "changed_pixels": 2695,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "48f34c7d1babcf0b71b14b4e1406e3b63c107e20af41d62b0978a800c57c9350",
+      "bytes": 1990010
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_thought",
+      "emotion": "amused",
+      "idle": "assets/characters/poses/glm/book_thought/amused.png",
+      "talk": "assets/characters/poses/glm/book_thought/amused_talk.png",
+      "mouth_box": [
+        471,
+        211,
+        551,
+        260
+      ],
+      "changed_pixels": 2736,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "ae36802b3c39091e1584eccb99a186244b77b6e67b5e4c47fca868883e49280e",
+      "bytes": 1961848
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_thought",
+      "emotion": "annoyed",
+      "idle": "assets/characters/poses/glm/book_thought/annoyed.png",
+      "talk": "assets/characters/poses/glm/book_thought/annoyed_talk.png",
+      "mouth_box": [
+        471,
+        211,
+        551,
+        260
+      ],
+      "changed_pixels": 2665,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "9b34491c9fda1f071741e8a69c6ccfa7872514af8b6ca95a69d27bba377e4ec8",
+      "bytes": 1995765
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_thought",
+      "emotion": "shy",
+      "idle": "assets/characters/poses/glm/book_thought/shy.png",
+      "talk": "assets/characters/poses/glm/book_thought/shy_talk.png",
+      "mouth_box": [
+        471,
+        211,
+        551,
+        260
+      ],
+      "changed_pixels": 2746,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "4998e05dfca9bfad78841e13f98bbffca39c09ef88f87fcb52a316796bd9ee20",
+      "bytes": 1982773
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_explain",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/glm/book_explain/neutral.png",
+      "talk": "assets/characters/poses/glm/book_explain/neutral_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        559,
+        264
+      ],
+      "changed_pixels": 2976,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "56fd4330c4329e44d4724d6297c6f86ec2dcfaa9f2548517ac8708079e7c7c2d",
+      "bytes": 2032325
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_explain",
+      "emotion": "deadpan",
+      "idle": "assets/characters/poses/glm/book_explain/deadpan.png",
+      "talk": "assets/characters/poses/glm/book_explain/deadpan_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        559,
+        264
+      ],
+      "changed_pixels": 3027,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "87baca4e52dc4aa54617abc074fd7bfc1d185bd5316fe840706779221828d5ea",
+      "bytes": 1999188
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_explain",
+      "emotion": "amused",
+      "idle": "assets/characters/poses/glm/book_explain/amused.png",
+      "talk": "assets/characters/poses/glm/book_explain/amused_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        559,
+        264
+      ],
+      "changed_pixels": 2996,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "4eca583abd7167ed62871c97050a41d4776b1b22a32875b8ed6fca20e7dceffb",
+      "bytes": 2027463
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_explain",
+      "emotion": "annoyed",
+      "idle": "assets/characters/poses/glm/book_explain/annoyed.png",
+      "talk": "assets/characters/poses/glm/book_explain/annoyed_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        559,
+        264
+      ],
+      "changed_pixels": 3000,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "6271d4af9e628fce75046e2c850f07eab59ac0a59e5fd4dbca6ef80e53ce0645",
+      "bytes": 2023116
+    },
+    {
+      "character_id": "glm",
+      "pose": "book_explain",
+      "emotion": "shy",
+      "idle": "assets/characters/poses/glm/book_explain/shy.png",
+      "talk": "assets/characters/poses/glm/book_explain/shy_talk.png",
+      "mouth_box": [
+        475,
+        213,
+        559,
+        264
+      ],
+      "changed_pixels": 2996,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "dd3690197240ebac20c6e094b21ff0a2cde6d6d2d7c01f12c82ed38653d6d5d2",
+      "bytes": 2029182
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_present",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/gpt/cloud_present/neutral.png",
+      "talk": "assets/characters/poses/gpt/cloud_present/neutral_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2661,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "a97916d782b8c93fca04e8f58fcbb0a2a5632f4afa50389aa7397d2d3c3acfd6",
+      "bytes": 2063308
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_present",
+      "emotion": "confident",
+      "idle": "assets/characters/poses/gpt/cloud_present/confident.png",
+      "talk": "assets/characters/poses/gpt/cloud_present/confident_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2698,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "5722c74988618e08ab1a61247f23b520faaacac9ed864f76ec4adc6d0b7d5cc9",
+      "bytes": 2038828
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_present",
+      "emotion": "skeptical",
+      "idle": "assets/characters/poses/gpt/cloud_present/skeptical.png",
+      "talk": "assets/characters/poses/gpt/cloud_present/skeptical_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2708,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "a175b518017de09dd7157c5d5a5b4699f5ca3cc0d8f7be7df0df7d9d05cb5e58",
+      "bytes": 2012201
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_present",
+      "emotion": "stern",
+      "idle": "assets/characters/poses/gpt/cloud_present/stern.png",
+      "talk": "assets/characters/poses/gpt/cloud_present/stern_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2697,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "7a49e0212cb96af6b5f7d63a6e7e5f401d83b5ab431a3f19f70ddfc4ac808e31",
+      "bytes": 2046751
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_present",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/gpt/cloud_present/flustered.png",
+      "talk": "assets/characters/poses/gpt/cloud_present/flustered_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2749,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "7e8eb407a53be04c1c18b648ceaa72ba9299687acea69be7790b0ff7072b2bd6",
+      "bytes": 2028062
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_greeting",
+      "emotion": "neutral",
+      "idle": "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+      "talk": "assets/characters/poses/gpt/cloud_greeting/neutral_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2680,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "f849ce7aa488206f886e36134413a0c35cca660eb5859036fbd3f5b1445cdb39",
+      "bytes": 2045682
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_greeting",
+      "emotion": "confident",
+      "idle": "assets/characters/poses/gpt/cloud_greeting/confident.png",
+      "talk": "assets/characters/poses/gpt/cloud_greeting/confident_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2694,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "ed82f74c0603e3ac4de3f897e41f68ecb1d4c945d74bab029c79a6652056c213",
+      "bytes": 2048215
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_greeting",
+      "emotion": "skeptical",
+      "idle": "assets/characters/poses/gpt/cloud_greeting/skeptical.png",
+      "talk": "assets/characters/poses/gpt/cloud_greeting/skeptical_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2717,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "fbb51777a095994f81a0eda9be172db8afc4d8dc9ffad73296e9ac9397a302a6",
+      "bytes": 2061238
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_greeting",
+      "emotion": "stern",
+      "idle": "assets/characters/poses/gpt/cloud_greeting/stern.png",
+      "talk": "assets/characters/poses/gpt/cloud_greeting/stern_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2666,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "b1eed962a3d5d37fc1e45c4da78e7ae2ec537d0782dff0cec8d9a3b35ac644e2",
+      "bytes": 2068790
+    },
+    {
+      "character_id": "gpt",
+      "pose": "cloud_greeting",
+      "emotion": "flustered",
+      "idle": "assets/characters/poses/gpt/cloud_greeting/flustered.png",
+      "talk": "assets/characters/poses/gpt/cloud_greeting/flustered_talk.png",
+      "mouth_box": [
+        463,
+        241,
+        543,
+        290
+      ],
+      "changed_pixels": 2708,
+      "outside_mouth_pixels_identical": true,
+      "alpha_identical": true,
+      "sha256": "906d2ed8ecfc35b671d4b4aa6db48ebbaa2a5b9b5aaa8b62db6c48a2065eb824",
+      "bytes": 2032661
+    }
+  ]
+}

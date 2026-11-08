@@ -22,6 +22,13 @@
             "questioning": "assets/characters/poses/deepseek/maid_greeting/questioning.png",
             "sleepy": "assets/characters/poses/deepseek/maid_greeting/sleepy.png",
             "flustered": "assets/characters/poses/deepseek/maid_greeting/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/deepseek/maid_greeting/neutral_talk.png",
+            "happy": "assets/characters/poses/deepseek/maid_greeting/happy_talk.png",
+            "questioning": "assets/characters/poses/deepseek/maid_greeting/questioning_talk.png",
+            "sleepy": "assets/characters/poses/deepseek/maid_greeting/sleepy_talk.png",
+            "flustered": "assets/characters/poses/deepseek/maid_greeting/flustered_talk.png"
           }
         },
         "notebook": {
@@ -32,8 +39,23 @@
             "questioning": "assets/characters/poses/deepseek/notebook/questioning.png",
             "sleepy": "assets/characters/poses/deepseek/notebook/sleepy.png",
             "flustered": "assets/characters/poses/deepseek/notebook/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/deepseek/notebook/neutral_talk.png",
+            "happy": "assets/characters/poses/deepseek/notebook/happy_talk.png",
+            "questioning": "assets/characters/poses/deepseek/notebook/questioning_talk.png",
+            "sleepy": "assets/characters/poses/deepseek/notebook/sleepy_talk.png",
+            "flustered": "assets/characters/poses/deepseek/notebook/flustered_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/deepseek/maid_greeting/neutral_talk.png",
+        "happy": "assets/characters/poses/deepseek/maid_greeting/happy_talk.png",
+        "questioning": "assets/characters/poses/deepseek/maid_greeting/questioning_talk.png",
+        "sleepy": "assets/characters/poses/deepseek/maid_greeting/sleepy_talk.png",
+        "flustered": "assets/characters/poses/deepseek/maid_greeting/flustered_talk.png",
+        "confident": "assets/characters/poses/deepseek/notebook/happy_talk.png"
       }
     },
     "claude": {
@@ -56,6 +78,13 @@
             "questioning": "assets/characters/poses/claude/book_hold/questioning.png",
             "concerned": "assets/characters/poses/claude/book_hold/concerned.png",
             "flustered": "assets/characters/poses/claude/book_hold/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/claude/book_hold/neutral_talk.png",
+            "amused": "assets/characters/poses/claude/book_hold/amused_talk.png",
+            "questioning": "assets/characters/poses/claude/book_hold/questioning_talk.png",
+            "concerned": "assets/characters/poses/claude/book_hold/concerned_talk.png",
+            "flustered": "assets/characters/poses/claude/book_hold/flustered_talk.png"
           }
         },
         "book_read": {
@@ -66,8 +95,22 @@
             "questioning": "assets/characters/poses/claude/book_read/questioning.png",
             "concerned": "assets/characters/poses/claude/book_read/concerned.png",
             "flustered": "assets/characters/poses/claude/book_read/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/claude/book_read/neutral_talk.png",
+            "amused": "assets/characters/poses/claude/book_read/amused_talk.png",
+            "questioning": "assets/characters/poses/claude/book_read/questioning_talk.png",
+            "concerned": "assets/characters/poses/claude/book_read/concerned_talk.png",
+            "flustered": "assets/characters/poses/claude/book_read/flustered_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/claude/book_hold/neutral_talk.png",
+        "amused": "assets/characters/poses/claude/book_hold/amused_talk.png",
+        "questioning": "assets/characters/poses/claude/book_hold/questioning_talk.png",
+        "concerned": "assets/characters/poses/claude/book_hold/concerned_talk.png",
+        "flustered": "assets/characters/poses/claude/book_hold/flustered_talk.png"
       }
     },
     "qwen": {
@@ -90,6 +133,13 @@
             "curious": "assets/characters/poses/qwen/fan_greeting/curious.png",
             "exasperated": "assets/characters/poses/qwen/fan_greeting/exasperated.png",
             "delighted": "assets/characters/poses/qwen/fan_greeting/delighted.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/qwen/fan_greeting/neutral_talk.png",
+            "confident": "assets/characters/poses/qwen/fan_greeting/confident_talk.png",
+            "curious": "assets/characters/poses/qwen/fan_greeting/curious_talk.png",
+            "exasperated": "assets/characters/poses/qwen/fan_greeting/exasperated_talk.png",
+            "delighted": "assets/characters/poses/qwen/fan_greeting/delighted_talk.png"
           }
         },
         "fan_thought": {
@@ -100,8 +150,22 @@
             "curious": "assets/characters/poses/qwen/fan_thought/curious.png",
             "exasperated": "assets/characters/poses/qwen/fan_thought/exasperated.png",
             "delighted": "assets/characters/poses/qwen/fan_thought/delighted.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/qwen/fan_thought/neutral_talk.png",
+            "confident": "assets/characters/poses/qwen/fan_thought/confident_talk.png",
+            "curious": "assets/characters/poses/qwen/fan_thought/curious_talk.png",
+            "exasperated": "assets/characters/poses/qwen/fan_thought/exasperated_talk.png",
+            "delighted": "assets/characters/poses/qwen/fan_thought/delighted_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/qwen/fan_greeting/neutral_talk.png",
+        "confident": "assets/characters/poses/qwen/fan_greeting/confident_talk.png",
+        "curious": "assets/characters/poses/qwen/fan_greeting/curious_talk.png",
+        "exasperated": "assets/characters/poses/qwen/fan_greeting/exasperated_talk.png",
+        "delighted": "assets/characters/poses/qwen/fan_greeting/delighted_talk.png"
       }
     },
     "glm": {
@@ -124,6 +188,13 @@
             "amused": "assets/characters/poses/glm/book_thought/amused.png",
             "annoyed": "assets/characters/poses/glm/book_thought/annoyed.png",
             "shy": "assets/characters/poses/glm/book_thought/shy.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/glm/book_thought/neutral_talk.png",
+            "deadpan": "assets/characters/poses/glm/book_thought/deadpan_talk.png",
+            "amused": "assets/characters/poses/glm/book_thought/amused_talk.png",
+            "annoyed": "assets/characters/poses/glm/book_thought/annoyed_talk.png",
+            "shy": "assets/characters/poses/glm/book_thought/shy_talk.png"
           }
         },
         "book_explain": {
@@ -134,8 +205,22 @@
             "amused": "assets/characters/poses/glm/book_explain/amused.png",
             "annoyed": "assets/characters/poses/glm/book_explain/annoyed.png",
             "shy": "assets/characters/poses/glm/book_explain/shy.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/glm/book_explain/neutral_talk.png",
+            "deadpan": "assets/characters/poses/glm/book_explain/deadpan_talk.png",
+            "amused": "assets/characters/poses/glm/book_explain/amused_talk.png",
+            "annoyed": "assets/characters/poses/glm/book_explain/annoyed_talk.png",
+            "shy": "assets/characters/poses/glm/book_explain/shy_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/glm/book_thought/neutral_talk.png",
+        "deadpan": "assets/characters/poses/glm/book_thought/deadpan_talk.png",
+        "amused": "assets/characters/poses/glm/book_thought/amused_talk.png",
+        "annoyed": "assets/characters/poses/glm/book_thought/annoyed_talk.png",
+        "shy": "assets/characters/poses/glm/book_thought/shy_talk.png"
       }
     },
     "gemini": {
@@ -159,6 +244,13 @@
             "pout": "assets/characters/poses/gemini/cat_paws/pout.png",
             "surprised": "assets/characters/poses/gemini/cat_paws/surprised.png",
             "flustered": "assets/characters/poses/gemini/cat_paws/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/gemini/cat_paws/neutral_talk.png",
+            "excited": "assets/characters/poses/gemini/cat_paws/excited_talk.png",
+            "pout": "assets/characters/poses/gemini/cat_paws/pout_talk.png",
+            "surprised": "assets/characters/poses/gemini/cat_paws/surprised_talk.png",
+            "flustered": "assets/characters/poses/gemini/cat_paws/flustered_talk.png"
           }
         },
         "playful_greeting": {
@@ -169,8 +261,23 @@
             "pout": "assets/characters/poses/gemini/playful_greeting/pout.png",
             "surprised": "assets/characters/poses/gemini/playful_greeting/surprised.png",
             "flustered": "assets/characters/poses/gemini/playful_greeting/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/gemini/playful_greeting/neutral_talk.png",
+            "excited": "assets/characters/poses/gemini/playful_greeting/excited_talk.png",
+            "pout": "assets/characters/poses/gemini/playful_greeting/pout_talk.png",
+            "surprised": "assets/characters/poses/gemini/playful_greeting/surprised_talk.png",
+            "flustered": "assets/characters/poses/gemini/playful_greeting/flustered_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/gemini/cat_paws/neutral_talk.png",
+        "excited": "assets/characters/poses/gemini/cat_paws/excited_talk.png",
+        "pout": "assets/characters/poses/gemini/cat_paws/pout_talk.png",
+        "surprised": "assets/characters/poses/gemini/cat_paws/surprised_talk.png",
+        "flustered": "assets/characters/poses/gemini/cat_paws/flustered_talk.png",
+        "playful": "assets/characters/poses/gemini/playful_greeting/excited_talk.png"
       }
     },
     "gpt": {
@@ -193,6 +300,13 @@
             "skeptical": "assets/characters/poses/gpt/cloud_present/skeptical.png",
             "stern": "assets/characters/poses/gpt/cloud_present/stern.png",
             "flustered": "assets/characters/poses/gpt/cloud_present/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/gpt/cloud_present/neutral_talk.png",
+            "confident": "assets/characters/poses/gpt/cloud_present/confident_talk.png",
+            "skeptical": "assets/characters/poses/gpt/cloud_present/skeptical_talk.png",
+            "stern": "assets/characters/poses/gpt/cloud_present/stern_talk.png",
+            "flustered": "assets/characters/poses/gpt/cloud_present/flustered_talk.png"
           }
         },
         "cloud_greeting": {
@@ -203,8 +317,22 @@
             "skeptical": "assets/characters/poses/gpt/cloud_greeting/skeptical.png",
             "stern": "assets/characters/poses/gpt/cloud_greeting/stern.png",
             "flustered": "assets/characters/poses/gpt/cloud_greeting/flustered.png"
+          },
+          "speaking_portraits": {
+            "neutral": "assets/characters/poses/gpt/cloud_greeting/neutral_talk.png",
+            "confident": "assets/characters/poses/gpt/cloud_greeting/confident_talk.png",
+            "skeptical": "assets/characters/poses/gpt/cloud_greeting/skeptical_talk.png",
+            "stern": "assets/characters/poses/gpt/cloud_greeting/stern_talk.png",
+            "flustered": "assets/characters/poses/gpt/cloud_greeting/flustered_talk.png"
           }
         }
+      },
+      "speaking_portraits": {
+        "neutral": "assets/characters/poses/gpt/cloud_present/neutral_talk.png",
+        "confident": "assets/characters/poses/gpt/cloud_present/confident_talk.png",
+        "skeptical": "assets/characters/poses/gpt/cloud_present/skeptical_talk.png",
+        "stern": "assets/characters/poses/gpt/cloud_present/stern_talk.png",
+        "flustered": "assets/characters/poses/gpt/cloud_present/flustered_talk.png"
       }
     }
   }

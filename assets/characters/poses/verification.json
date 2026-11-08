@@ -2,9 +2,14 @@
   "passed": true,
   "characters": 6,
   "poses": 12,
-  "png_files": 60,
-  "unique_hashes": 60,
+  "png_files": 120,
+  "unique_hashes": 120,
   "alpha_validated": true,
-  "total_bytes": 126148453,
-  "api_generation_reused_existing_pose_masters": true
+  "total_bytes": 250960385,
+  "api_generation_reused_existing_pose_masters": true,
+  "expression_frames": 60,
+  "talking_frames": 60,
+  "talking_pairs": 60,
+  "all_pairs_preserve_outside_mouth": true,
+  "all_pairs_preserve_alpha": true
 }

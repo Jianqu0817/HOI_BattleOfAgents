@@ -1,0 +1,5 @@
+Identity-preserving mouth-only edit for a two-frame anime talking sprite.
+The input is an approved full-body sprite of 基米 with emotion pout. The transparent part of the supplied mask marks ONLY the mouth area.
+Create the complementary mouth frame: if the original mouth is closed, draw a small natural open speaking mouth; if the original mouth is already open, draw a relaxed almost-closed speaking mouth. The pair must visibly alternate open and closed. Preserve the existing emotion. Keep it delicate, natural and youthful; no wide shout, tongue, drooling or exaggerated teeth.
+Keep the exact same eyes, eyebrows, pupil directions, blush, facial angle, chin silhouette, hair, pose, accessories, outfit, colors, scale and framing. Edit ONLY lips and mouth interior in the masked area. Do not move the mouth to a different position. Do not alter any other pixels.
+Maintain the bright clean cel-shaded line art and genuine transparent background. Output one RGBA PNG at the identical 1024x1536 canvas; no captions or graphics.

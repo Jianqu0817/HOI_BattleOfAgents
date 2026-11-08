@@ -14,6 +14,16 @@
 
 项目保留叙事、角色、配音和剪辑接口及已有素材。当前语音生成与剪辑制作均暂缓；六个声线的模型与参考 WAV 为本机资产且由 Git 忽略。宣战和海空军任务设置已有独立验收；`news.66` 在第9回合验证过安全暂停、选项选择、resolved 关窗和恢复剩余12小时，其他通用事件未验证。配音和剪辑边界见[制作工作流](docs/NARRATIVE_PRODUCTION.md)、[视频工作流](docs/VIDEO_WORKFLOW.md)及[GPT-SoVITS](docs/GPT_SOVITS.md)。
 
+## 角色立绘
+
+六位角色各有 **2种姿势 × 5个表情 × 普通/说话两帧，共120张** 透明全身PNG，保留猫猫拳、抱书、折扇、记事本等专属动作与道具。每组仅嘴部发生变化，供说话时交替显示。实际图片为1024×1536 RGBA，按指定的 `gpt-image-2.5-2k` 模型标识生成。
+
+| 基米：猫猫拳 | 克莱德：抱书歪头 |
+| --- | --- |
+| <img src="assets/characters/poses/gemini/cat_paws/neutral.png" width="240" alt="基米猫猫拳立绘"> | <img src="assets/characters/poses/claude/book_hold/neutral.png" width="240" alt="克莱德抱书立绘"> |
+
+[完整立绘说明](docs/CHARACTER_ART.md) · [图片与生成清单](assets/characters/poses/)；下载后可打开该目录的 `index.html` 查看全部姿势及表情。角色图更新不恢复剪辑或语音制作。
+
 ## 文档导航
 
 - [快速上手](docs/QUICKSTART.md)：原生 CLI 初始化、开始／恢复和离线审计；另有旧 UI 操作说明。
@@ -100,6 +110,6 @@ python -m unittest discover -s tools -p 'test_*.py' -v
 python -I tools/parse_save.py --selftest
 ```
 
-发布前本机317项离线测试通过，存档解析自测、87个Python模块编译以及两个事件sidecar的隔离构建/自测通过。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
+发布前本机319项离线测试通过，存档解析自测、89个Python模块编译以及两个事件sidecar的隔离构建/自测通过。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
 
 [场景与计分](docs/SCENARIOS.md) · [陆军校准](docs/ARMY_CONTROL.md) · [模型接口](docs/MODEL_INTERFACE.md) · [技术路线](docs/TECHNICAL_ROADMAP.md) · [第三方声明](NOTICE.md)

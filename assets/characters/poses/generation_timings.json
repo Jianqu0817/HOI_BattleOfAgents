@@ -1,0 +1,9 @@
+{
+  "phase_elapsed_seconds": {
+    "pose_masters": 118.934,
+    "expressions": 650.023,
+    "talking": 783.927
+  },
+  "concurrency": 4,
+  "note": "Pose master phase reused two earlier parallel samples. Values are measured phase wall times, not provider billing or token usage."
+}

@@ -1455,5 +1455,7 @@
       "mode": "RGBA",
       "fully_transparent_fraction": 0.4152
     }
-  ]
+  ],
+  "talking_pairs_file": "talking_pairs.json",
+  "total_png_files": 120
 }
