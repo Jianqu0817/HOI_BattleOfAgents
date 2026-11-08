@@ -6,6 +6,10 @@
 
 **[快速上手](docs/QUICKSTART.md) · [视频制作工作流](docs/VIDEO_WORKFLOW.md) · [节目设计](docs/PRODUCT_DIRECTION.md)**
 
+原生 Windows API 与实机验收说明：[原生 API](docs/NATIVE_API.md) · [验收记录](docs/NATIVE_ACCEPTANCE.md)。
+
+军事控制现在可走[原生五国批量入口](docs/NATIVE_TURN.md)：正常移动、宣战、海空军任务和区域均已实机核验，全程使用原生命令队列。下方 `campaign.py` 是原有完整节目流程，其执行器仍使用 UI；原生军事入口单独运行。
+
 ## 启动
 
 ```powershell

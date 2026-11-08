@@ -1,0 +1,20 @@
+{
+  "schema": "iron.native-turn.v1",
+  "label": "Replace all example IDs and baselines with fresh native snapshots before execution",
+  "step_hours": 360,
+  "disable_ai": true,
+  "save_basename": "iron_native_turn",
+  "countries": [
+    {"tag": "AUS", "actions": [
+      {"id": "example_move", "kind": "division.move", "unit_id": 100001, "source": 10001, "target": 10002}
+    ]},
+    {"tag": "GER", "actions": [
+      {"id": "example_patrol", "kind": "navy.mission", "task_force_id": 100002, "expected_type": 0, "mission_type": 1},
+      {"id": "example_sea_region", "kind": "navy.regions", "task_force_id": 100002, "expected_regions": [], "target_regions": [10003]}
+    ]},
+    {"tag": "FRA", "actions": [
+      {"id": "example_air_mission", "kind": "air.mission", "wing_id": 100004, "expected_mask": 0, "mission_bit": 1, "enabled": true},
+      {"id": "example_air_region", "kind": "air.region", "wing_id": 100004, "expected_region": 0, "target_region": 10005}
+    ]}
+  ]
+}

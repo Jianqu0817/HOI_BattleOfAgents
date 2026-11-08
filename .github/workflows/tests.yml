@@ -34,3 +34,31 @@ jobs:
         run: python -I tools/parse_save.py --selftest
       - name: Compile Python modules
         run: python -c "from pathlib import Path; import py_compile; [py_compile.compile(str(path), doraise=True) for path in Path('tools').glob('*.py')]"
+
+  native:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Fetch pinned MinHook source
+        shell: pwsh
+        run: ./native/iron_bridge/setup-dependency.ps1
+      - name: Compile native bridge and military modules
+        shell: pwsh
+        run: |
+          ./native/iron_bridge/build.ps1
+          ./native/iron_bridge/build-clock.ps1
+          ./native/iron_bridge/build-control.ps1
+          ./native/iron_bridge/build-diplomacy.ps1
+          ./native/iron_bridge/build-air-navy.ps1
+      - name: Exercise native API in owned synthetic processes
+        run: |
+          python tools/test_native_rpc.py
+          python tools/test_native_registration.py
+          python tools/test_native_clock.py
+          python tools/test_native_control.py
