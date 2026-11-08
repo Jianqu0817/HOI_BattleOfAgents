@@ -134,5 +134,91 @@ class NativeTurnTests(unittest.TestCase):
         self.assertTrue(NativeTurn.effect(action, {"current": 1}))
         self.assertFalse(NativeTurn.effect(action, {"current": 4}))
 
+    def test_chunks_exact_total_keep_first_arrival_after_unit_returns(self):
+        class ReturningGame(FakeGame):
+            advanced = 0
+            def call(self, op, payload="", **kwargs):
+                result = super().call(op, payload, **kwargs)
+                if op == "native_clock_v1" and payload.startswith("step "):
+                    self.advanced += int(payload.split()[1])
+                    if self.advanced > 6:
+                        self.province = 10
+                return result
+        game, candidate = ReturningGame(), plan()
+        candidate["step_hours"] = 13
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", poll_interval=0).run()
+        self.assertEqual([int(payload.split()[1]) for op, payload, _ in game.calls
+                          if op == "native_clock_v1" and payload.startswith("step ")], [6, 6, 1])
+        effect = result["effects"][0]
+        self.assertFalse(effect["effect_observed_after_clock"])
+        self.assertTrue(effect["arrival_observed_during_clock"])
+        self.assertEqual(effect["first_arrival"]["date_raw"], 60762746 + 6)
+
+    def test_unexpected_pause_preserves_budget_and_never_replays_or_saves(self):
+        class PausedGame(FakeGame):
+            remaining = 0
+            def call(self, op, payload="", **kwargs):
+                if op == "native_clock_v1" and payload.startswith("step "):
+                    self.calls.append((op, payload, kwargs["request_id"]))
+                    self.date += 2; self.remaining = int(payload.split()[1]) - 2
+                    return {"ok": True, "posted": True, "queue_accepted": True}
+                if op == "native_clock_v1" and payload == "status":
+                    self.calls.append((op, payload, kwargs["request_id"]))
+                    return {"ok": True, "state": {"paused": True, "remaining_hours": self.remaining}}
+                return super().call(op, payload, **kwargs)
+        game, candidate = PausedGame(), plan()
+        candidate["step_hours"] = 13
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", poll_interval=0).run()
+        self.assertEqual(result["status"], "interrupted")
+        self.assertEqual(result["clock_interruption"]["remaining_budget_hours"], 11)
+        self.assertEqual(result["clock_interruption"]["clock"]["remaining_hours"], 4)
+        self.assertEqual(sum(p.startswith("step ") for _, p, _ in game.calls), 1)
+        self.assertFalse(any(p.startswith("save ") for _, p, _ in game.calls))
+
+    def test_pending_event_stops_at_boundary_without_another_step(self):
+        game, candidate = FakeGame(), plan()
+        candidate["step_hours"] = 13
+        def pending(turn, controls):
+            return {"availability": "supported", "pending": [{"id": "decision"}] if turn.date_raw > 60762746 else []}
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", event_provider=pending, poll_interval=0).run()
+        self.assertEqual(result["clock_interruption"]["reason"], "pending_decision")
+        self.assertEqual(result["clock_interruption"]["remaining_budget_hours"], 7)
+        self.assertEqual(sum(p.startswith("step ") for _, p, _ in game.calls), 1)
+        self.assertFalse(any("select" in p or p.startswith("save ") for _, p, _ in game.calls))
+
+    def test_public_war_edge_completes_shorter_turn_and_preserves_sealed_plan(self):
+        game, candidate = FakeGame(), plan()
+        candidate["step_hours"] = 24
+        def trajectory(turn, controls):
+            return {"date_raw": turn.date_raw, "actions": {}, "war_scope": "involving_planned_countries",
+                    "public_wars": [{"first": "GER", "second": "FRA"}] if turn.date_raw > 60762746 else []}
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "run"
+            result = NativeTurn(game, candidate, output, trajectory_provider=trajectory, poll_interval=0).run()
+            self.assertEqual(json.loads((output / "plan.json").read_text()), candidate)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["step_hours"], 6)
+        self.assertEqual(result["requested_step_hours"], 24)
+        self.assertEqual(result["early_end"]["reason"], "public_state_changed")
+        self.assertTrue(result["early_end"]["details"]["war_changed"])
+        self.assertEqual(result["remaining_budget_hours"], 18)
+        self.assertEqual(sum(p.startswith("step ") for _, p, _ in game.calls), 1)
+        self.assertTrue(any(p.startswith("save ") for _, p, _ in game.calls))
+        self.assertEqual(candidate["step_hours"], 24)
+
+    def test_controller_boundary_cannot_become_completed_early_turn(self):
+        game, candidate = FakeGame(), plan()
+        candidate["step_hours"] = 24
+        def boundary(turn, controls):
+            return {"controller_changed": turn.date_raw > 60762746}
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", boundary_observer=boundary, poll_interval=0).run()
+        self.assertEqual(result["status"], "interrupted")
+        self.assertEqual(result["clock_interruption"]["remaining_budget_hours"], 18)
+        self.assertFalse(any(p.startswith("save ") for _, p, _ in game.calls))
+
 
 if __name__ == "__main__": unittest.main()

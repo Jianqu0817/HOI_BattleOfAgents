@@ -12,6 +12,7 @@ import uuid
 
 from native_game import NativeGame
 from native_rpc import NativeRpcError
+from native_pacing import validate_policy
 
 SCHEMA = "iron.native-turn.v1"
 AIR = "native_air_navy_v2"
@@ -38,11 +39,21 @@ def _tag(value):
 
 def validate_plan(plan: dict) -> dict:
     """Validate the entire schema before connecting to or changing the game."""
-    if not isinstance(plan, dict) or set(plan) - {"schema", "label", "countries", "step_hours", "disable_ai", "save_basename"}:
+    if not isinstance(plan, dict) or set(plan) - {"schema", "label", "countries", "step_hours", "disable_ai", "save_basename", "clock_policy", "clock_selection"}:
         raise ValueError("unknown plan fields")
     if plan.get("schema") != SCHEMA:
         raise ValueError(f"schema must be {SCHEMA}")
     _integer(plan.get("step_hours"), maximum=360)
+    if "clock_policy" in plan:
+        policy = validate_policy(plan["clock_policy"])
+        if plan["step_hours"] > policy["maximum_hours"]:
+            raise ValueError("step_hours exceeds the sealed clock policy maximum")
+    if "clock_selection" in plan:
+        selection = plan["clock_selection"]
+        if (not isinstance(selection, dict) or set(selection) != {"reason", "shared_clock"}
+                or selection["reason"] not in {"peace", "war", "critical_event", "fixed"}
+                or selection["shared_clock"] is not True):
+            raise ValueError("clock_selection needs a policy reason and shared_clock=true")
     if type(plan.get("disable_ai", True)) is not bool:
         raise ValueError("disable_ai must be boolean")
     if "save_basename" in plan and (not isinstance(plan["save_basename"], str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,70}", plan["save_basename"])):
@@ -105,7 +116,8 @@ def validate_plan(plan: dict) -> dict:
 
 class NativeTurn:
     def __init__(self, game, plan, output: Path, *, save_dir: Path | None = None,
-                 timeout: float = 900, poll_interval: float = 0.1):
+                 timeout: float = 900, poll_interval: float = 0.1,
+                 trajectory_provider=None, event_provider=None, boundary_observer=None):
         self.plan = validate_plan(plan)
         self.game, self.output, self.save_dir = game, Path(output), save_dir
         self.timeout, self.poll_interval = timeout, poll_interval
@@ -114,6 +126,15 @@ class NativeTurn:
         self.current = self.initial = None
         self.date_raw = None
         self.events = []
+        self.first_arrivals = {}
+        self.boundary_wars = None
+        self.clock_interruption = None
+        self.actual_step_hours = None
+        self.early_end = None
+        self.main_status = None
+        self.trajectory_provider = trajectory_provider
+        self.event_provider = event_provider
+        self.boundary_observer = boundary_observer
 
     def event(self, event_type, **data):
         row = {"event": event_type, "utc": datetime.now(timezone.utc).isoformat(), **data}
@@ -266,23 +287,139 @@ class NativeTurn:
                     raise RuntimeError(f"order effect was not observed: {action['id']}")
         self.control(self.initial)
 
+    def clock_boundary(self, state):
+        """Cheap native-only observations; no planning/model call per chunk."""
+        controls = {country["tag"]: self.country(country["tag"], ai_off=True)
+                    for country in self.plan["countries"]}
+        if any(value["played_index"] != state["country_index"] for value in controls.values()):
+            raise RuntimeError("controller changed during boundary observation")
+        if self.trajectory_provider is not None:
+            trajectory = self.trajectory_provider(self, controls)
+        elif self.main_status and self.main_status.get("synthetic") is False:
+            from native_capture import read_trajectories
+            trajectory = read_trajectories(self.game, self.main_status, controls, self.plan["countries"])
+        else:
+            # Synthetic hosts can reuse the typed inspector. Live capture above
+            # reads all owners directly and never switches the played country.
+            actions = {}
+            for country in self.plan["countries"]:
+                tag = country["tag"]; self.control(tag)
+                for action in country["actions"]:
+                    if action["kind"] == "division.move":
+                        actions[action["id"]] = {"country": tag, "available": True,
+                                                  "observed": self.observe(tag, action)}
+            self.control(self.initial)
+            trajectory = {"date_raw": self.date_raw, "source": "synthetic_typed_inspector", "actions": actions}
+        targets = {action["id"]: action["target"] for country in self.plan["countries"]
+                   for action in country["actions"] if action["kind"] == "division.move"}
+        if trajectory.get("date_raw") != self.date_raw:
+            raise RuntimeError("trajectory observation belongs to another date")
+        for action_id, row in trajectory["actions"].items():
+            if row.get("available") and row["observed"]["province"] == targets[action_id] and action_id not in self.first_arrivals:
+                self.first_arrivals[action_id] = {"date_raw": self.date_raw, "observed": row["observed"]}
+                self.event("first_arrival", action_id=action_id, country=row["country"], **self.first_arrivals[action_id])
+        self.event("trajectory_observation", **trajectory)
+        wars_changed = False
+        if "public_wars" in trajectory:
+            wars = {tuple(sorted((row["first"], row["second"]))) for row in trajectory["public_wars"]}
+            wars_changed = self.boundary_wars is not None and wars != self.boundary_wars
+            self.boundary_wars = wars
+        if self.event_provider is not None:
+            events = self.event_provider(self, controls)
+        elif self.main_status and self.main_status.get("synthetic") is False:
+            from native_events import read_pending
+            events = read_pending(self.game, self.main_status, controls)
+        else:
+            from native_events import unavailable
+            events = unavailable("synthetic host has no event provider")
+        self.event("pending_events_observation", observation=events)
+        if events.get("pending"):
+            return "pending_decision", events
+        if wars_changed:
+            return "public_state_changed", {"war_changed": True, "public_wars": trajectory["public_wars"],
+                                             "scope": trajectory.get("war_scope")}
+        if self.boundary_observer is not None:
+            public = self.boundary_observer(self, controls)
+            self.event("public_boundary_observation", observation=public)
+            if public.get("war_changed") or public.get("controller_changed") or public.get("critical"):
+                return "public_state_changed", public
+        return None
+
+    def interrupt_clock(self, reason, *, start, state, clock=None, details=None):
+        self.date_raw = state["date_raw"]
+        self.clock_interruption = {"reason": reason, "requested_hours": self.plan["step_hours"],
+                                   "observed_hour_delta": self.date_raw - start,
+                                   "remaining_budget_hours": self.plan["step_hours"] - (self.date_raw - start),
+                                   "state": state, "clock": clock, "details": details}
+        self.event("clock_interrupted", **self.clock_interruption)
+        return False
+
+    def finish_boundary(self, reason, *, start, state, clock, details=None):
+        """Complete a shorter turn only at a settled, known public boundary."""
+        elapsed = state["date_raw"] - start
+        if (reason in {"war_changed", "public_state_changed"}
+                and 0 < elapsed <= self.plan["step_hours"]
+                and state.get("paused") is True and clock.get("paused") is True
+                and clock.get("remaining_hours") == 0
+                and state["played_index"] == state["country_index"]
+                and not (details or {}).get("controller_changed")):
+            self.actual_step_hours = elapsed
+            remaining = self.plan["step_hours"] - elapsed
+            if remaining:
+                self.early_end = {"reason": reason, "remaining_budget_hours": remaining,
+                                  "details": details, "state": state, "clock": clock}
+                self.event("clock_early_end", requested_hours=self.plan["step_hours"],
+                           observed_hour_delta=elapsed, **self.early_end)
+            self.event("clock_effect", requested_hours=self.plan["step_hours"],
+                       observed_hour_delta=elapsed, early_end=self.early_end, state=state)
+            return True
+        return self.interrupt_clock(reason, start=start, state=state, clock=clock, details=details)
+
     def advance(self):
-        hours = self.plan["step_hours"]
-        self.country(self.initial, ai_off=True)
-        self.call("native_clock_v1", f"step {hours}", mutation=True, purpose="step")
+        hours, start = self.plan["step_hours"], self.date_raw
+        chunk_hours = validate_policy(self.plan.get("clock_policy", {}))["chunk_hours"]
+        state = self.country(self.initial, ai_off=True)
+        boundary = self.clock_boundary(state)
+        if boundary:
+            return self.interrupt_clock(boundary[0], start=start, state=state, details=boundary[1])
         deadline = time.monotonic() + self.timeout
-        while time.monotonic() < deadline:
-            state = self.call("native_control_v1", "status " + self.initial)["state"]
-            clock = self.call("native_clock_v1", "status")["state"]
-            delta = state["date_raw"] - self.date_raw
-            if delta < 0 or delta > hours: raise RuntimeError("native clock advanced outside its requested bound")
-            if state["paused"] and delta == hours and clock["remaining_hours"] == 0:
-                self.date_raw = state["date_raw"]
-                self.event("clock_effect", requested_hours=hours, observed_hour_delta=delta, state=state)
-                return
-            if state["paused"] and 0 < delta < hours: raise RuntimeError("game paused before the requested bound")
-            time.sleep(self.poll_interval)
-        raise TimeoutError("clock receipt exists but bounded completion is unobserved; inspect journal before continuing")
+        while self.date_raw - start < hours:
+            chunk_start = self.date_raw
+            chunk = min(chunk_hours, hours - (chunk_start - start))
+            self.call("native_clock_v1", f"step {chunk}", mutation=True, purpose="step")
+            posted_at = time.monotonic()
+            controller_changed = False
+            while time.monotonic() < deadline:
+                state = self.call("native_control_v1", "status " + self.initial)["state"]
+                clock = self.call("native_clock_v1", "status")["state"]
+                delta = state["date_raw"] - chunk_start
+                if delta < 0 or delta > chunk:
+                    raise RuntimeError("native clock advanced outside its requested bound")
+                if state["played_index"] != state["country_index"]:
+                    controller_changed = True
+                if controller_changed and state["paused"]:
+                    return self.interrupt_clock("controller_changed", start=start, state=state, clock=clock)
+                if state["paused"] and delta == chunk and clock["remaining_hours"] == 0:
+                    self.date_raw = state["date_raw"]
+                    self.event("clock_chunk", requested_hours=chunk, observed_hour_delta=delta,
+                               cumulative_hours=self.date_raw - start, remaining_budget_hours=hours - (self.date_raw - start), state=state)
+                    boundary = self.clock_boundary(state)
+                    if boundary:
+                        return self.finish_boundary(boundary[0], start=start, state=state, clock=clock, details=boundary[1])
+                    break
+                if state["paused"] and (delta > 0 or time.monotonic() - posted_at >= 2):
+                    # A modal/unknown pause is never answered or unpaused here.
+                    # Keep native remaining_hours and the sealed turn budget.
+                    self.date_raw = state["date_raw"]
+                    boundary = self.clock_boundary(state)
+                    return self.interrupt_clock("unexpected_pause", start=start, state=state, clock=clock,
+                                                details=boundary[1] if boundary else None)
+                time.sleep(self.poll_interval)
+            else:
+                raise TimeoutError("clock receipt exists but bounded completion is unobserved; inspect journal before continuing")
+        self.event("clock_effect", requested_hours=hours, observed_hour_delta=self.date_raw - start, state=state)
+        self.actual_step_hours = self.date_raw - start
+        return True
 
     def final_observations(self):
         results = []
@@ -293,6 +430,9 @@ class NativeTurn:
                 observed = self.observe(tag, action)
                 result = {"country": tag, "action_id": action["id"], "kind": action["kind"],
                           "effect_observed_after_clock": self.effect(action, observed, after_clock=True), "observed": observed}
+                if action["kind"] == "division.move":
+                    result["arrival_observed_during_clock"] = action["id"] in self.first_arrivals
+                    result["first_arrival"] = self.first_arrivals.get(action["id"])
                 results.append(result); self.event("after_clock_effect", **result)
         self.control(self.initial)
         basename = self.plan.get("save_basename", "iron_turn") + "_" + self.run_id
@@ -314,7 +454,10 @@ class NativeTurn:
         self.event("save_observation", **file_result)
         return {"schema": SCHEMA, "run_id": self.run_id, "status": "completed", "pid": self.game.pid,
                 "creation_time": self.game.creation_time, "initial_country_restored": self.initial,
-                "step_hours": self.plan["step_hours"], "date_raw": self.date_raw, "effects": results, "save": file_result}
+                "step_hours": self.actual_step_hours, "requested_step_hours": self.plan["step_hours"],
+                "early_end": self.early_end,
+                "remaining_budget_hours": self.plan["step_hours"] - self.actual_step_hours,
+                "date_raw": self.date_raw, "effects": results, "save": file_result}
 
     def run(self):
         # Existing output may contain a pending native order. Never assign it new IDs.
@@ -322,9 +465,16 @@ class NativeTurn:
         (self.output / "plan.json").write_text(json.dumps(self.plan, ensure_ascii=False, indent=2), encoding="utf-8")
         self.event("session", run_id=self.run_id, pid=self.game.pid, creation_time=self.game.creation_time)
         try:
-            self.call("main_status")
-            self.preflight(); self.execute_actions(); self.advance()
-            result = self.final_observations()
+            self.main_status = self.call("main_status")
+            self.preflight(); self.execute_actions()
+            if self.advance():
+                result = self.final_observations()
+            else:
+                result = {"schema": SCHEMA, "run_id": self.run_id, "status": "interrupted",
+                          "pid": self.game.pid, "creation_time": self.game.creation_time,
+                          "date_raw": self.date_raw, "controller": self.current,
+                          "clock_interruption": self.clock_interruption, "first_arrivals": self.first_arrivals,
+                          "reconcile_required": True}
         except Exception as error:
             unknown = isinstance(error, NativeRpcError) and error.outcome == "unknown"
             self.event("stopped", error=str(error), unknown_outcome=unknown,

@@ -75,6 +75,102 @@ def _frozen(control, *, date_raw=None):
         raise RuntimeError("native date changed during capture")
 
 
+def read_trajectories(game, main_status, controls, countries, *, reader_factory=ReadProcess):
+    """Snapshot planned division paths for every country without tag switching.
+
+    Uses the same pinned country/army layouts as command_move.cpp. A missing
+    division is an observation, not proof that a movement order failed.
+    """
+    if (main_status.get("synthetic") is not False or main_status.get("build") != BUILD
+            or main_status.get("sha256") != GAME_SHA256):
+        raise RuntimeError("trajectory reader requires the pinned native game build")
+    date_raw = next(iter(controls.values()))["date_raw"]
+    for control in controls.values():
+        _frozen(control, date_raw=date_raw)
+    if process_creation_time(game.pid) != game.creation_time:
+        raise RuntimeError("game process restarted before trajectory capture")
+    base = int(main_status["image_base"], 16)
+    result, wars = {}, set()
+    with reader_factory(game.pid) as reader:
+        state = _number(reader, base + 0x33DD6B0)
+        idler = _number(reader, base + 0x33DDB10)
+
+        def witness():
+            if (_number(reader, state + 0x468, "i") != date_raw
+                    or reader.read(idler + 0x6C1, 1) != b"\x01"
+                    or _number(reader, base + 0x33DD6B0) != state):
+                raise RuntimeError("native world changed during trajectory capture")
+
+        witness()
+        table = _array(reader, state + 0x310, maximum=4096)
+        relations = {}
+
+        def active_relations(index):
+            if index not in relations:
+                if not 0 < index < len(table) or not table[index]:
+                    raise RuntimeError("war relation country identity is absent")
+                owner = table[index]
+                if (_number(reader, owner) != base + 0x2864730
+                        or _number(reader, owner + 8, "i") != index):
+                    raise RuntimeError("war relation country identity mismatch")
+                diplomacy = _number(reader, owner + 0xF88)
+                if not diplomacy or _number(reader, diplomacy) != base + 0x29DE5E8:
+                    raise RuntimeError("war relation diplomacy identity mismatch")
+                relations[index] = set(_array(reader, diplomacy + 0x20, maximum=20000))
+            return relations[index]
+
+        for country_plan in countries:
+            tag = country_plan["tag"]
+            wanted = {a["unit_id"]: a for a in country_plan["actions"] if a["kind"] == "division.move"}
+            index = controls[tag]["country_index"]
+            if not 0 < index < len(table) or not table[index]:
+                raise RuntimeError("trajectory country identity is absent")
+            country = table[index]
+            if (_number(reader, country) != base + 0x2864730
+                    or _number(reader, country + 8, "i") != index):
+                raise RuntimeError("trajectory country identity mismatch")
+            for relation in active_relations(index):
+                if _number(reader, relation) != base + 0x29DCC08:
+                    continue
+                first, second = struct.unpack("<ii", reader.read(relation + 0x10, 8))
+                if first == second or index not in (first, second):
+                    raise RuntimeError("war relation owner mismatch")
+                if relation not in active_relations(first) or relation not in active_relations(second):
+                    raise RuntimeError("war relation shared membership mismatch")
+                wars.add(tuple(sorted((first, second))))
+            if not wanted:
+                continue
+            found = {}
+            for army in _array(reader, country + 0x290, maximum=200000):
+                if _number(reader, army) != base + 0x29D6D98:
+                    raise RuntimeError("trajectory division identity mismatch")
+                handle = _number(reader, army + 0x18)
+                uid = handle >> 32
+                if uid not in wanted:
+                    continue
+                if uid in found:
+                    raise RuntimeError("trajectory division identity is ambiguous")
+                province = _number(reader, army + 0x1F0)
+                if not province or _number(reader, province) != base + 0x29EE358:
+                    raise RuntimeError("trajectory province identity mismatch")
+                path, capacity, count = struct.unpack("<Qii", reader.read(army + 0x200, 16))
+                if not 0 <= count <= capacity <= 8192 or (count and not path):
+                    raise RuntimeError("trajectory path is invalid")
+                found[uid] = {"province": _number(reader, province + 0xA4, "i"),
+                              "path": list(struct.unpack("<" + "i" * count, reader.read(path, count * 4))) if count else [],
+                              "handle": hex(handle)}
+            for uid, action in wanted.items():
+                result[action["id"]] = {"country": tag, "action_id": action["id"],
+                                         "available": uid in found, "observed": found.get(uid)}
+        witness()
+    if process_creation_time(game.pid) != game.creation_time:
+        raise RuntimeError("game process restarted during trajectory capture")
+    labels = {control["country_index"]: tag for tag, control in controls.items()}
+    return {"date_raw": date_raw, "source": "native_read_only_memory", "actions": result,
+            "public_wars": [{"first": labels.get(a, f"IDX_{a}"), "second": labels.get(b, f"IDX_{b}")}
+                            for a, b in sorted(wars)], "war_scope": "involving_planned_countries"}
+
+
 def read_world(game, main_status, controls, *, reader_factory=ReadProcess):
     """Read province controllers without parsing a save or changing player control.
 
@@ -218,6 +314,8 @@ def capture(game, tags, outputdir, matchid, turnid, history=None, *, map_context
     if original is None:
         raise RuntimeError("include the original played country in capture tags")
     world = read_world(game, main, controls)
+    from native_events import read_pending
+    world["pending_events"] = read_pending(game, main, controls)
     current, snapshots = original, {}
     try:
         for tag in tags:

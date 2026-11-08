@@ -1,0 +1,62 @@
+{
+  "backend": "gpt_sovits",
+  "base_url": "http://127.0.0.1:9880",
+  "api_version": "api_v2",
+  "backend_revision": "04a44eb977586645f33594b72af13a035a2056c6",
+  "timeout_seconds": 300,
+  "request_parameters": {
+    "text_split_method": "cut5",
+    "seed": 0,
+    "speed_factor": 1.0
+  },
+  "voices": {
+    "deepseek": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    },
+    "claude": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    },
+    "qwen": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    },
+    "glm": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    },
+    "gemini": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    },
+    "gpt": {
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "ref_audio_path": "",
+      "prompt_text": "",
+      "prompt_lang": "zh",
+      "text_lang": "zh"
+    }
+  }
+}

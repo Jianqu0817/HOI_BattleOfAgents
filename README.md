@@ -10,6 +10,8 @@
 
 五国聊天、私信、密封决策、裁判与视频导出已接入[原生模型对局入口](docs/NATIVE_CAMPAIGN.md)，完成了连续五回合、共 75 个游戏日的[实局验收](docs/NATIVE_CAMPAIGN_VALIDATION.md)。底层也提供[确定性军事批量入口](docs/NATIVE_TURN.md)。`campaign.py` 保留为旧 UI 执行器。
 
+新增[叙事与制作流程](docs/NARRATIVE_PRODUCTION.md)：公开短评、公开主持人与观众采访隔离、自适应共同时间、陆军中途轨迹、六角色共 30 张透明表情头像、台词与剪辑草案导出。[GPT-SoVITS](docs/GPT_SOVITS.md) 已提供本地部署和配音接口；角色声线需要配置参考录音。事件窗口当前部分可读，自动选择选项仍待实局资格验证。
+
 ## 启动
 
 ```powershell

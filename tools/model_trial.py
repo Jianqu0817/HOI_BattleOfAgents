@@ -1,5 +1,6 @@
 """One bounded trial: five isolated countries, public diplomacy, sealed orders and a referee."""
 import argparse
+import copy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import hashlib
@@ -14,6 +15,7 @@ from model_client import complete
 from showrunner import (settings as show_settings, model_settings, country_model, referee_model,
                         check_intent, check_message, check_replies, extend_prompt, ledger,
                         visible_promises, check_history)
+from story_channels import public_context, public_source_ids, assign_public_message_ids, private_feedback
 
 IDENTITY = ("match_id", "turn_id", "country", "date", "observation_id")
 
@@ -56,9 +58,49 @@ def options(observed):
     return menu
 
 
-def brief(observed):
+def private_observation_context(observed):
+    """Own memory and raw event keys are private, with explicit country scope."""
+    tag, extra = observed["country"], {}
+    if "own_memory" in observed:
+        memory = observed["own_memory"]
+        if not isinstance(memory, dict) or memory.get("country") != tag or memory.get("visibility") != "player_private":
+            raise ValueError("Own memory belongs to another scope")
+        records = memory.get("records", [])
+        check_history(records, tag)
+        for row in records:
+            if row.get("country") != tag or row.get("visibility") != "player_private":
+                raise ValueError("Own memory record belongs to another scope")
+            for letter in row.get("private_letters", []):
+                field = "country" if letter.get("direction") == "sent" else "to" if letter.get("direction") == "received" else None
+                if field is None or letter.get("message", {}).get(field) != tag:
+                    raise ValueError("Own memory contains an unaddressed private letter")
+        extra["own_memory"] = copy.deepcopy(memory)
+    if "event_status" in observed or "own_pending_events" in observed:
+        status = observed.get("event_status")
+        if status is not None and not isinstance(status, dict):
+            raise ValueError("Event status must be an observation object")
+        status = status or {"availability": "unavailable", "capture_complete": False,
+                            "reason": "No qualified event observation supplied"}
+        extra["event_status"] = {key: copy.deepcopy(status[key]) for key in
+                                 ("schema", "availability", "capture_complete", "scope", "all_pending_availability",
+                                  "date_raw", "choice_api", "reason", "limitations") if key in status}
+        if "own_pending_events" in observed:
+            pending = observed["own_pending_events"]
+            if pending is not None and (not isinstance(pending, list) or any(row.get("country") != tag for row in pending)):
+                raise ValueError("Own pending events contain another country's event")
+        else:
+            pending = status.get("pending")
+            if pending is not None:
+                if not isinstance(pending, list):
+                    raise ValueError("Pending event observations must be a list or null")
+                pending = [row for row in pending if row.get("country") == tag]
+        extra["own_pending_events"] = copy.deepcopy(pending)
+    return extra
+
+
+def brief(observed, include_private=True):
     if observed.get("execution_backend") == "native":
-        return native_brief(observed)
+        return native_brief(observed, include_private=include_private)
     return {"identity": {key: observed[key] for key in IDENTITY},
             "political_power": observed["political_power"], "government": observed["government"],
             "current_focus": observed["focus"], "research": {key: value for key, value in observed["research"].items() if key != "screen_evidence"},
@@ -70,10 +112,11 @@ def brief(observed):
             "construction_facts": {"queued_projects": len(observed["construction"]),
                                    "queue_capacity_known": False, "free_building_slots_known": False},
             "recent_private_history": observed.get("recent_history", [])[-2:],
-            "unavailable": observed["unavailable"], "action_options": options(observed)}
+            "unavailable": observed["unavailable"], "action_options": options(observed),
+            **(private_observation_context(observed) if include_private else {})}
 
 
-def native_brief(observed):
+def native_brief(observed, include_private=True):
     """Keep full audit records on disk; send only actionable native facts to models."""
     menu = options(observed)
     units = {row["args"].get("unit_id") for choices in menu.values() for row in choices}
@@ -93,7 +136,8 @@ def native_brief(observed):
             "air_wing_count": len(observed["naval_air"]["air_wings"]),
             "task_force_count": len(observed["naval_air"]["task_forces"]),
             "recent_private_history": history,
-            "unavailable": observed["unavailable"], "action_options": menu}
+            "unavailable": observed["unavailable"], "action_options": menu,
+            **(private_observation_context(observed) if include_private else {})}
 
 
 def compact_native_context(payload):
@@ -115,7 +159,7 @@ def compact_native_context(payload):
             execution["dispatch"] = {key: dispatch[key] for key in ("province", "path", "current", "region", "at_war") if key in dispatch}
     promises, seen = [], set()
     for row in payload.get("own_commitment_memory", []):
-        promise = {key: row[key] for key in ("country", "to", "text", "due_turn", "condition", "visibility", "status") if key in row}
+        promise = {key: row[key] for key in ("country", "to", "text", "due_turn", "due_date_raw", "condition", "predicate", "condition_predicate", "visibility", "status") if key in row}
         identity = json.dumps(promise, sort_keys=True, ensure_ascii=False)
         if identity not in seen:
             promises.append(promise); seen.add(identity)
@@ -165,7 +209,7 @@ def country_messages(observed, phase, public, private=None, public_round=1):
                 "建造 args={state_id,building_id,count}。候选项的脚本条件未全部求值，避免明显不满足的条件。"
                 "请求必须包含 identity 的五个原值，以及 actions 和中文 reason；每个动作恰有 id、type、args，"
                 "id 使用 turn-country-1。不要包含消息、执行代码或额外动作参数。")
-    payload = {"task": task, "own_observation": brief(observed), "public_diplomacy": public}
+    payload = {"task": task, "own_observation": brief(observed, include_private=phase != "diplomacy"), "public_diplomacy": public}
     if private is not None:
         payload["own_private_diplomacy"] = private
     return [{"role": "system", "content": system},
@@ -215,8 +259,10 @@ def own_history(previous_trial, previous_turn, tag):
                                 "event_id": item["proof"]["event"], "observed_date": item.get("observed_date")}
                                for item in previous_turn.get("public_notices", []) if item.get("proof", {}).get("major") == "yes"]
     record["factual_feedback"] = factual_notes(decision, old)
-    referee = read(previous_trial / "decision_result.json").get("referee", {})
-    record["referee_feedback"] = [row for row in referee.get("reviews", []) if row.get("country") == tag]
+    previous_result = read(previous_trial / "decision_result.json")
+    referee = previous_result.get("referee", {})
+    record["referee_feedback"] = [private_feedback(row, tag) if previous_result.get("show", {}).get("strict_public_context") else row
+                                   for row in referee.get("reviews", []) if row.get("country") == tag]
     inbox = previous_trial / "private_diplomacy" / (tag + ".json")
     if inbox.exists():
         record["private_diplomacy"] = read(inbox)
@@ -436,6 +482,9 @@ def call_country(directory, config, observed, phase, public, private=None, publi
         messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
         if show_config and phase in show_config.get("phase_max_tokens", {}):
             config = {**config, "max_tokens": min(config["max_tokens"], show_config["phase_max_tokens"][phase])}
+    if phase == "diplomacy" and show_config and show_config.get("strict_public_context"):
+        messages = public_context(messages, observed)
+    sources = public_source_ids(messages, observed) if phase == "diplomacy" and show_config and show_config.get("performance") else None
     label = phase + ("_" + str(public_round) if phase == "diplomacy" and public_round > 1 else "")
     path = directory / "model_calls" / (label + "_" + tag + ".json")
     record = recorded_complete(directory, label + "_" + tag, config, messages, phase, tag, bool(show_config))
@@ -448,6 +497,8 @@ def call_country(directory, config, observed, phase, public, private=None, publi
         allowed = {"country", "replies", "commitments"} if phase == "reply" else {"country", "message", "commitments", "commitments_note"}
         if phase == "private":
             allowed.add("to")
+        if phase == "diplomacy" and show_config and show_config.get("performance"):
+            allowed.add("public_asides")
         removed = sorted(set(value) - allowed)
         value = {key: item for key, item in value.items() if key in allowed}
         if "commitments_note" in value and value["commitments_note"] is None:
@@ -460,7 +511,7 @@ def call_country(directory, config, observed, phase, public, private=None, publi
             if phase == "reply":
                 check_replies(value, tag, private["received"], tags, observed["turn_id"])
             else:
-                check_message(value, tag, tags, observed["turn_id"], private=phase == "private")
+                check_message(value, tag, tags, observed["turn_id"], private=phase == "private", public_sources=sources)
         except ValueError as error:
             quote_error = str(error) == "Commitment must quote an exact passage of this message"
             count_error = (str(error) == "A message permits at most three commitments"
@@ -480,10 +531,11 @@ def call_country(directory, config, observed, phase, public, private=None, publi
                                          "communication_annotation_repair", tag, require_settings=True)["response"]
             def speech(item):
                 return {key: item.get(key) for key in ("country", "to", "message")} | {
+                    "public_asides": item.get("public_asides"),
                     "replies": [{key: reply.get(key) for key in ("to", "message")} for reply in item.get("replies", [])]}
             def conditions(item):
                 groups = [item] + item.get("replies", [])
-                return [[{key: promise.get(key) for key in ("to", "due_turn", "condition")} for promise in group.get("commitments", [])] for group in groups]
+                return [[{key: promise.get(key) for key in ("to", "due_turn", "due_date_raw", "condition", "predicate", "condition_predicate")} for promise in group.get("commitments", [])] for group in groups]
             same_conditions = conditions(repaired) == conditions(value)
             if count_error:
                 same_conditions = (len(repaired.get("commitments", [])) == 3
@@ -499,7 +551,7 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     elif phase == "reply":
         check_replies(value, tag, private["received"], tags, observed["turn_id"])
     elif show_config and phase in ("diplomacy", "private"):
-        check_message(value, tag, tags, observed["turn_id"], private=phase == "private")
+        check_message(value, tag, tags, observed["turn_id"], private=phase == "private", public_sources=sources)
     elif phase == "diplomacy":
         if value.get("country") != tag or not isinstance(value.get("message"), str) or not 0 < len(value["message"]) <= 600:
             raise ValueError("Invalid public diplomacy response for " + tag)
@@ -538,6 +590,9 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
               "decision_setup_sha256": setup_sha256}
     if show_config:
         result["show"] = {key: show_config[key] for key in ("intents", "private_replies", "action_limit", "step_hours")}
+        for key in ("strict_public_context", "performance", "game_time_commitments"):
+            if key in show_config:
+                result["show"][key] = show_config[key]
         result["player_models"] = {tag: model_settings(model) for tag, model in models.items()}
         result["referee_model"] = model_settings(judge)
         write_json(directory / "show_profiles.json", {"profiles": show_config["profiles"],
@@ -569,6 +624,9 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
                     public[tag] = future.result()
                     print(f"DIPLOMACY {round_id} {tag}", flush=True)
             ordered_public.extend({**public[tag], "round": round_id} for tag in tags)
+            if show_config and (show_config.get("strict_public_context") or show_config.get("performance")):
+                first = observed[tags[0]]
+                ordered_public = assign_public_message_ids(ordered_public, first["match_id"], first["turn_id"])
         write_json(directory / "public_diplomacy.json", ordered_public)
         private_messages = []
         if private_diplomacy:

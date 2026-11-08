@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from native_capture import BUILD, GAME_SHA256, _save_date, capture, read_world
+from native_capture import BUILD, GAME_SHA256, _save_date, capture, read_world, read_trajectories
 
 
 class Memory:
@@ -97,6 +97,30 @@ class NativeCaptureTests(unittest.TestCase):
         identity = patch("native_capture.process_creation_time", return_value=7)
         identity.start()
         self.addCleanup(identity.stop)
+        from native_events import unavailable
+        events = patch("native_events.read_pending", return_value=unavailable("fake capture"))
+        events.start()
+        self.addCleanup(events.stop)
+
+    def test_read_trajectories_resolves_owned_units_without_player_switch(self):
+        memory, country, array, army, path = self.memory, 0x23000000, 0x30000000, 0x31000000, 0x32000000
+        memory.put(country + 0x290, "Qii", array, 1, 1)
+        memory.put(array, "Q", army)
+        memory.put(army, "Q", 0x10000000 + 0x29D6D98)
+        memory.put(army + 0x18, "Q", (7 << 32) | 51)
+        memory.put(army + 0x1F0, "Q", 0x29000000)
+        memory.put(army + 0x200, "Qii", path, 1, 1)
+        memory.put(path, "i", 9398)
+        memory.put(country + 0xF88, "Q", 0x33000000)
+        memory.put(0x33000000, "Q", 0x10000000 + 0x29DE5E8)
+        controls = {tag: self.game.country_status(tag)["state"] for tag in ("AUS", "ITA")}
+        plans = [{"tag": "AUS", "actions": [{"id": "move7", "kind": "division.move", "unit_id": 7},
+                                                {"id": "missing", "kind": "division.move", "unit_id": 8}]}]
+        result = read_trajectories(self.game, self.game.status(), controls, plans, reader_factory=lambda _: memory)
+        self.assertEqual(result["actions"]["move7"]["observed"]["path"], [9398])
+        self.assertEqual(result["actions"]["move7"]["observed"]["province"], 673)
+        self.assertFalse(result["actions"]["missing"]["available"])
+        self.assertEqual(self.game.switches, [])
 
     def world(self):
         return read_world(self.game, self.game.status(),

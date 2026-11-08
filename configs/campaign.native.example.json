@@ -1,6 +1,12 @@
 {
   "execution_backend": "native",
-  "countries": ["GER", "FRA", "ITA", "AUS", "SWI"],
+  "countries": [
+    "GER",
+    "FRA",
+    "ITA",
+    "AUS",
+    "SWI"
+  ],
   "step_hours": 360,
   "turn_limit": 5,
   "action_limit": 2,
@@ -8,21 +14,73 @@
   "model_config": "configs/model.example.json",
   "player_model_configs": {},
   "model_commentary": true,
-  "scoring": {"mode": "exhibition"},
+  "scoring": {
+    "mode": "exhibition"
+  },
   "show": {
     "enabled": true,
     "intents": true,
     "private_replies": true,
     "compact_native_context": true,
-    "phase_max_tokens": {"intent": 900, "diplomacy": 700, "private": 700, "reply": 900, "decision": 900},
+    "phase_max_tokens": {
+      "intent": 900,
+      "diplomacy": 700,
+      "private": 700,
+      "reply": 900,
+      "decision": 900
+    },
     "common_rules_file": "configs/prompts/common_rules.md",
     "guide_file": "configs/prompts/native_guide.md",
     "profiles": {
-      "GER": {"name": "筹划者", "persona": "重视长期布局和兑现利益，依据本国真实兵力与合法候选行动。"},
-      "FRA": {"name": "调停者", "persona": "维护本国安全，争取可核查的承诺，必要时使用武力。"},
-      "ITA": {"name": "交易家", "persona": "善于议价与灵活合作，为明确机会承担风险，也考虑失信代价。"},
-      "AUS": {"name": "守门人", "persona": "在强国之间争取生存与收益，重视地形和可靠合作。"},
-      "SWI": {"name": "观察者", "persona": "谨慎核对情报，以本国目标为先，不预设永久盟友。"}
-    }
+      "GER": {
+        "name": "筹划者",
+        "persona": "角色卡待用户填写；依据本国局势独立决策，允许自然表达情绪、质问和回应。"
+      },
+      "FRA": {
+        "name": "调停者",
+        "persona": "角色卡待用户填写；依据本国局势独立决策，允许自然表达情绪、质问和回应。"
+      },
+      "ITA": {
+        "name": "交易家",
+        "persona": "角色卡待用户填写；依据本国局势独立决策，允许自然表达情绪、质问和回应。"
+      },
+      "AUS": {
+        "name": "守门人",
+        "persona": "角色卡待用户填写；依据本国局势独立决策，允许自然表达情绪、质问和回应。"
+      },
+      "SWI": {
+        "name": "观察者",
+        "persona": "角色卡待用户填写；依据本国局势独立决策，允许自然表达情绪、质问和回应。"
+      }
+    },
+    "strict_public_context": true,
+    "performance": true,
+    "game_time_commitments": true,
+    "common_rules": "综艺展示允许质问、调侃、支持与挑衅；行为以本国目标和已知局势为准。密封命令执行后仍然保密，对手只获得公开可观察结果和自愿说辞。对私信的回复或转述只进入新的私信。导演不能提供策略、引导战局或泄露信息。回合时长随已知事件调整，turn_hours是本轮预算，事件可能提前暂停。"
+  },
+  "clock_policy": {
+    "peace_hours": 168,
+    "war_hours": 24,
+    "critical_hours": 6,
+    "maximum_hours": 360,
+    "chunk_hours": 6
+  },
+  "performance": {
+    "enabled": true,
+    "public_host": true,
+    "interviews_per_turn": 1
+  },
+  "production": {
+    "registry": "configs/characters.example.json",
+    "assignments": {
+      "GER": "gpt",
+      "FRA": "claude",
+      "ITA": "gemini",
+      "AUS": "deepseek",
+      "SWI": "qwen",
+      "host": "glm"
+    },
+    "target_seconds": 180,
+    "tts_config": "configs/tts.gpt_sovits.example.json"
   }
 }

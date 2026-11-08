@@ -1,0 +1,13 @@
+{
+  "registry": "configs/characters.example.json",
+  "assignments": {
+    "GER": "gpt",
+    "FRA": "claude",
+    "ITA": "gemini",
+    "AUS": "deepseek",
+    "SWI": "qwen",
+    "host": "glm"
+  },
+  "target_seconds": 180,
+  "tts_config": "configs/tts.gpt_sovits.example.json"
+}

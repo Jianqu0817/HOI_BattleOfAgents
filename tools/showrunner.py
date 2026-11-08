@@ -28,6 +28,9 @@ def settings(value, tags):
         raise ValueError("step_hours must be an integer from 1 to 360")
     if any(type(result[key]) is not bool for key in ("intents", "private_replies")):
         raise ValueError("intents and private_replies must be boolean")
+    for key in ("strict_public_context", "performance", "game_time_commitments"):
+        if key in result and type(result[key]) is not bool:
+            raise ValueError(key + " must be boolean")
     if any(not isinstance(result[key], str) for key in ("common_rules", "guide")):
         raise ValueError("common_rules and guide must be text")
     for key in ("profiles", "models"):
@@ -87,7 +90,8 @@ def check_commitments(value, tags, turn_id, recipient=None, private=False):
     if not isinstance(promises, list) or len(promises) > 3:
         raise ValueError("A message permits at most three commitments")
     for item in promises:
-        if not isinstance(item, dict) or set(item) != {"text", "to", "due_turn", "condition"}:
+        required = {"text", "to", "due_turn", "condition"}
+        if not isinstance(item, dict) or not required <= set(item) <= required | {"due_date_raw", "predicate", "condition_predicate"}:
             raise ValueError("Invalid commitment schema")
         if not isinstance(item["text"], str) or not 0 < len(item["text"]) <= 300 or item["text"] not in value["message"]:
             raise ValueError("Commitment must quote an exact passage of this message")
@@ -97,14 +101,35 @@ def check_commitments(value, tags, turn_id, recipient=None, private=False):
             raise ValueError("Private commitments must address the actual recipient")
         if type(item["due_turn"]) is not int or not turn_id <= item["due_turn"] <= turn_id + 12:
             raise ValueError("Commitment deadline must be within the next twelve turns")
+        if "due_date_raw" in item and (type(item["due_date_raw"]) is not int or item["due_date_raw"] < 0):
+            raise ValueError("Commitment game-time deadline must be a nonnegative raw date")
         if not isinstance(item["condition"], str) or len(item["condition"]) > 300:
             raise ValueError("Invalid commitment condition")
+        for key in ("predicate", "condition_predicate"):
+            if key in item:
+                predicate = item[key]
+                if not isinstance(predicate, dict):
+                    raise ValueError("Commitment predicate must be structured")
+                if predicate.get("kind") == "province_control":
+                    valid = (set(predicate) == {"kind", "province_id", "controller"}
+                             and type(predicate["province_id"]) is int and predicate["province_id"] > 0
+                             and predicate["controller"] in tags)
+                elif predicate.get("kind") == "war_relation":
+                    pair = predicate.get("countries")
+                    valid = (set(predicate) == {"kind", "countries", "at_war"} and isinstance(pair, list)
+                             and len(pair) == 2 and all(isinstance(tag, str) and tag in tags for tag in pair)
+                             and len(set(pair)) == 2 and type(predicate["at_war"]) is bool)
+                else:
+                    valid = False
+                if not valid:
+                    raise ValueError("Unsupported commitment predicate")
     return promises
 
 
-def check_message(value, country, tags, turn_id, private=False):
+def check_message(value, country, tags, turn_id, private=False, public_sources=None):
     required = {"country", "message", "to"} if private else {"country", "message"}
-    if not isinstance(value, dict) or not required <= set(value) <= required | {"commitments", "commitments_note"} or value["country"] != country:
+    optional = {"commitments", "commitments_note"} | ({"public_asides"} if not private else set())
+    if not isinstance(value, dict) or not required <= set(value) <= required | optional or value["country"] != country:
         raise ValueError("Invalid diplomacy identity or schema")
     if "commitments_note" in value and (not isinstance(value["commitments_note"], str) or len(value["commitments_note"]) > 600):
         raise ValueError("Commitment annotation must be bounded text")
@@ -120,6 +145,9 @@ def check_message(value, country, tags, turn_id, private=False):
     elif not value["message"]:
         raise ValueError("Public message must have content")
     check_commitments(value, tags, turn_id, value.get("to"), private)
+    if "public_asides" in value:
+        from story_channels import check_public_asides
+        check_public_asides(value, tags, public_sources or set())
     return value
 
 
@@ -175,6 +203,10 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
     commitment_schema = ("可选 commitments 数组每条为 {text:消息中逐字出现的承诺原文,to:对象国家或null,"
                          "due_turn:兑现截止回合整数,condition:条件文本}，没有明确承诺时为[]。"
                          "期限为本回合至之后12回合。承诺不自动执行游戏操作。")
+    if show.get("game_time_commitments"):
+        commitment_schema += (" 可额外提供due_date_raw游戏时钟整数作为真实期限；due_turn仍保留兼容台账。"
+                              "可选predicate或condition_predicate仅支持{kind:province_control,province_id:整数,controller:参赛国}"
+                              "或{kind:war_relation,countries:[参赛国,参赛国],at_war:布尔}。无法准确表达时不提供，不能把私密动作当公开核实证据。")
     if phase == "intent":
         payload["task"] = ("在看到本轮其他国家发言前，记录一份简短私密决策摘要，供你自己与赛后观众使用。"
                            "只描述当前目标、计划、准备保密的意图和最多三条可检验预测；不用展开内部推理过程。"
@@ -189,10 +221,18 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
     elif phase in ("diplomacy", "private"):
         if phase == "diplomacy":
             payload["task"] = payload["task"].replace("其他四国", "其他参赛国")
+            if show.get("strict_public_context"):
+                payload["task"] += " 不明白时可以质问或要求澄清；只根据公开材料表态。"
+            if show.get("performance"):
+                payload["task"] += (" 可选public_asides最多两条{about:参赛国家代码,stance:简短态度,ref:所见公开事件或发言的真实id,text:自然短评}。"
+                                    "没有合适对象时留空；不要求笑话，不必强行评价。")
         else:
             payload["task"] = ("公开讨论已结束。可主动私下联系另一参赛国一次，也可不发。输出 {country,to,message,commitments}。"
                                "to为participants中的其他国家或null；不发时message为空且commitments=[]。"
                                "消息不超过300字，只交给收件人，不会直接执行游戏外交命令。")
+            if show.get("strict_public_context"):
+                payload["task"] += (" 可自行在新私信中转述收到的私信，也可说谎；这是你的新主张，"
+                                    "原信不会自动转送，系统不替转述背书。看不懂可以追问。")
         payload["task"] += commitment_schema
     elif phase == "decision":
         payload["task"] = (f"全部外交已结束。为接下来{show['step_hours']}游戏小时递交密封决定。"

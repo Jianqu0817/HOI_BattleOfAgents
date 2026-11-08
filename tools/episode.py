@@ -154,6 +154,27 @@ def collect_episode(trial, turn):
             _source(path, trial, "trial", f"/{index}/message"), tag,
             data={"round": value.get("round", 1), "commitments": value.get("commitments", [])},
             recorded_at=call_time("diplomacy" + ("_" + str(value["round"]) if value.get("round", 1) > 1 else "") + "_" + tag))
+        for aside in value.get("public_asides", []):
+            add("public", f"{tag}回应{aside['about']} · {aside['stance']}", aside["text"],
+                _source(path, trial, "trial", f"/{index}/public_asides"), tag, to=aside["about"],
+                data={"public_ref": aside["ref"]})
+
+    path = trial / "performance.json"
+    if path.exists():
+        performance = read(path)
+        for index, value in enumerate(performance.get("host", [])):
+            add("host", "主持人 · 公开点评", value["message"], _source(path, trial, "trial", f"/host/{index}"),
+                data={"public_refs": value["refs"]}, recorded_at=call_time("public_host"))
+        for index, value in enumerate(performance.get("interviews", [])):
+            add("interview", "观众专属采访 · " + value["country"], value["answer"],
+                _source(path, trial, "trial", f"/interviews/{index}"), value["country"], visibility="private",
+                data={"question": value["question"], "writeback": False},
+                recorded_at=call_time("audience_interview_" + value["country"]))
+    for index, value in enumerate(result.get("public_events", [])):
+        if value.get("visibility") != "public":
+            raise ValueError("Private event in public event board")
+        add("public_event", "公开可观察结果", json.dumps(value["facts"], ensure_ascii=False),
+            _source(result_path, turn, "turn", f"/public_events/{index}"), data=value)
 
     # Inbox files contain both directions; collect each actual message once.
     messages, seen = [], set()
@@ -231,6 +252,14 @@ def collect_episode(trial, turn):
         elif not native and new_declaration:
             label = "新宣战已生效（存档核验）"
         text = action_text(entry["action"]) + "\n" + label
+        if native and entry["action"]["type"] == "division.move":
+            native_effect = next((row for row in result.get("native_result", {}).get("effects", [])
+                                  if row.get("country") == tag and row.get("action_id") == entry["action"]["id"]), {})
+            if native_effect.get("arrival_observed_during_clock"):
+                arrival = native_effect["first_arrival"]
+                text += f"\n中途已观察抵达：游戏原生小时 {arrival['date_raw']}；终点位置 {native_effect['observed']['province']}。"
+            elif "arrival_observed_during_clock" in native_effect:
+                text += "\n本轮采样尚未观察到抵达；分块间的短暂经过可能未被采样。"
         if entry.get("effect_status") == "partial":
             text += f"\n部分响应：{len(dispatch.get('responded_units', []))} 个单位取得目标命令，{len(dispatch.get('blocked_units', []))} 个单位正在防守而阻塞。"
         if entry.get("ui_error") and not native:
@@ -241,6 +270,7 @@ def collect_episode(trial, turn):
         title = f"宣战执行 · {tag} → {target}" if declaration else f"实际执行 · {NAMES.get(tag, tag)}"
         event = add("execution", title, text,
             _source(result_path, turn, "turn", f"/actions/{index}"), tag, to=target,
+            visibility="private",
             data={"status": entry["status"], "action": entry["action"], "verified": entry.get("verification", {}).get("verified"),
                   "effect_status": effect, "dispatch": entry.get("verification", {}).get("observations", {})},
             recorded_at=entry.get("ended_at") or entry.get("started_at"))
@@ -304,7 +334,7 @@ def collect_episode(trial, turn):
                         "division_count": army.get("division_count", len(divisions)), "divisions": divisions,
                         "wars": wars, "air_wings": wings, "task_forces": task_forces}
             add("outcome", f"原生回读状态 · {NAMES.get(tag, tag)}", text,
-                _source(result_path, turn, "turn", f"/native_after/{tag}"), tag, data=snapshot)
+                _source(result_path, turn, "turn", f"/native_after/{tag}"), tag, visibility="private", data=snapshot)
             events[-1]["game_date"] = state.get("date") or result.get("before_save", {}).get("parsed_date")
     elif final.get("name") and final_path.is_file():
         state = read(final_path)

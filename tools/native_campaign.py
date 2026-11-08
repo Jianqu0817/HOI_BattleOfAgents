@@ -16,10 +16,13 @@ from episode import export_episode, generate_commentary
 from m0_probe import write_json
 from model_client import complete
 from model_trial import decide, digest, own_history
-from native_capture import capture, static_context
+from native_capture import capture, static_context, read_world
 from native_game import NativeGame
 from native_observation import build_observation, to_native_plan
 from native_turn import NativeTurn
+from native_pacing import select_step_hours
+from story_channels import build_public_events, compress_own_memory, settle_commitments
+from performance import post_seal
 
 
 def read(path):
@@ -37,7 +40,11 @@ def load_capture(path, context):
 
 def compact_history(trial, turn, tags):
     """Reuse the existing privacy validator; persist only the two recent own turns."""
-    return {tag: own_history(trial, turn, tag) for tag in tags}
+    histories = {tag: own_history(trial, turn, tag) for tag in tags}
+    for rows in histories.values():
+        if rows:
+            rows[-1]["public_events"] = turn.get("public_events", rows[-1].get("public_events", []))
+    return histories
 
 
 def adapt_result(native, execution, trial, observed, after):
@@ -131,6 +138,7 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
     manifest["initial_date"] = baseline["snapshots"][tags[0]]["date"]
     write_json(manifest_path, manifest)
     history = {}
+    public_board, host_messages = [], []
     try:
         for index in range(1, limit + 1):
             trial = directory / "trials" / f"turn_{index:03d}"
@@ -141,11 +149,24 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
             if entry and entry["status"] == "completed":
                 baseline = load_capture(after_dir, context)
                 history = compact_history(trial, read(turn / "result.json"), tags)
+                public_board = read(turn / "public_events.json") if (turn / "public_events.json").exists() else []
+                host_messages = read(trial / "performance.json").get("host", []) if (trial / "performance.json").exists() else []
                 continue
             if entry is None:
                 entry = {"index": index, "status": "prepared", "started_at": now(), "trial": str(trial), "turn": str(turn)}
                 manifest["turns"].append(entry)
             turn_start = time.monotonic()
+            selection_path = trial / "clock_selection.json"
+            if selection_path.exists():
+                selection = read(selection_path)
+            elif "clock_policy" in config:
+                selection = select_step_hours(at_war=bool(baseline["state"].get("public_wars")),
+                                              public_events=public_board, policy=config["clock_policy"])
+                write_json(selection_path, selection)
+            else:
+                selection = {"step_hours": config["step_hours"], "reason": "fixed"}
+            turn_show = turn_show_config(config, directory)
+            turn_show["step_hours"] = selection["step_hours"]
             observed = {}
             for tag in tags:
                 path = trial / "observations" / (tag + ".json")
@@ -155,17 +176,36 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                     observed[tag] = build_observation(tag, baseline["snapshots"][tag], name, index,
                                                       {"kind": "native_capture", "capture": baseline["manifest"]},
                                                       state=baseline["state"], map_context=context, history=history.get(tag, []))
+                    if config["show"].get("strict_public_context"):
+                        observed[tag]["public_board"] = public_board[-256:]
+                        observed[tag]["public_host_messages"] = host_messages
+                        observed[tag]["event_status"] = baseline["state"].get("pending_events")
+                        memory_path = directory / "own_memory" / (tag + ".json")
+                        if memory_path.exists():
+                            # Two recent turns are already in the normal brief.
+                            memory = compress_own_memory(read(memory_path)[:-2], tag, max_turns=6, max_letters=8)
+                            while memory["records"] and len(json.dumps(memory, ensure_ascii=False)) > 24000:
+                                memory["records"].pop(0)
+                            memory["retained_turn_count"] = len(memory["records"])
+                            memory["retained_letter_count"] = sum(len(row.get("private_letters", [])) for row in memory["records"])
+                            memory["character_budget"] = 24000
+                            observed[tag]["own_memory"] = memory
+                        from native_observation import _digest
+                        observed[tag]["observation_id"] = _digest({key: value for key, value in observed[tag].items() if key != "observation_id"})
                     write_json(path, observed[tag])
             if not (trial / "decision_result.json").exists() or read(trial / "decision_result.json")["status"] != "approved":
                 entry["status"] = "deciding"; write_json(manifest_path, manifest)
                 model_start = time.monotonic()
                 decide(trial, config["model"], tags, resume=(trial / "decision_result.json").exists(),
                        communication_rounds=config["communication_rounds"], private_diplomacy=True,
-                       show_config=turn_show_config(config, directory))
+                       show_config=turn_show)
                 entry["model_seconds"] = round(time.monotonic() - model_start, 3)
             requests = verify_decisions(trial, observed)
-            plan = to_native_plan(requests, observed, step_hours=config["step_hours"],
+            performance = post_seal(trial, observed, config["model"], turn_show, config.get("performance", {}))
+            plan = to_native_plan(requests, observed, step_hours=selection["step_hours"],
                                   label=f"{name} turn {index}", save_basename=f"iron_{name}_t{index}")
+            if "policy" in selection:
+                plan.update(clock_policy=selection["policy"], clock_selection={"reason": selection["reason"], "shared_clock": True})
             entry["status"] = "approved"; write_json(manifest_path, manifest)
             native_start = time.monotonic()
             if (execution / "result.json").exists():
@@ -176,22 +216,62 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                 if execution.exists():
                     raise ValueError("native execution has no final receipt; reconcile without replaying orders")
                 entry["status"] = "executing"; write_json(manifest_path, manifest)
-                native = NativeTurn(game, plan, execution, save_dir=save_dir, poll_interval=0.5).run()
+                def boundary(runner, controls):
+                    current = read_world(game, runner.main_status, controls)
+                    changes = build_public_events(baseline["state"], current, tags,
+                                                  {"before": baseline["manifest"]["date_raw"], "after": runner.date_raw})
+                    return {"war_changed": any(row["kind"] == "war_started" for row in changes),
+                            "critical": any(row["kind"] == "province_control_changed" for row in changes),
+                            "public_events": changes}
+                native = NativeTurn(game, plan, execution, save_dir=save_dir, poll_interval=0.5,
+                                    boundary_observer=boundary if "clock_policy" in config else None).run()
+            if native.get("status") != "completed":
+                entry.update(status="interrupted", interruption=native.get("clock_interruption"))
+                raise RuntimeError("native turn interrupted; preserve sealed orders and reconcile its remaining clock budget")
             entry["native_seconds"] = round(time.monotonic() - native_start, 3)
             if (after_dir / "capture.json").exists():
                 after = load_capture(after_dir, context)
                 after["observations"] = read(after_dir / "observations.json")
             else:
                 after = capture(game, tags, after_dir, name, index + 1, map_context=context)
-            expected = manifest["initial_date_raw"] + config["step_hours"] * index
+            elapsed = native["step_hours"]
+            if not 0 < elapsed <= selection["step_hours"] or (elapsed != selection["step_hours"] and not native.get("early_end")):
+                raise ValueError("native execution did not honor the sealed clock budget")
+            expected = baseline["manifest"]["date_raw"] + elapsed
             if native["date_raw"] != expected or after["manifest"]["date_raw"] != expected:
                 raise ValueError("native campaign clock does not match the exact cumulative bound")
             compatibility = adapt_result(native, execution, trial, observed, after)
+            public_board = build_public_events(baseline["state"], after["state"], tags,
+                {"before": observed[tags[0]]["date"], "after": after["snapshots"][tags[0]]["date"],
+                 "before_raw": baseline["manifest"]["date_raw"], "after_raw": after["manifest"]["date_raw"],
+                 "match_id": name, "turn_id": index})
+            compatibility["public_events"] = public_board
+            write_json(turn / "public_events.json", public_board)
             write_json(turn / "result.json", compatibility)
             commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) else None
             export_episode(trial, turn, directory / "episodes" / f"turn_{index:03d}", commentary=commentary)
+            if config.get("production"):
+                from production import export_production
+                export_production(directory / "episodes" / f"turn_{index:03d}", config["production"])
+            host_messages = performance.get("host", [])
             remember_commitments(config, trial, directory)
             history = compact_history(trial, compatibility, tags)
+            if config["show"].get("strict_public_context"):
+                for tag in tags:
+                    memory_path = directory / "own_memory" / (tag + ".json")
+                    older = read(memory_path) if memory_path.exists() else []
+                    unique = {row["turn_id"]: row for row in older + history[tag]}
+                    write_json(memory_path, list(unique.values())[-12:])
+                    promises_path = directory / "diplomacy" / (tag + ".json")
+                    if promises_path.exists():
+                        entries = settle_commitments(read(promises_path), public_board, native["date_raw"], index)
+                        write_json(promises_path, entries)
+                        write_json(turn / "promise_settlements" / (tag + ".json"), entries)
+            from scoreboard import score
+            origin = load_capture(initial, context)["state"]
+            manifest["scoreboard"] = score({**origin, "date": manifest["initial_date"]},
+                {**after["state"], "date": compatibility["final_save"]["parsed_date"]}, tags,
+                context["map"], config["scoring"], index == config["turn_limit"])
             baseline = after
             entry.update(status="completed", final_date=compatibility["final_save"]["parsed_date"],
                          final_date_raw=native["date_raw"], action_counts={tag: len(requests[tag]["actions"]) for tag in tags},

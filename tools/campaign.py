@@ -56,7 +56,10 @@ def load_config(path):
     show["referee_model"] = {**config["model"], **read(resolve(config["referee_model_config"]))} if config.get("referee_model_config") else config["model"]
     config["commentary_model"] = {**config["model"], **read(resolve(config["commentary_model_config"]))} if config.get("commentary_model_config") else config["model"]
     config["scoring"] = validate_rules(config.get("scoring"))
-    show["common_rules"] = show.get("common_rules", "") + rules_text(config["scoring"], config["turn_limit"], config["step_hours"])
+    rules = rules_text(config["scoring"], config["turn_limit"], config["step_hours"])
+    if "clock_policy" in config:
+        rules = rules.replace(f"每回合{config['step_hours']}游戏小时", "每回合使用当轮公布的共同时间预算，重要事件可提前暂停")
+    show["common_rules"] = show.get("common_rules", "") + rules
     return config
 
 
