@@ -219,6 +219,13 @@ def collect_episode(trial, turn):
             data={"actions": value.get("actions", []), "reason": value.get("reason", "")}, recorded_at=call_time("decision_" + tag))
 
     path = trial / "decision_result.json"
+    for call_path in sorted((trial / "model_calls").glob("reply_*.json")):
+        call = read(call_path)
+        for index, rejected in enumerate(call.get("delivery_projection", {}).get("rejected", [])):
+            add("undelivered_private", "未送达的私信草稿", rejected["reply"].get("message", ""),
+                _source(call_path, trial, "trial", f"/delivery_projection/rejected/{index}/reply/message"),
+                rejected["country"], rejected["to"], visibility="private",
+                data={"status": "undelivered", "reason": rejected["reason"]})
     if path.exists():
         for index, review in enumerate(read(path).get("referee", {}).get("reviews", [])):
             tag = review["country"]
@@ -451,11 +458,50 @@ def generate_commentary(trial, turn, config):
         record = {"audience": "audience_full", "messages": messages, "settings": settings,
                   "response": response, "metadata": metadata}
         write(path, record)
-    value = validate_commentary(record["response"], episode)
+    value, normalizations = normalize_commentary_quotes(record["response"], episode)
+    if normalizations:
+        record["normalized_response"] = value
+        record["normalizations"] = normalizations
+        write(path, record)
     output = {"audience": "audience_full", "kind": "model_commentary", "content": value,
               "evidence_sha256": digest(episode["events"]), "metadata": record["metadata"]}
+    if normalizations:
+        output["normalizations"] = normalizations
     write(directory / "commentary.json", output)
     return output
+
+
+def normalize_commentary_quotes(value, episode):
+    """Retain raw model output; never publish a paraphrase as a verbatim quote."""
+    import copy
+    candidate = copy.deepcopy(value)
+    evidence = {event["id"]: event for event in episode["events"]}
+    changes, facts = [], []
+    for key in ("facts", "analysis", "jokes", "highlights"):
+        rows = candidate.get(key)
+        if isinstance(rows, list) and len(rows) > 8:
+            changes.append({"kind": "cap_section", "section": key, "kept": 8, "dropped": len(rows) - 8})
+            candidate[key] = rows[:8]
+    for index, fact in enumerate(candidate.get("facts", [])):
+        if (not isinstance(fact, dict) or set(fact) != {"evidence_id", "quote"}
+                or fact.get("evidence_id") not in evidence or not isinstance(fact.get("quote"), str)
+                or not fact["quote"]):
+            facts.append(fact)  # Leave malformed sources to the strict validator.
+            continue
+        quote = fact["quote"]
+        source = evidence[fact["evidence_id"]]["text"]
+        if quote in source:
+            facts.append(fact)
+        elif quote.endswith(("。", ".")) and len(quote) > 1 and quote[:-1] in source:
+            fact["quote"] = quote[:-1]
+            facts.append(fact)
+            changes.append({"index": index, "evidence_id": fact["evidence_id"], "kind": "trim_added_terminal_period",
+                            "original_quote": quote, "quote": fact["quote"]})
+        else:
+            changes.append({"index": index, "evidence_id": fact["evidence_id"], "kind": "omit_nonverbatim_fact",
+                            "original_quote": quote})
+    candidate["facts"] = facts
+    return validate_commentary(candidate, episode), changes
 
 
 def _srt_time(seconds):

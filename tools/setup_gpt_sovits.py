@@ -13,7 +13,7 @@ from start_gpt_sovits import REVISION
 MODEL_REVISION = "8f8857563c040d542de108a2c18b0425abd6c9c5"
 EXTRA_REVISION = "0c47645e02a7bc3688d7b263b0042c81e3cd82cd"
 FFMPEG_REVISION = "e6d0c1a17da07c33557852f9dfa2bd44cc75737d"
-INFERENCE_DEPENDENCIES = ["numpy<2", "scipy", "librosa==0.10.2", "pytorch-lightning>=2.4", "ffmpeg-python",
+INFERENCE_DEPENDENCIES = ["numpy<2", "scipy", "librosa==0.10.2", "resampy==0.4.3", "pytorch-lightning>=2.4", "ffmpeg-python",
     "onnxruntime", "tqdm", "cn2an", "pypinyin", "pyopenjtalk", "g2p_en", "sentencepiece",
     "transformers==4.51.3", "peft<0.18", "chardet", "PyYAML", "psutil", "jieba_fast", "jieba",
     "split-lang", "fast_langdetect", "wordsegment", "rotary_embedding_torch", "ToJyutping", "g2pk2",
@@ -22,8 +22,7 @@ INFERENCE_DEPENDENCIES = ["numpy<2", "scipy", "librosa==0.10.2", "pytorch-lightn
 MODEL_FILES = ["chinese-hubert-base/config.json", "chinese-hubert-base/preprocessor_config.json",
     "chinese-hubert-base/pytorch_model.bin", "chinese-roberta-wwm-ext-large/config.json",
     "chinese-roberta-wwm-ext-large/pytorch_model.bin", "chinese-roberta-wwm-ext-large/tokenizer.json",
-    "gsv-v2final-pretrained/s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-    "gsv-v2final-pretrained/s2G2333k.pth"]
+    "s1v3.ckpt", "v2Pro/s2Gv2ProPlus.pth", "sv/pretrained_eres2netv2w24s4ep4.ckpt"]
 
 
 def download(url, target):
@@ -55,6 +54,8 @@ def setup(root):
                    root / "runtime" / name) for name in ("ffmpeg.exe", "ffprobe.exe")]
     downloads.append((f"https://huggingface.co/XXXXRT/GPT-SoVITS-Pretrained/resolve/{EXTRA_REVISION}/G2PWModel.zip",
                       root / "G2PWModel.zip"))
+    downloads.append(("https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin",
+                      root / "GPT_SoVITS/pretrained_models/fast_langdetect/lid.176.bin"))
     with ThreadPoolExecutor(max_workers=3) as pool:
         list(pool.map(lambda item: download(*item), downloads))
     if not (root / "GPT_SoVITS/text/G2PWModel/g2pW.onnx").is_file():
@@ -62,7 +63,7 @@ def setup(root):
             archive.extractall(root / "GPT_SoVITS/text")
     config_script = (
         "from pathlib import Path; import yaml; p=Path('GPT_SoVITS/configs/tts_infer.yaml'); "
-        "v=yaml.safe_load(p.read_text()); v['custom']=dict(v['v2']); "
+        "v=yaml.safe_load(p.read_text()); v['custom']=dict(v['v2ProPlus']); "
         "v['custom'].update(device='cpu',is_half=False); "
         "Path('iron-tts-cpu.yaml').write_text(yaml.safe_dump(v,sort_keys=False))")
     subprocess.run([str(python), "-c", config_script], cwd=root, check=True)

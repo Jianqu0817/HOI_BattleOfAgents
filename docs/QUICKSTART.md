@@ -1,6 +1,56 @@
 # 启动一场可回看的 AI 对局
 
-IRON 在一个 Windows 单人游戏进程中轮流控制 3–5 个国家。所有国家在同一暂停时刻读取本国状态，交流后提交密封决策，再统一执行和推进。完整流程会生成观众回看页、字幕、镜头表和本国复盘经验。
+当前主路线通过 `tools/native_campaign.py` 驱动原生 API；`Start-IRON.cmd` 菜单与 `tools/campaign.py` 是仍保留的旧 UI 路线，不要把它们当作原生入口。原生默认国家为 GER/FRA/ITA/AUS/SWI，生成的观众页与审计记录写入本机 `runs/`。
+
+## 当前主路线：原生 API CLI
+
+### 初始化与桥接
+
+在 Windows 克隆仓库后，从项目根目录运行共享初始化：
+
+```powershell
+python tools/setup.py
+```
+
+此步骤准备 Python 环境及共享地图/依赖。原生桥还需要 Visual Studio 2022 的 MSVC x64 C++ 工具和 Windows SDK，并使用 MinHook。请依照[原生 API 指南](NATIVE_API.md)获取固定依赖、构建桥接模块并加载到目标游戏进程；不要跳过原生构建直接启动 CLI。准备单人非铁人文本存档，载入并暂停游戏，确认参赛国原版 AI 已关闭。
+
+### 开始与恢复
+
+准备当前游戏进程 PID、存档目录及模型配置要求的密钥环境变量。根据[原生对局说明](NATIVE_CAMPAIGN.md)选择配置；示例配置为五国、每回合360小时、每国最多两个动作。首次运行：
+
+```powershell
+.venv/Scripts/python.exe tools/native_campaign.py --name native_show --pid <PID> --save-dir "<游戏存档目录>" --prompt-key --provider-check
+```
+
+继续同一场对局时保留名称、PID 与存档目录，使用恢复参数：
+
+```powershell
+.venv/Scripts/python.exe tools/native_campaign.py --name native_show --pid <PID> --save-dir "<游戏存档目录>" --resume --prompt-key
+```
+
+恢复会读取冻结配置及已记录响应。游戏进程重启、状态不匹配或执行回执未知时，先按原生对局说明核对，不要用新请求 ID 重放动作。模型密钥只通过隐蔽输入或进程环境变量提供。
+
+### 离线审计与代码检查
+
+对已完成或部分完成的本机对局运行离线审计；它不推进游戏、不调用模型：
+
+```powershell
+.venv/Scripts/python.exe tools/verify_native_campaign.py --name native_show
+```
+
+Python 离线检查命令如下（本指南只列出命令，不代表当前29回合对局跑过这一套检查）：
+
+```powershell
+.venv/Scripts/python.exe -m unittest discover -s tools -p "test_*.py" -v
+.venv/Scripts/python.exe -I tools/parse_save.py --selftest
+.venv/Scripts/python.exe -m compileall -q tools
+```
+
+当前对局完成29/50回合，离线审计22,349通过、0失败、4 unknown；第30回合尚未提交，原定50回合尚未完成。宣战与海空军任务设置有独立验收，但不代表已经发生战斗。news.66 第9回合完成一次安全暂停、选择、resolved 关窗并恢复剩余12小时；其他通用事件未验证。更详细边界见[制作验收](PRODUCTION_REVIEW_20261109.md)。
+
+## 旧 UI 路线（保留）
+
+以下章节记录 `Start-IRON.cmd` 菜单与 `tools/campaign.py` 的旧 UI 工作流。它没有接入原生 API 对局入口。需要原生路线时，请使用上方 CLI 步骤。
 
 ## 1．准备环境
 
@@ -27,6 +77,8 @@ cd HOI_BattleOfAgents
 | 4 恢复对局 | 按原对局名称读取冻结配置与执行记录，继续未完成阶段 |
 | 5 打开回看 | 打开该对局完成回合的离线观众索引 |
 | 6 查看制作指南 | 打开本文和视频制作说明 |
+| 7 准备欧洲陆战测试局 | 为五国初始化预设战争目标，保留修改前和准备后的存档及记录 |
+| 8 查看校准指南 | 打开陆军、正常宣战、海空军的绑定和校准说明 |
 
 第一次先选 1。安装器会将 HOI4 Live Tools 固定到项目指定版本，并保留已有的 `configs/live.local.json`。它不会替你安装游戏或开启新局。自动发现游戏目录失败时，可在终端明确指定实际路径：
 
@@ -55,6 +107,20 @@ python tools/setup.py --game-dir "X:/SteamLibrary/steamapps/common/Hearts of Iro
 不要把密钥写入命令示例、配置、版本库或 `setx`。启动器无需你手工执行国家 AI 的切换式控制台命令；它会在暂停时根据实际响应确认各国原生 AI 已停用。`--known-disabled-pid` 仅用于已有同进程停用证据的调试，不是普通安装步骤。
 
 短配置运行 3 轮，每轮 24 游戏小时、每国最多一个动作。`--turns 1` 让本次只新增一个回合，适合先验收本机环境。每个玩法动作都会保存并核验，全部处理完再共同推进；遇到未确认状态会停止并保留记录。
+
+### 欧洲五国陆战测试局
+
+欧洲示例使用 `configs/campaign.europe.example.json`：德国 GER、法国 FRA、意大利 ITA、奥地利 AUS、瑞士 SWI，每轮 24 小时、最多 8 轮、每国每轮最多两个动作。先在游戏中载入这五国均存在的测试存档并暂停，再选菜单 7，输入唯一准备记录名。它会建立五国控制，保留前后存档，并为 GER→FRA、FRA→ITA、ITA→SWI、AUS→ITA、SWI→GER 初始化吞并战争目标。它不强制开战；预设目标属于测试起点，不能计为 AI 自己取得的成果。
+
+准备记录位于 `runs/scenarios/<准备记录名>/setup.json`。确认 `status=prepared` 后，菜单 2、3 选择欧洲配置；对局名称与准备记录名分别管理。也可从终端准备：
+
+```powershell
+.venv/Scripts/python.exe tools/prepare_europe.py --name europe_setup_01
+```
+
+普通宣战仍须游戏实际允许，并通过目标选择、提交窗口及新存档战争关系核验。没有合法目标时不会自动正当化。陆军动作只对本机已绑定、对应动作已校准的军团开放；没有军团的国家先按[陆军指南](ARMY_CONTROL.md)创建或拆组，再绑定。菜单 8 提供这些操作步骤，并打开[外交指南](DIPLOMACY_CONTROL.md)和[海空校准指南](NAVAL_AIR.md)。菜单本身不自动完成部队绑定或校准。
+
+海空军读取本国真实联队／舰队；对应对象、任务及区域需按指南完成 `bind-begin`、`bind-selected` 和逐项 `probe`，验收后才进入模型菜单。尚未校准时菜单为空，AUS、SWI 等没有舰队的国家不会获得虚构海军。当前海空实机范围以对应发布实测记录为准。
 
 ## 4．在哪里看结果
 

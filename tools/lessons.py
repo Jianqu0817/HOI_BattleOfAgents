@@ -45,6 +45,10 @@ def country_evidence(trial, turn, tag):
                          "text": text if text is not None else json.dumps(value, ensure_ascii=False, sort_keys=True), "data": value})
 
     own = {key: observed.get(key) for key in ("country", "date", "political_power", "government", "focus", "military_production", "construction", "army", "unavailable")}
+    if "diplomacy" in observed:
+        own["diplomacy"] = observed["diplomacy"]
+    if "naval_air" in observed:
+        own["naval_air"] = observed["naval_air"]
     research = observed.get("research", {})
     own["research"] = {key: value for key, value in research.items() if key != "screen_evidence"}
     own["divisions"] = [{key: unit.get(key) for key in ("id", "name", "location", "organisation", "strength") if key in unit}
@@ -81,6 +85,18 @@ def country_evidence(trial, turn, tag):
                      "verification": entry.get("verification"),
                      "ui_error": "execution_adapter_error" if entry.get("ui_error") else None}
             add("execution", value)
+        if entry["action"]["type"] == "diplomacy.declare_war":
+            proof = entry.get("verification", {})
+            facts = proof.get("observations", {})
+            pairs = facts.get("war_pairs_added", [])
+            if entry["status"] == "applied" and proof.get("verified") is True and facts.get("new_war") is True and facts.get("declaration_sent") is True:
+                own_pairs = [pair for pair in pairs if tag in pair]
+                actor, target = entry["country"], entry["action"]["args"]["target_country"]
+                if own_pairs or tag in (actor, target):
+                    add("war", {"declaring_country": actor, "declared_target": target,
+                                "our_role": "declarer" if tag == actor else "declared_target" if tag == target else "participant",
+                                "our_new_war_pairs": own_pairs,
+                                "notice": "已确认的公开战争状态；不包含他国私密意图或提交理由。"})
     for notice in result.get("public_notices", []):
         if notice.get("proof", {}).get("major") == "yes":
             add("news", {"title": notice.get("title"), "text": notice.get("text"), "observed_date": notice.get("observed_date")})
@@ -104,6 +120,10 @@ def country_evidence(trial, turn, tag):
         outcome["active_battles"] = own_active_battles(state, tag)
         outcome["combat_observation_available"] = "combat" in state
         outcome["own_wars"] = own_wars(country, tag)
+        if "naval_air" in observed:
+            from naval_air_actions import naval_air_observation
+            forces = naval_air_observation(state, tag)
+            outcome["naval_air"] = {key: forces[key] for key in ("air_wings", "fleets", "air_data_available")}
         add("outcome", outcome)
     add("clock", {"status": result["status"], "elapsed_game_hours": result.get("elapsed_game_hours"),
                   "final_date": final.get("parsed_date")})
@@ -139,7 +159,7 @@ def _generate_country(trial, turn, tag, config):
     context = country_evidence(trial, turn, tag)
     instructions = ("你是本国赛后复盘员，只能使用给定的本国观察、事前摘要、原命令、执行核验、本国结果、公开讨论和本人参与的私信。"
                     "没有别国秘密或观众解说。总结最多3条有用经验，也可为空。不要从结果倒推出自己或他国事前必有某种阴谋。"
-                    "区分观察缺失、执行器故障、策略错误和外交变化；命令请求不等于实际获得资源。"
+                    "区分观察缺失、执行器故障、策略错误和外交变化；命令请求不等于实际获得资源，宣战适配失败不能认定玩家背叛，已交战未重复发送也不是第二次宣战。"
                     "经验必须给出适用条件和0到1置信度，避免把单局现象写成普遍规律。"
                     "每条claim至多80字，when_to_apply至多60字；总输出简短，适配1800 token上限。"
                     "每条必须引用给定evidence id；引用存在仍需谨慎推断。"

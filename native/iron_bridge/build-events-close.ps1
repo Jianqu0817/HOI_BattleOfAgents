@@ -1,0 +1,33 @@
+[CmdletBinding()]
+param([string]$VisualStudioDir = '', [string]$OutputDirectory = '')
+$ErrorActionPreference = 'Stop'
+$root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+if (!$OutputDirectory) { $OutputDirectory = Join-Path $root 'runs/native-events-v2' }
+$out = [IO.Path]::GetFullPath($OutputDirectory)
+New-Item -ItemType Directory -Force -Path $out | Out-Null
+# Reuse an imported x64 toolchain instead of repeatedly growing its environment.
+$reuseToolchain = !$VisualStudioDir -and $env:VSCMD_ARG_TGT_ARCH -eq 'x64' -and $env:VCToolsInstallDir -and (Get-Command cl.exe -ErrorAction SilentlyContinue)
+if (!$reuseToolchain) {
+    if (!$VisualStudioDir) {
+        $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+        $VisualStudioDir = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    }
+    if (!$VisualStudioDir) { throw 'Visual Studio C++ tools required' }
+    $vcvars = Join-Path $VisualStudioDir 'VC/Auxiliary/Build/vcvars64.bat'
+    foreach ($line in (& $env:ComSpec /d /c ('call "' + $vcvars + '" >nul 2>&1 && set'))) {
+        if ($line -match '^([^=]+)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process') }
+    }
+    if ($LASTEXITCODE) { throw 'vcvars64 failed' }
+}
+Push-Location $out
+try {
+    $dll = Join-Path $out 'iron_events_v2.dll'
+    if (Test-Path $dll) { [IO.File]::Open($dll, 'Open', 'ReadWrite', 'None').Dispose() }
+    & cl.exe /nologo /O2 /MT /W4 /WX /utf-8 /EHsc /std:c++20 /LD (Join-Path $PSScriptRoot 'event_close_sidecar.cpp') /link bcrypt.lib /OUT:iron_events_v2.dll
+    if ($LASTEXITCODE) { throw 'Event sidecar compile failed' }
+    & cl.exe /nologo /O2 /MT /W4 /WX /utf-8 /EHsc /std:c++20 (Join-Path $PSScriptRoot 'event_test.cpp') /link /OUT:iron_events_test.exe
+    if ($LASTEXITCODE) { throw 'Event tests compile failed' }
+    & (Join-Path $out 'iron_events_test.exe')
+    if ($LASTEXITCODE) { throw 'Event tests failed' }
+    Write-Output "Built $dll"
+} finally { Pop-Location }

@@ -1,0 +1,71 @@
+{
+  "schema": "iron.characters.v1",
+  "characters": {
+    "deepseek": {
+      "name": "大肥鱼",
+      "card_file": "configs/characters/cards/deepseek.json",
+      "portraits": {
+        "neutral": "assets/characters/deepseek/neutral.png",
+        "happy": "assets/characters/deepseek/happy.png",
+        "questioning": "assets/characters/deepseek/questioning.png",
+        "confident": "assets/characters/deepseek/confident.png",
+        "flustered": "assets/characters/deepseek/flustered.png"
+      }
+    },
+    "claude": {
+      "name": "克莱德大小姐",
+      "card_file": "configs/characters/cards/claude.json",
+      "portraits": {
+        "neutral": "assets/characters/claude/neutral.png",
+        "amused": "assets/characters/claude/amused.png",
+        "stern": "assets/characters/claude/stern.png",
+        "concerned": "assets/characters/claude/concerned.png",
+        "surprised": "assets/characters/claude/surprised.png"
+      }
+    },
+    "qwen": {
+      "name": "千问大小姐",
+      "card_file": "configs/characters/cards/qwen.json",
+      "portraits": {
+        "neutral": "assets/characters/qwen/neutral.png",
+        "confident": "assets/characters/qwen/confident.png",
+        "curious": "assets/characters/qwen/curious.png",
+        "exasperated": "assets/characters/qwen/exasperated.png",
+        "delighted": "assets/characters/qwen/delighted.png"
+      }
+    },
+    "glm": {
+      "name": "大狐狸",
+      "card_file": "configs/characters/cards/glm.json",
+      "portraits": {
+        "neutral": "assets/characters/glm/neutral.png",
+        "deadpan": "assets/characters/glm/deadpan.png",
+        "amused": "assets/characters/glm/amused.png",
+        "annoyed": "assets/characters/glm/annoyed.png",
+        "shy": "assets/characters/glm/shy.png"
+      }
+    },
+    "gemini": {
+      "name": "基米",
+      "card_file": "configs/characters/cards/gemini.json",
+      "portraits": {
+        "neutral": "assets/characters/gemini/neutral.png",
+        "excited": "assets/characters/gemini/excited.png",
+        "playful": "assets/characters/gemini/playful.png",
+        "surprised": "assets/characters/gemini/surprised.png",
+        "flustered": "assets/characters/gemini/flustered.png"
+      }
+    },
+    "gpt": {
+      "name": "白色龙娘酱",
+      "card_file": "configs/characters/cards/gpt.json",
+      "portraits": {
+        "neutral": "assets/characters/gpt/neutral.png",
+        "confident": "assets/characters/gpt/confident.png",
+        "skeptical": "assets/characters/gpt/skeptical.png",
+        "stern": "assets/characters/gpt/stern.png",
+        "flustered": "assets/characters/gpt/flustered.png"
+      }
+    }
+  }
+}

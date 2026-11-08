@@ -114,6 +114,9 @@ def audit_player_payload(audit, record, tag, observation, intent, prefix):
 
 
 def audit_execution(audit, turn, result, requests, observations, hours, prefix):
+    from diplomacy_actions import diplomacy_fingerprint, verify_declaration
+    from naval_air_actions import naval_air_fingerprint, verify_naval_air_action
+    from army_actions import army_activity
     start = next(iter(observations.values()))["date"]
     expected = {(tag, action["id"]): action for tag, request in requests.items() for action in request["actions"]}
     applied, succeeded = [], set()
@@ -122,6 +125,19 @@ def audit_execution(audit, turn, result, requests, observations, hours, prefix):
     if before:
         audit.add(prefix + ":before_date", same_date(before["parsed_date"], start))
         audit_receipt(audit, result.get("initial_switch"), prefix + ":initial_actors", start, requests)
+        if previous and any(row.get("diplomacy", {}).get("baseline_sha256") for row in observations.values()):
+            original = {row.get("diplomacy", {}).get("baseline_sha256") for row in observations.values()}
+            proof = result.get("diplomacy_baseline_verification")
+            audit.add(prefix + ":separate_diplomacy_baseline", original == {diplomacy_fingerprint(previous)}
+                      and isinstance(proof, dict) and proof.get("verified") is True)
+        if previous and any(row.get("naval_air", {}).get("state_fingerprint") for row in observations.values()):
+            proof = result.get("naval_air_baseline_verification")
+            audit.add(prefix + ":separate_naval_air_baseline", isinstance(proof, dict) and proof.get("verified") is True
+                      and all(row.get("naval_air", {}).get("state_fingerprint") == naval_air_fingerprint(previous, tag) for tag, row in observations.items()))
+        if previous and any("army_activity" in row for row in observations.values()):
+            proof = result.get("army_activity_baseline_verification")
+            audit.add(prefix + ":separate_army_activity_baseline", isinstance(proof, dict) and proof.get("verified") is True
+                      and all(row.get("army_activity") == army_activity(previous["countries"][tag]) for tag, row in observations.items()))
     else:
         audit.add(prefix + ":before_save", status="missing")
     for index, entry in enumerate(result.get("actions", [])):
@@ -149,8 +165,29 @@ def audit_execution(audit, turn, result, requests, observations, hours, prefix):
                 audit.add(label + ":paused_date", same_date(previous["date"], start) and same_date(after["date"], start))
                 audit.add(label + ":peers_independent", all(country_fingerprint(previous, tag) == country_fingerprint(after, tag)
                           for tag in requests if tag != entry["country"]))
+                audit.add(label + ":peers_naval_air_independent", all(naval_air_fingerprint(previous, tag) == naval_air_fingerprint(after, tag)
+                          for tag in requests if tag != entry["country"]))
                 if status == "not_applied":
-                    audit.add(label + ":not_applied_has_no_gameplay_effect", all(country_fingerprint(previous, tag) == country_fingerprint(after, tag) for tag in requests))
+                    audit.add(label + ":not_applied_has_no_gameplay_effect", all(country_fingerprint(previous, tag) == country_fingerprint(after, tag) for tag in requests)
+                              and diplomacy_fingerprint(previous) == diplomacy_fingerprint(after))
+                    audit.add(label + ":not_applied_naval_air_unchanged", all(naval_air_fingerprint(previous, tag) == naval_air_fingerprint(after, tag) for tag in requests))
+                    audit.add(label + ":not_applied_army_activity_unchanged", all(army_activity(previous["countries"][tag]) == army_activity(after["countries"][tag]) for tag in requests))
+                if entry["action"]["type"].startswith(("air.", "navy.")) and status == "applied":
+                    checked = verify_naval_air_action(entry["action"], previous, after, entry["country"])
+                    audit.add(label + ":naval_air_state_effect", checked["verified"] is True and entry.get("effect_status") == checked["effect_status"])
+                if entry["action"]["type"] == "diplomacy.declare_war" and status == "applied":
+                    checked = verify_declaration(entry["action"], previous, after, entry["country"])
+                    saved = entry.get("verification", {})
+                    audit.add(label + ":declaration_state_effect", checked["verified"] is True
+                              and entry.get("effect_status") == checked["effect_status"])
+                    audit.add(label + ":declaration_new_vs_already_present", all(saved.get("observations", {}).get(key) == checked["observations"][key]
+                              for key in ("new_war", "declaration_sent", "war_pairs_added", "target_country")))
+                    ui = entry.get("ui_result")
+                    if ui is None:
+                        audit.add(label + ":declaration_UI_receipt", status="unknown", detail="War state is proven; the UI receipt is unavailable")
+                    else:
+                        audit.add(label + ":declaration_UI_receipt", ui.get("declaration_sent") is checked["observations"]["declaration_sent"]
+                                  and (ui.get("input_path") == "none" if checked["effect_status"] == "already_present" else ui.get("input_path") == "ordinary UI"))
             previous = after
         else:
             audit.add(label + ":after_state", status="missing")
@@ -294,6 +331,9 @@ def audit_turn(audit, root, campaign_dir, config, entry):
         if baseline:
             audit.add(prefix + ":observation_fingerprint:" + tag, row["state_fingerprint"] == country_fingerprint(baseline, tag)
                       and same_date(row["date"], baseline["date"]))
+            if row.get("naval_air", {}).get("state_fingerprint"):
+                from naval_air_actions import naval_air_fingerprint
+                audit.add(prefix + ":naval_air_snapshot_fingerprint:" + tag, row["naval_air"]["state_fingerprint"] == naval_air_fingerprint(baseline, tag))
         check_history(row.get("recent_history", []), tag)
     result = audit.read(turn / "result.json", prefix + ":execution_result")
     decisions = audit.read(trial / "decision_result.json", prefix + ":decision_result")

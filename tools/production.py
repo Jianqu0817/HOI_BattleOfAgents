@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import html
 import json
@@ -28,7 +29,52 @@ def load_registry(path):
     for identity, row in registry["characters"].items():
         if not identity.replace("_", "").isalnum() or "neutral" not in row.get("portraits", {}):
             raise ValueError("Character requires a safe ID and neutral portrait")
+        if row.get("card_file"):
+            card_path = Path(row["card_file"])
+            card = read(card_path if card_path.is_absolute() else ROOT / card_path)
+            if (card.get("schema") != "iron.character-card.v1"
+                    or not isinstance(card.get("persona"), str)
+                    or not isinstance(card.get("character_card", {}).get("display_name"), str)):
+                raise ValueError("Invalid character card: " + identity)
+            row["card"] = card
     return registry
+
+
+def configure_character_show(config):
+    """Freeze authored personas and an explicitly public cast into a new campaign config."""
+    show = config["show"]
+    if not show.get("use_character_cards"):
+        return
+    from showrunner import country_model
+    production = config["production"]
+    path = Path(production["registry"])
+    registry = load_registry(path if path.is_absolute() else ROOT / path)
+    names = {"GER": "德国", "FRA": "法国", "ITA": "意大利", "AUS": "奥地利", "SWI": "瑞士"}
+    cast = []
+    for slot in [*config["countries"], "host"]:
+        identity = production["assignments"][slot]
+        card = registry["characters"][identity]["card"]
+        face = card["character_card"]
+        profile = {"name": face["display_name"], "persona": card["persona"]}
+        if slot == "host":
+            show["host_profile"] = profile
+        else:
+            show["profiles"][slot] = {**show["profiles"].get(slot, {}), **profile}
+        model = config["model"] if slot == "host" else country_model(config["model"], show, slot)
+        cast.append({"country": None if slot == "host" else slot,
+                     "country_name": "主持" if slot == "host" else names.get(slot, slot),
+                     "role": "host" if slot == "host" else "player", "character_id": identity,
+                     "name": face["display_name"], "aliases": copy.deepcopy(face["aliases"]),
+                     "character_model": card["model_family"], "execution_model": model["model"],
+                     "self_intro": face["self_intro"]})
+    show["public_cast"] = cast
+    rules_path = Path(show["character_rules_file"])
+    rules = (rules_path if rules_path.is_absolute() else ROOT / rules_path).read_text(encoding="utf-8-sig")
+    show["common_rules"] += "\n" + rules.replace("{cast}", "见 public_cast 公开演员表")
+    show["common_rules"] += ("\n比赛规则解释：角色卡描述性格，不强制兑现外交承诺；允许合作、隐瞒、撒谎和战术欺骗。"
+                             "不得伪造系统观察、执行回执或已发生操作，私密命令始终保密。"
+                             "public_cast.character_model 是角色拟人的品牌，execution_model 才是实际调用模型；"
+                             "测试中同一模型可以扮演不同角色，不代表不同品牌模型已经参赛。")
 
 
 def make_lines(episode, assignments, *, event_ids=None):
@@ -111,7 +157,11 @@ def export_production(output, config, *, synthesize=False):
                 shutil.copy2(source, output / relative)
                 portraits[emotion] = relative.as_posix()
         characters[identity] = {"name": row["name"], "portraits": portraits,
-                                "card_file": row.get("card_file"), "card_status": "user_pending"}
+                                "card_file": row.get("card_file"),
+                                "card_status": "ready" if row.get("card") else "user_pending"}
+        if row.get("card"):
+            characters[identity]["character_card"] = row["card"]["character_card"]
+            characters[identity]["voice"] = row["card"].get("voice", {})
     write(output / "characters.json", {"characters": characters, "assignments": assignments})
     (output / "voice_lines.jsonl").write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in lines), encoding="utf-8")
     receipts = []
@@ -150,7 +200,10 @@ def main():
     parser.add_argument("--config", default="configs/production.example.json")
     parser.add_argument("--synthesize", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(export_production(args.episode, read(args.config), synthesize=args.synthesize), ensure_ascii=False))
+    result = export_production(args.episode, read(args.config), synthesize=args.synthesize)
+    print(json.dumps(result, ensure_ascii=False))
+    if args.synthesize and result["voices"] != result["lines"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -23,7 +23,13 @@ def retained_orders(result, checkpoint, current):
         tag, action = entry["country"], entry["action"]
         own, old = current["countries"][tag], checkpoint["countries"][tag]
         args, kind = action["args"], action["type"]
-        if kind.startswith("army."):
+        if kind.startswith(("air.", "navy.")):
+            from naval_air_actions import retained_naval_air_order
+            kept = retained_naval_air_order(action, checkpoint, current, tag)
+        elif kind == "diplomacy.declare_war":
+            from diplomacy_actions import retained_declaration
+            kept = retained_declaration(action, checkpoint, current, tag)
+        elif kind.startswith("army."):
             from army_actions import retained_army_order
             kept = retained_army_order(action, checkpoint, current, tag)
         elif kind == "research.start":

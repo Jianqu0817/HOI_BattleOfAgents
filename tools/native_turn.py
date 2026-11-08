@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import time
@@ -132,15 +133,19 @@ class NativeTurn:
         self.actual_step_hours = None
         self.early_end = None
         self.main_status = None
+        self.resuming = False
         self.trajectory_provider = trajectory_provider
         self.event_provider = event_provider
         self.boundary_observer = boundary_observer
 
-    def event(self, event_type, **data):
+    def event(self, event_type, *, durable=False, **data):
         row = {"event": event_type, "utc": datetime.now(timezone.utc).isoformat(), **data}
         self.events.append(row)
         with (self.output / "audience_facts.jsonl").open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(row, ensure_ascii=False) + "\n")
+            if durable:
+                stream.flush()
+                os.fsync(stream.fileno())
 
     def call(self, op, payload="", *, mutation=False, purpose="read"):
         self.sequence += 1
@@ -333,7 +338,9 @@ class NativeTurn:
             from native_events import unavailable
             events = unavailable("synthetic host has no event provider")
         self.event("pending_events_observation", observation=events)
-        if events.get("pending"):
+        if self.resuming and not isinstance(events.get("pending"), list):
+            raise RuntimeError("pending events are unknown; resume requires reconciliation")
+        if events.get("pending") or events.get("resolved_windows"):
             return "pending_decision", events
         if wars_changed:
             return "public_state_changed", {"war_changed": True, "public_wars": trajectory["public_wars"],
@@ -375,8 +382,8 @@ class NativeTurn:
             return True
         return self.interrupt_clock(reason, start=start, state=state, clock=clock, details=details)
 
-    def advance(self):
-        hours, start = self.plan["step_hours"], self.date_raw
+    def advance(self, *, start=None):
+        hours, start = self.plan["step_hours"], self.date_raw if start is None else start
         chunk_hours = validate_policy(self.plan.get("clock_policy", {}))["chunk_hours"]
         state = self.country(self.initial, ai_off=True)
         boundary = self.clock_boundary(state)
@@ -459,6 +466,173 @@ class NativeTurn:
                 "remaining_budget_hours": self.plan["step_hours"] - self.actual_step_hours,
                 "date_raw": self.date_raw, "effects": results, "save": file_result}
 
+    def resume_interrupted(self):
+        """Reconcile a settled interrupted turn, then spend only its clock remainder.
+
+        Existing orders and AI changes are never dispatched again. A rejected or
+        unknown reconciliation leaves the clock untouched and requires inspection.
+        """
+        result_path = self.output / "result.json"
+        old_bytes = result_path.read_bytes()
+        result = json.loads(old_bytes)
+        if result.get("status") == "completed":
+            return result
+        plan_bytes = (self.output / "plan.json").read_bytes()
+        if json.loads(plan_bytes) != self.plan:
+            raise RuntimeError("resume plan differs from the sealed plan")
+        if result.get("schema") != SCHEMA or result.get("status") != "interrupted":
+            raise RuntimeError("resume needs an interrupted native turn result")
+        facts = [json.loads(line) for line in (self.output / "audience_facts.jsonl").read_text(encoding="utf-8").splitlines()]
+        sessions = [row for row in facts if row["event"] == "session"]
+        frozen = [row for row in facts if row["event"] == "frozen_initial"]
+        if len(sessions) != 1 or len(frozen) != 1:
+            raise RuntimeError("resume needs one original session and frozen initial state")
+        session, frozen = sessions[0], frozen[0]
+        for key in ("run_id", "pid", "creation_time"):
+            if session.get(key) != result.get(key):
+                raise RuntimeError("result and original session identity differ")
+        if self.game.pid != session["pid"] or self.game.creation_time != session["creation_time"]:
+            raise RuntimeError("resume process identity differs from the original session")
+        self.run_id = session["run_id"]
+        self.events = facts.copy()
+        intents, receipts, last_sequence = {}, {}, 0
+        for row in facts:
+            if row["event"] == "stopped" and row.get("unknown_outcome"):
+                raise RuntimeError("unknown native outcome requires manual reconciliation")
+            if row["event"] not in {"intent", "receipt"}:
+                continue
+            request_id = row.get("request_id", "")
+            match = re.fullmatch(re.escape(self.run_id) + r"\.(\d+)\.[A-Za-z0-9_-]+", request_id)
+            if not match:
+                raise RuntimeError("journal request belongs to another run")
+            sequence = int(match[1])
+            if row["event"] == "intent":
+                if request_id in intents or sequence <= last_sequence:
+                    raise RuntimeError("journal request sequence is not strictly increasing")
+                intents[request_id] = row
+                last_sequence = sequence
+            else:
+                if request_id not in intents or request_id in receipts or row["operation"] != intents[request_id]["operation"]:
+                    raise RuntimeError("journal has an unmatched or duplicate receipt")
+                receipts[request_id] = row
+        self.sequence = last_sequence
+        mutations = [row for row in intents.values() if row.get("mutation")]
+        for intent in mutations:
+            receipt = receipts.get(intent["request_id"])
+            if not receipt or not isinstance(receipt.get("result"), dict) or receipt["result"].get("ok") is False:
+                raise RuntimeError("missing or rejected mutation receipt; no automatic replay")
+            # NativeGame retains a second, durable transport journal when used.
+            request_path = self.output / "requests" / (intent["request_id"] + ".json")
+            if request_path.exists():
+                transport = json.loads(request_path.read_text(encoding="utf-8"))
+                if transport.get("status") != "received" or not transport.get("receipt", {}).get("ok"):
+                    raise RuntimeError("unknown transport mutation outcome requires reconciliation")
+        expected_orders = []
+        for country in self.plan["countries"]:
+            for action in country["actions"]:
+                op, payload = self.payload(country["tag"], action)
+                orders = [row for row in mutations if row["operation"] == op and row["payload"] == payload]
+                effects = [row for row in facts if row["event"] == "action_effect"
+                           and row.get("country") == country["tag"] and row.get("action") == action]
+                if (len(orders) != 1 or len(effects) != 1 or not effects[0].get("queue_acknowledged")
+                        or not effects[0].get("effect_verified")):
+                    raise RuntimeError("every sealed action needs one successful order and effect receipt")
+                receipt = receipts[orders[0]["request_id"]]["result"]
+                if not receipt.get("queue_accepted") or not receipt.get("posted"):
+                    raise RuntimeError("original order queue acknowledgement is missing")
+                expected_orders.append(orders[0]["request_id"])
+        tags = {country["tag"] for country in self.plan["countries"]}
+        for intent in mutations:
+            words = intent["payload"].split()
+            known_control = (intent["operation"] == "native_control_v1" and
+                             ((len(words) == 3 and words[0] == "tag" and set(words[1:]) <= tags)
+                              or (len(words) == 4 and words[0] == "ai" and words[1] in tags and words[2:] == ["1", "0"])))
+            known_step = (intent["operation"] == "native_clock_v1" and len(words) == 2
+                          and words[0] == "step" and words[1].isdigit() and 1 <= int(words[1]) <= 6)
+            if intent["request_id"] not in expected_orders and not known_control and not known_step:
+                raise RuntimeError("unexpected mutation in the original turn journal")
+        interruptions = [row for row in facts if row["event"] == "clock_interrupted"]
+        interruption = result.get("clock_interruption", {})
+        if not interruptions or any(interruptions[-1].get(key) != value for key, value in interruption.items()):
+            raise RuntimeError("interrupted result and latest clock receipt differ")
+        self.initial = self.current = frozen["initial_country"]
+        if self.initial not in tags or result.get("controller") != self.initial:
+            raise RuntimeError("interrupted controller was not the original controller")
+        original_start = frozen["countries"][self.initial]["date_raw"]
+        expected_date = result["date_raw"]
+        elapsed = expected_date - original_start
+        if (not 0 <= elapsed < self.plan["step_hours"]
+                or interruption.get("requested_hours") != self.plan["step_hours"]
+                or interruption.get("observed_hour_delta") != elapsed
+                or interruption.get("remaining_budget_hours") != self.plan["step_hours"] - elapsed
+                or interruption.get("state", {}).get("date_raw") != expected_date):
+            raise RuntimeError("interrupted clock budget does not match the original frozen date")
+        self.date_raw = expected_date
+        self.first_arrivals = result.get("first_arrivals", {}).copy()
+        for row in facts:
+            if row["event"] == "first_arrival":
+                arrival = {"date_raw": row["date_raw"], "observed": row["observed"]}
+                if self.first_arrivals.get(row["action_id"], arrival) != arrival:
+                    raise RuntimeError("first arrival history differs from interrupted result")
+                self.first_arrivals[row["action_id"]] = arrival
+            if row["event"] == "trajectory_observation" and "public_wars" in row:
+                self.boundary_wars = {tuple(sorted((war["first"], war["second"]))) for war in row["public_wars"]}
+        self.main_status = self.call("main_status")
+        controls = {tag: self.country(tag, ai_off=True) for tag in tags}
+        initial_index = frozen["countries"][self.initial]["country_index"]
+        if any(state["played_index"] != initial_index or state["country_index"] != frozen["countries"][tag]["country_index"]
+               for tag, state in controls.items()):
+            raise RuntimeError("resume controller or country identity differs from the original state")
+        clock = self.call("native_clock_v1", "status")["state"]
+        if clock.get("paused") is not True or clock.get("remaining_hours") != 0:
+            raise RuntimeError("resume requires a settled paused clock with remaining_hours=0")
+        if self.event_provider is not None:
+            pending = self.event_provider(self, controls)
+        elif self.main_status.get("synthetic") is False:
+            from native_events import read_pending
+            pending = read_pending(self.game, self.main_status, controls)
+        else:
+            raise RuntimeError("resume needs a fresh pending-event observation")
+        self.event("resume_pending_observation", observation=pending)
+        if not isinstance(pending.get("pending"), list):
+            raise RuntimeError("pending events are unknown; no automatic resume")
+        if pending["pending"] or pending.get("resolved_windows"):
+            self.event("resume_blocked", reason="pending_decision", durable=True)
+            return result
+        archive_index = 1
+        while (self.output / f"result.interrupted.{archive_index:04d}.json").exists():
+            archive_index += 1
+        archive = self.output / f"result.interrupted.{archive_index:04d}.json"
+        with archive.open("xb") as stream:
+            stream.write(old_bytes); stream.flush(); os.fsync(stream.fileno())
+        self.event("resume_reconciled", durable=True, original_run_id=self.run_id,
+                   original_start_date_raw=original_start, resume_date_raw=expected_date,
+                   remaining_budget_hours=self.plan["step_hours"] - elapsed,
+                   plan_sha256=hashlib.sha256(plan_bytes).hexdigest(), successful_order_request_ids=expected_orders,
+                   previous_result=archive.name, previous_result_sha256=hashlib.sha256(old_bytes).hexdigest(),
+                   clock=clock, controls=controls, pending=pending,
+                   first_arrivals=self.first_arrivals, public_wars=sorted(self.boundary_wars) if self.boundary_wars is not None else None)
+        self.resuming = True
+        try:
+            if self.advance(start=original_start):
+                result = self.final_observations()
+            else:
+                result = {"schema": SCHEMA, "run_id": self.run_id, "status": "interrupted",
+                          "pid": self.game.pid, "creation_time": self.game.creation_time,
+                          "date_raw": self.date_raw, "controller": self.current,
+                          "clock_interruption": self.clock_interruption, "first_arrivals": self.first_arrivals,
+                          "reconcile_required": True}
+        except Exception as error:
+            self.event("stopped", error=str(error), unknown_outcome=isinstance(error, NativeRpcError) and error.outcome == "unknown",
+                       reconcile_required=True, controller=self.current, initial_controller=self.initial, durable=True)
+            raise
+        temporary = result_path.with_suffix(".tmp")
+        with temporary.open("w", encoding="utf-8") as stream:
+            json.dump(result, stream, ensure_ascii=False, indent=2)
+            stream.flush(); os.fsync(stream.fileno())
+        temporary.replace(result_path)
+        return result
+
     def run(self):
         # Existing output may contain a pending native order. Never assign it new IDs.
         self.output.mkdir(parents=True, exist_ok=False)
@@ -493,14 +667,17 @@ def main():
     parser.add_argument("--save-dir", type=Path)
     parser.add_argument("--timeout", type=float, default=900)
     parser.add_argument("--execute", action="store_true", help="dispatch the validated plan; otherwise validate schema only")
+    parser.add_argument("--resume-clock", action="store_true", help="reconcile an existing interrupted turn and advance only its remaining clock budget")
     args = parser.parse_args()
     plan = validate_plan(json.loads(args.plan.read_text(encoding="utf-8")))
     if not args.execute:
         print(json.dumps({"valid": True, "schema": SCHEMA, "countries": len(plan["countries"]), "actions": sum(len(c["actions"]) for c in plan["countries"]), "executed": False})); return
     if not args.pid or args.timeout <= 0: parser.error("execution requires positive --pid and --timeout")
-    if args.output.exists(): parser.error("output exists; reconcile its journal, then choose a fresh output for a new turn")
+    if args.output.exists() and not args.resume_clock: parser.error("output exists; use --resume-clock only after reconciling its journal")
+    if args.resume_clock and not args.output.exists(): parser.error("--resume-clock requires an existing interrupted turn")
     game = NativeGame(args.pid, args.output / "requests")
-    result = NativeTurn(game, plan, args.output, save_dir=args.save_dir, timeout=args.timeout).run()
+    runner = NativeTurn(game, plan, args.output, save_dir=args.save_dir, timeout=args.timeout)
+    result = runner.resume_interrupted() if args.resume_clock else runner.run()
     print(json.dumps(result, ensure_ascii=False))
 
 

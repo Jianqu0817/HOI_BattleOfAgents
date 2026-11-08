@@ -1,0 +1,54 @@
+{
+  "voice_name": "佳代子",
+  "version": "v2",
+  "gpt_epoch": 15,
+  "sovits_epoch": 16,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\成品模型\\GPT_weights_v2\\Kayoko-e15.ckpt",
+      "path": "assets/voices/claude/models/Kayoko-e15.ckpt",
+      "sha256": "2eaa39246a3069ea9fde90ea560e69413e363be7c3364702131fae7ffde33697",
+      "bytes": 155312957
+    },
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\成品模型\\SoVITS_weights_v2\\Kayoko_e16_s400.pth",
+      "path": "assets/voices/claude/models/Kayoko_e16_s400.pth",
+      "sha256": "1b636bb60e0262d4601e9dda046fc6be2a58fa526609da5968b2c09d6c2debb5",
+      "bytes": 85007879
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_EventLobby_3.wav",
+      "path": "assets/voices/claude/references/CH0086_EventLobby_3.wav",
+      "sha256": "1be086ae05216b9dcac296d328fda9657ddec81ac87b191ae7463f52df9863ff",
+      "bytes": 568556,
+      "prompt_text": "ハルカ、最近疲れてるように見えるけど。大丈夫かな……。",
+      "seconds": 6.445329
+    },
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_EventLobby_2_1.wav",
+      "path": "assets/voices/claude/references/CH0086_EventLobby_2_1.wav",
+      "sha256": "e5a9e0ba277d207c3e9f1aa7eb68bd06da8a9c15a405132c9380dd3954962c6d",
+      "bytes": 527514,
+      "prompt_text": "新作アルバム代を全部お賽銭に使っちゃって、よかったのかって？",
+      "seconds": 5.98
+    },
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_Lobby_4.wav",
+      "path": "assets/voices/claude/references/CH0086_Lobby_4.wav",
+      "sha256": "9901dfc272bed7faaafd689bf5a381c03705b5c52b7b50a4c13863686426db39",
+      "bytes": 659108,
+      "prompt_text": "どうしたの、先生？私で役に立てるなら、なんでも言って。",
+      "seconds": 7.471995
+    },
+    {
+      "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0239_EventLogin_2.wav",
+      "path": "assets/voices/claude/references/CH0239_EventLogin_2.wav",
+      "sha256": "9c517452a869ded6f3e7b2c5827ea4ac195e07092792d4ff352dc5aca81ca92e",
+      "bytes": 281094,
+      "prompt_text": "…あ、ちょうど探してたんだ、先生。",
+      "seconds": 3.186122
+    }
+  ]
+}

@@ -35,7 +35,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     print("IRON · AI 国家对战与视频素材工作台")
     while True:
-        print("\n1 安装/初始化   2 环境检查   3 开始对局   4 恢复对局\n5 打开回看     6 查看制作指南   0 退出")
+        print("\n1 安装/初始化   2 环境检查   3 开始对局   4 恢复对局\n5 打开回看     6 查看制作指南\n7 准备欧洲陆战测试局（初始化预设战争目标，保留备份）\n8 查看陆军/外交/海空校准指南   0 退出")
         choice = input("选择：").strip()
         try:
             if choice == "0":
@@ -70,6 +70,14 @@ def main():
             elif choice == "6":
                 os.startfile(ROOT / "docs/QUICKSTART.md")
                 os.startfile(ROOT / "docs/VIDEO_WORKFLOW.md")
+            elif choice == "7":
+                name = input("欧洲测试局准备记录名称（字母数字下划线）：").strip()
+                from campaign import name_ok
+                name_ok(name)
+                call(ROOT / "tools/prepare_europe.py", "--name", name)
+            elif choice == "8":
+                for guide in ("ARMY_CONTROL.md", "DIPLOMACY_CONTROL.md", "NAVAL_AIR.md"):
+                    os.startfile(ROOT / "docs" / guide)
         except (ValueError, FileNotFoundError, KeyError) as error:
             print("无法继续：", error)
 

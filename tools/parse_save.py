@@ -25,7 +25,8 @@ TOKEN_RE = re.compile(r'("(?:\\.|[^"\\])*")|(#[^\n]*)|([{}=])|([^\s{}="#]+)')
 CHUNK = 4 << 20
 
 MAJOR_TAGS = ["GER", "SOV", "ENG", "FRA", "USA", "ITA", "JAP", "CHI"]
-TOP_KEEP = {"version", "date", "player", "countries", "states", "provinces", "combat", "wars", "equipments"}
+TOP_KEEP = {"version", "date", "player", "countries", "states", "provinces", "combat", "wars", "equipments", "faction", "strategic_air"}
+PUBLIC_WAR_FIELDS = ("first", "second", "start_date", "first_casualties", "second_casualties")
 
 # 国家块内递归收集的关键字段（按 1.19 真实存档校准；找不到的会报告在 meta 中）
 COUNTRY_KEYS = [
@@ -203,7 +204,75 @@ def parse_block(st, skip_keys=frozenset()):
     return result
 
 
-def parse_top_countries(st, wanted):
+def project_public_wars(country, relations):
+    """Only public pair/date/loss fields; never retain a foreign country's other data."""
+    output = []
+    for other, relation in relations.items():
+        if not isinstance(relation, dict):
+            continue
+        values = relation.get("war_relation")
+        values = values if isinstance(values, list) else [values]
+        for war in values:
+            if not isinstance(war, dict):
+                continue
+            endpoints = war.get("first"), war.get("second")
+            if any(not isinstance(tag, str) or not re.fullmatch(r"[A-Z][A-Z0-9]{2}", tag) for tag in endpoints) or endpoints[0] == endpoints[1]:
+                continue
+            if set(endpoints) != {country, other}:
+                raise ValueError("Public war relation has inconsistent country endpoints")
+            output.append({field: war.get(field) for field in PUBLIC_WAR_FIELDS})
+    return output
+
+
+def parse_public_diplomacy(st, country, wanted):
+    """Read only active relations which can contain a selected country's shared war."""
+    output = []
+    st.next()
+    while st.type is not None and st.type != "}":
+        key = st.val
+        st.next()
+        if st.type == "=":
+            st.next()
+        if key != "active_relations" or st.type != "{":
+            skip_value(st)
+            continue
+        st.next()
+        while st.type is not None and st.type != "}":
+            other = st.val
+            st.next()
+            if st.type == "=":
+                st.next()
+            if other in wanted and st.type == "{":
+                relation = parse_block(st, SKIP_KEYS)
+                output.extend(project_public_wars(country, {other: relation}))
+            else:
+                skip_value(st)
+        if st.type == "}":
+            st.next()
+    if st.type == "}":
+        st.next()
+    return output
+
+
+def parse_unselected_country_wars(st, country, wanted):
+    """Skip foreign units, economics and goals; only temporarily inspect relevant relations."""
+    output = []
+    st.next()
+    while st.type is not None and st.type != "}":
+        key = st.val
+        st.next()
+        if st.type == "=":
+            st.next()
+        if key == "diplomacy" and st.type == "{":
+            output.extend(parse_public_diplomacy(st, country, wanted))
+        else:
+            skip_value(st)
+    if st.type == "}":
+        st.next()
+    return output
+
+
+def parse_top_countries(st, wanted, public_wars=None):
     """countries 块: 只完整解析 wanted 集合里的 tag，其余整块跳过。"""
     out = {}
     st.next()  # '{'
@@ -220,6 +289,10 @@ def parse_top_countries(st, wanted):
             if st.type == "{":
                 if tag in wanted:
                     out[tag] = parse_block(st, SKIP_KEYS)
+                    if public_wars is not None:
+                        public_wars.extend(project_public_wars(tag, out[tag].get("diplomacy", {}).get("active_relations", {})))
+                elif public_wars is not None:
+                    public_wars.extend(parse_unselected_country_wars(st, tag, wanted))
                 else:
                     skip_value(st)
         else:
@@ -249,9 +322,17 @@ def parse_top_states(st):
 
 
 def load_save(path, wanted_tags):
-    stream = TokStream(tokenize_file(path))
+    tokens = tokenize_file(path)
+    try:
+        return _load_save_stream(TokStream(tokens), wanted_tags)
+    finally:
+        tokens.close()
+
+
+def _load_save_stream(stream, wanted_tags):
     _skip_header(stream)
     save = {}
+    public_wars = []
     while stream.type is not None:
         t, v = stream.type, stream.val
         if t in ("word", "str"):
@@ -261,7 +342,7 @@ def load_save(path, wanted_tags):
                 stream.next()
             if stream.type == "{":
                 if key == "countries":
-                    save["countries"] = parse_top_countries(stream, wanted_tags)
+                    save["countries"] = parse_top_countries(stream, wanted_tags, public_wars)
                 elif key == "states":
                     save["states"] = parse_top_states(stream)
                 elif key in TOP_KEEP:
@@ -273,6 +354,13 @@ def load_save(path, wanted_tags):
                 stream.next()
         else:
             stream.next()
+    pairs = {}
+    for war in public_wars:
+        pair = tuple(sorted((war["first"], war["second"])))
+        if pair in pairs and pairs[pair] != war:
+            raise ValueError("Conflicting public war records for " + " / ".join(pair))
+        pairs[pair] = war
+    save["public_wars"] = [pairs[pair] for pair in sorted(pairs)]
     return save
 
 

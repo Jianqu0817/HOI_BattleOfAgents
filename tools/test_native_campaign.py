@@ -55,13 +55,34 @@ class NativeCampaignTests(unittest.TestCase):
             self.assertEqual(stored["response"], raw)
             self.assertEqual(stored["normalized_response"], first)
 
-    def test_chat_cannot_smuggle_nonempty_game_actions(self):
+    def test_chat_actions_are_projected_with_a_receipt_and_the_message_still_flows(self):
         raw = {"country": "AUS", "message": "position", "actions": [{"type": "division.move"}]}
         metadata = {"requested_model": CONFIG["model"]}
         with tempfile.TemporaryDirectory() as folder, patch("model_trial.complete", return_value=(raw, metadata)):
-            with self.assertRaisesRegex(ValueError, "cannot submit"):
-                call_country(Path(folder), CONFIG, observe(), "diplomacy", [],
-                             tags=["AUS", "GER", "FRA"], show_config=settings({}, ["AUS", "GER", "FRA"]))
+            value = call_country(Path(folder), CONFIG, observe(), "diplomacy", [],
+                                 tags=["AUS", "GER", "FRA"], show_config=settings({}, ["AUS", "GER", "FRA"]))
+            self.assertEqual(value, {"country": "AUS", "message": "position"})
+            stored = json.loads((Path(folder) / "model_calls/diplomacy_AUS.json").read_text(encoding="utf-8"))
+        self.assertEqual(stored["response"], raw)
+        self.assertEqual(stored["chat_actions_projection"],
+                         {"method": "chat_is_not_execution_envelope.v1", "rejected_actions": raw["actions"]})
+        self.assertEqual(stored["normalizations"], ["actions"])
+        self.assertEqual(stored["normalized_response"], value)
+
+    def test_decision_shaped_private_payload_becomes_a_recorded_noop_message(self):
+        raw = {"country": "AUS", "actions": [], "reason": "维持现状"}
+        metadata = {"requested_model": CONFIG["model"]}
+        show = settings({}, ["AUS", "GER", "FRA"])
+        show["strict_public_context"] = True
+        with tempfile.TemporaryDirectory() as folder, patch("model_trial.complete", return_value=(raw, metadata)):
+            value = call_country(Path(folder), CONFIG, observe(), "private", [],
+                                 tags=["AUS", "GER", "FRA"], show_config=show)
+            self.assertEqual(value, {"country": "AUS", "to": None, "message": ""})
+            stored = json.loads((Path(folder) / "model_calls/private_AUS.json").read_text(encoding="utf-8"))
+        self.assertEqual(stored["response"], raw)
+        self.assertEqual(stored["speech_projection"]["method"], "noop_message.v1")
+        self.assertEqual(stored["speech_projection"]["raw"], raw)
+        self.assertEqual(stored["normalized_response"], value)
 
     def test_annotation_repair_is_cached_and_never_changes_the_spoken_message(self):
         raw = {"country": "AUS", "message": "我方不援奥", "commitments": [

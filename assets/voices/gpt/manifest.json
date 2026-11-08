@@ -1,0 +1,54 @@
+{
+  "voice_name": "莉音",
+  "version": "v2ProPlus",
+  "gpt_epoch": 15,
+  "sovits_epoch": 18,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\GPT_weights_v2ProPlus\\LiYin-e15.ckpt",
+      "path": "assets/voices/gpt/models/LiYin-e15.ckpt",
+      "sha256": "eb092b33a644f9fb48154568458cd507de3bf237e1ad39443828d2798a5e0dbd",
+      "bytes": 155313011
+    },
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\SoVITS_weights_v2ProPlus\\LiYin_e18_s324.pth",
+      "path": "assets/voices/gpt/models/LiYin_e18_s324.pth",
+      "sha256": "6a3167b73bc3752742cca64e4ac96e19b4808f9af599c98ba9bbd488a87ab8e2",
+      "bytes": 172765299
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_growup_2.wav",
+      "path": "assets/voices/gpt/references/ch0158_growup_2.wav",
+      "sha256": "80550e1f3e622dc39f61ff9b7f651b4e4771218349f29c6e096eeecd44ade60e",
+      "bytes": 503170,
+      "prompt_text": "成長の余地がある者にリソースを割く……合理的な選択ね、先生。",
+      "seconds": 5.703991
+    },
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_2_2.wav",
+      "path": "assets/voices/gpt/references/ch0158_lobby_2_2.wav",
+      "sha256": "29821f9ca905c225187c3fa00cb21194a75c74630bc7467baa3a54b0b0b5f728",
+      "bytes": 766594,
+      "prompt_text": "つまり――私たちが星を目にしている時、「過去」と「現在」を同時に捉えている、とも言えるわね。",
+      "seconds": 8.690658
+    },
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_2_3.wav",
+      "path": "assets/voices/gpt/references/ch0158_lobby_2_3.wav",
+      "sha256": "6d95e146c6194c2f70fe350c351e606b58aa400ff7babeefd3bfa637cb523478",
+      "bytes": 458012,
+      "prompt_text": "……そこでも、「未来」を観測することはできないのだけれども。",
+      "seconds": 5.191995
+    },
+    {
+      "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_3_2.wav",
+      "path": "assets/voices/gpt/references/ch0158_lobby_3_2.wav",
+      "sha256": "016928624732aae60006595fd40bab20ca3986b70f5cf638736702315348deb6",
+      "bytes": 378986,
+      "prompt_text": "ずっと答えを出せずにいるの。でも……",
+      "seconds": 4.296009
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "voice_name": "妃咲",
+  "version": "v2",
+  "gpt_epoch": 15,
+  "sovits_epoch": 24,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\GPT_weights_v2\\FeiXiao-e15.ckpt",
+      "path": "assets/voices/qwen/models/FeiXiao-e15.ckpt",
+      "sha256": "a3c5961f109f8cb5508360bc7071f06c6a38e37ec6ba806fbaa4681db6dc5d9c",
+      "bytes": 155312957
+    },
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\SoVITS_weights_v2\\FeiXiao_e24_s408.pth",
+      "path": "assets/voices/qwen/models/FeiXiao_e24_s408.pth",
+      "sha256": "e7baac8110189490f7a506ef121dc8eb0501aab4cdf94378fd6c7a269e5a68ab",
+      "bytes": 85007202
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_5_1.wav",
+      "path": "assets/voices/qwen/references/CH0139_Lobby_5_1.wav",
+      "sha256": "2916d07f7ea7e4fe0e1546c198d855628aeece34dfba5e9b9c4567111b9b41f6",
+      "bytes": 409000,
+      "prompt_text": "香をたいてみたのじゃ。不思議な香りがするじゃろう？",
+      "seconds": 4.636304
+    },
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_2_1.wav",
+      "path": "assets/voices/qwen/references/CH0139_Lobby_2_1.wav",
+      "sha256": "97678b316bbf199d13134688ee3b8f512ab8bebfc956abbfa3d0b3ec85d32d30",
+      "bytes": 731550,
+      "prompt_text": "何ぞ用でもあるかの？ふむ…声をかけてみただけ、と？",
+      "seconds": 8.293333
+    },
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_4_1.wav",
+      "path": "assets/voices/qwen/references/CH0139_Lobby_4_1.wav",
+      "sha256": "0f5266f254916ccb41820230bf4baec7850b29ea1e1287b88e1761118fd8381a",
+      "bytes": 637592,
+      "prompt_text": "時がこのまま止まってしまえばいい、そう思ったことはないかの？先生。",
+      "seconds": 7.22805
+    },
+    {
+      "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_4_2.wav",
+      "path": "assets/voices/qwen/references/CH0139_Lobby_4_2.wav",
+      "sha256": "9588cea7b461b39dcd3770cedbac33507fb3629a1d9c17b3690bff182c9f3617",
+      "bytes": 475258,
+      "prompt_text": "妾はあるぞ。いま、そう思っておる。",
+      "seconds": 5.387528
+    }
+  ]
+}

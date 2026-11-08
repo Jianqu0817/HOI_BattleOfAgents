@@ -66,6 +66,14 @@ def referee_model(default, show):
     return {**default, **(show or {}).get("referee_model", {})}
 
 
+def public_cast(show):
+    """Only authored public identity fields may cross the player/public boundary."""
+    fields = ("country", "country_name", "role", "character_id", "name", "aliases",
+              "character_model", "execution_model", "self_intro")
+    return [{key: copy.deepcopy(row[key]) for key in fields if key in row}
+            for row in (show or {}).get("public_cast", [])]
+
+
 def check_intent(value, country):
     if not isinstance(value, dict) or set(value) != {"country", "goal", "plan", "concealment", "predictions"} or value["country"] != country:
         raise ValueError("Invalid private intent identity or schema")
@@ -188,6 +196,8 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
     payload["game_guide"] = show["guide"]
     payload["own_profile"] = copy.deepcopy(show["profiles"].get(tag, {}))
     payload["participants"] = tags
+    if show.get("public_cast"):
+        payload["public_cast"] = public_cast(show)
     payload["turn_hours"] = show["step_hours"]
     if tag in show.get("score_context", {}):
         payload["own_score_context"] = copy.deepcopy(show["score_context"][tag])
@@ -242,6 +252,11 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
                            "建造args={state_id,building_id,count}。多个动作不得重复同一目标。"
                            "若菜单开放陆军：army.move args={army_id,target_province_id}，army.stop args={army_id}，只用候选军团和目标。"
                            "army.attack args={army_id,target_province_id,target_state_id}，州ID必须取该候选省份的state_id。"
+                           "diplomacy.declare_war args={target_country,wargoal_id}，必须取外交菜单中的目标国家及真实战争目标ID。"
+                           "宣战须通过游戏正常界面；既有目标不保证政治条件满足。同回合已被对方宣战时不会重复发送。"
+                           "海空菜单若开放：air.assign args={wing_id,region_id,mission}，air.stop args={wing_id}；"
+                           "navy.assign args={fleet_id,region_id,mission}，navy.move args={fleet_id,province_id}，navy.stop args={fleet_id}。"
+                           "任务名、对象ID和目标ID必须从各自候选原样选择；未校准对象没有执行权限。"
                            "候选脚本条件未全部求值，不确定时保持已有命令。"
                            "请求包含identity的五个原值、actions、简短中文reason；每个动作恰有id、type、args。"
                            f"id依次使用{observed['turn_id']}-{tag}-1、{observed['turn_id']}-{tag}-2等。"

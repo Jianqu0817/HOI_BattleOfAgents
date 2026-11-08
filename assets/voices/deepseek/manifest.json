@@ -1,0 +1,54 @@
+{
+  "voice_name": "宫子",
+  "version": "v2",
+  "gpt_epoch": 15,
+  "sovits_epoch": 16,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\成品模型\\GPT_weights_v2\\Miyako-e15.ckpt",
+      "path": "assets/voices/deepseek/models/Miyako-e15.ckpt",
+      "sha256": "f91027d011af5e0cf7318af98bda5275f91a36332dbf7d5a311b9e121d4c289a",
+      "bytes": 155312957
+    },
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\成品模型\\SoVITS_weights_v2\\Miyako_e16_s272.pth",
+      "path": "assets/voices/deepseek/models/Miyako_e16_s272.pth",
+      "sha256": "353d36b9044c1e10a705ed75db9815278d2c2ea2ae727df22d6032d1f2ef2877",
+      "bytes": 85007879
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_4_1.wav",
+      "path": "assets/voices/deepseek/references/CH0215_Lobby_4_1.wav",
+      "sha256": "def1b61fd21ab79ee701420847c03644f2b93ef18a0b7790c7313906f431187c",
+      "bytes": 702094,
+      "prompt_text": "ウサギは水が苦手だからなのでしょうか…ウサギ柄の水着を見たことがありません…",
+      "seconds": 7.959365
+    },
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_EventMission_Login_1.wav",
+      "path": "assets/voices/deepseek/references/CH0215_EventMission_Login_1.wav",
+      "sha256": "e290e2f3c73f5639d2f89435963b07f675ab8c43bc376f8b8561c258ca87137d",
+      "bytes": 479464,
+      "prompt_text": "来てくれましたか、先生。調査に必要なリストをまとめてみました。",
+      "seconds": 5.435215
+    },
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_3.wav",
+      "path": "assets/voices/deepseek/references/CH0215_Lobby_3.wav",
+      "sha256": "e62f09b1c0a30d9ac6816a5a19b3802ce425a80e5036540d69a6f3b08972cdc5",
+      "bytes": 624054,
+      "prompt_text": "今は作戦中ではないので…作戦外のことも、お手伝いできます。",
+      "seconds": 7.074558
+    },
+    {
+      "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_5.wav",
+      "path": "assets/voices/deepseek/references/CH0215_Lobby_5.wav",
+      "sha256": "177274b4e320d52b3222871807791449180bb7e76443edcbcc1999c0488b8617",
+      "bytes": 667544,
+      "prompt_text": "もっと気軽にお声がけください。私たちは、先生のために常時待機していますので。",
+      "seconds": 7.567642
+    }
+  ]
+}

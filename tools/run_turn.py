@@ -18,6 +18,48 @@ def saved_state(directory, save):
     return read(directory / (save["name"].removeprefix("hoi4live_") + ".json"))
 
 
+def check_diplomacy_baseline(state, observed, checkpoint=None):
+    from diplomacy_actions import diplomacy_fingerprint
+    hashes = [value.get("diplomacy", {}).get("baseline_sha256") for value in observed.values()]
+    if not any(hashes):
+        return None  # Legacy observations did not expose declaration actions.
+    if any(value is None for value in hashes) or len(set(hashes)) != 1:
+        raise ValueError("Country observations disagree on the diplomatic baseline")
+    expected = diplomacy_fingerprint(checkpoint) if checkpoint is not None else hashes[0]
+    actual = diplomacy_fingerprint(state)
+    if actual != expected:
+        raise ValueError("War, goal or faction state changed after the frozen observation/checkpoint")
+    return {"expected": expected, "actual": actual, "verified": True}
+
+
+def check_naval_air_baseline(state, observed, checkpoint=None):
+    from naval_air_actions import naval_air_fingerprint
+    hashes = {tag: value.get("naval_air", {}).get("state_fingerprint") for tag, value in observed.items()}
+    if not any(hashes.values()):
+        return None
+    if any(value is None for value in hashes.values()):
+        raise ValueError("An observation lacks its naval/air baseline")
+    expected = {tag: naval_air_fingerprint(checkpoint, tag) for tag in observed} if checkpoint is not None else hashes
+    actual = {tag: naval_air_fingerprint(state, tag) for tag in observed}
+    if actual != expected:
+        raise ValueError("Naval/air state changed after the frozen observation/checkpoint")
+    return {"expected": expected, "actual": actual, "verified": True}
+
+
+def check_army_activity_baseline(state, observed, checkpoint=None):
+    from army_actions import army_activity
+    if not any("army_activity" in value for value in observed.values()):
+        return None
+    if any("army_activity" not in value for value in observed.values()):
+        raise ValueError("An observation lacks its army activity baseline")
+    expected = ({tag: army_activity(checkpoint["countries"][tag]) for tag in observed} if checkpoint is not None
+                else {tag: value["army_activity"] for tag, value in observed.items()})
+    actual = {tag: army_activity(state["countries"][tag]) for tag in observed}
+    if actual != expected:
+        raise ValueError("Army activity changed after the frozen observation/checkpoint")
+    return {"expected": expected, "actual": actual, "verified": True}
+
+
 def resume_checkpoint(result, directory):
     """Resolve saved action outcomes before resuming a paused execution phase."""
     if result["status"] not in ("needs_inspection", "interrupted") or "before_clock" in result:
@@ -34,7 +76,14 @@ def resume_checkpoint(result, directory):
         after = saved_state(directory, entry["save"])
         if entry["status"] == "unknown":
             verified = verify_action(entry["action"], previous, after, entry["country"])
-            unchanged = previous["date"] == after["date"] and all(country_fingerprint(previous, tag) == country_fingerprint(after, tag) for tag in result["countries"])
+            from diplomacy_actions import diplomacy_fingerprint
+            from naval_air_actions import naval_air_fingerprint
+            from army_actions import army_activity
+            unchanged = (previous["date"] == after["date"]
+                         and all(country_fingerprint(previous, tag) == country_fingerprint(after, tag) for tag in result["countries"])
+                         and all(naval_air_fingerprint(previous, tag) == naval_air_fingerprint(after, tag) for tag in result["countries"])
+                         and all(army_activity(previous["countries"][tag]) == army_activity(after["countries"][tag]) for tag in result["countries"])
+                         and diplomacy_fingerprint(previous) == diplomacy_fingerprint(after))
             if verified["verified"]:
                 entry["status"] = "applied"
                 entry["verification"] = verified
@@ -174,6 +223,9 @@ def main():
             mismatches = [tag for tag in countries if country_fingerprint(state, tag) != expected[tag]]
             if mismatches:
                 raise RuntimeError(f"Gameplay state changed after observation: {mismatches}")
+            result["diplomacy_baseline_verification"] = check_diplomacy_baseline(state, observed, checkpoint)
+            result["naval_air_baseline_verification"] = check_naval_air_baseline(state, observed, checkpoint)
+            result["army_activity_baseline_verification"] = check_army_activity_baseline(state, observed, checkpoint)
             if "before_save" not in result:
                 result.update(initial_switch=receipt, before_save=fresh_save)
             result["fresh_state_verified"] = True

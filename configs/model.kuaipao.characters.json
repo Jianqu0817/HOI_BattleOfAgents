@@ -1,0 +1,13 @@
+{
+  "base_url": "https://kuaipao.ai/v1",
+  "model": "deepseek-v4.1-flash-1017-特价",
+  "api_key_env": "IRON_KUAIPAO_API_KEY",
+  "enable_thinking": false,
+  "temperature": 0.3,
+  "max_tokens": 1800,
+  "timeout_seconds": 240,
+  "request_parameters": {
+    "reasoning_effort": "low",
+    "max_tokens": 4000
+  }
+}

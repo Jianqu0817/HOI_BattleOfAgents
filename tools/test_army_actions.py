@@ -5,9 +5,11 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock, patch
 
 from army_actions import army_observation, movement_targets, validate_army_action, verify_army_action, retained_army_order, province_id_from_tooltip, tooltip_army_name, retained_acceptance, debug_response_state, full_frame_province_id, verified_operations, existing_army_tooltip, numeric_army_identity
 from agent_contract import validate_request
+from army_actions import validate_creation_selection, verify_army_creation, new_army_tooltip, bind_visible_armies, existing_army_tooltip_frame, theatre_shield_points, read_army_candidate, select_bound_army, resolve_selected_bottom_card, army_activity
 
 
 def unit(identity, location, country="GER"):
@@ -41,6 +43,204 @@ class ArmyTests(unittest.TestCase):
         self.assertEqual(data["divisions"][0]["manpower"], 9600)
         self.assertEqual(data["divisions"][0]["strength_raw"], 227.2)
         self.assertEqual(data["wars"], [{"enemy": "POL", "since": None, "our_casualties": 7}])
+
+    def test_training_activity_changes_are_visible_without_rewriting_old_fingerprints(self):
+        from agent_contract import country_fingerprint
+        before = copy.deepcopy(self.state)
+        group = before["countries"]["GER"]["theatres"]["theatre"]["orders_group"]
+        group.update(training=True, stop_training_at_max_xp=True)
+        after = copy.deepcopy(before)
+        after["countries"]["GER"]["theatres"]["theatre"]["orders_group"].pop("training")
+        self.assertEqual(country_fingerprint(before, "GER"), country_fingerprint(after, "GER"))
+        self.assertNotEqual(army_activity(before["countries"]["GER"]), army_activity(after["countries"]["GER"]))
+        self.assertTrue(army_observation(before, "GER", self.context)["armies"][0]["training"])
+        self.assertFalse(army_observation(after, "GER", self.context)["armies"][0]["training"])
+
+    def test_other_country_training_change_is_rejected_during_army_dispatch(self):
+        before = copy.deepcopy(self.state)
+        before["countries"]["ITA"]["theatres"] = {"theatre": {"orders_group": {"id": {"id": 90}, "training": True}}}
+        after = self.moved()
+        after["countries"]["ITA"]["theatres"] = copy.deepcopy(before["countries"]["ITA"]["theatres"])
+        after["countries"]["ITA"]["theatres"]["theatre"]["orders_group"].pop("training")
+        result = verify_army_action(self.action, before, after, "GER")
+        self.assertFalse(result["verified"])
+        self.assertFalse(result["checks"]["peers_army_activity_unchanged"])
+
+    def creation_fixture(self):
+        before = copy.deepcopy(self.state)
+        before["countries"]["GER"]["theatres"]["theatre"].pop("orders_group")
+        after = copy.deepcopy(before)
+        after["countries"]["GER"]["theatres"]["theatre"]["orders_group"] = {
+            "id": {"id": 99, "type": 53}, "name": "990001",
+            "member": [{"unit": {"id": 1}}, {"unit": {"id": 2}}], "field_marshal_group": False}
+        return before, after
+
+    def test_setup_creates_exact_unassigned_stack_without_movement(self):
+        before, after = self.creation_fixture()
+        result = verify_army_creation(before, after, "GER", 10, [1, 2], "990001")
+        self.assertTrue(result["verified"], result)
+        self.assertEqual(result["observations"]["army_id"], 99)
+        self.assertEqual(result["observations"]["members"], [1, 2])
+
+    def test_setup_selection_rejects_assigned_foreign_duplicate_or_partial_stack(self):
+        before, _ = self.creation_fixture()
+        for ids in ([1], [1, 1], [1, 90], [1, 2, 3]):
+            with self.assertRaises(ValueError):
+                validate_creation_selection(before, "GER", 10, ids)
+        with self.assertRaises(ValueError):
+            validate_creation_selection(self.state, "GER", 10, [1, 2])
+        before["countries"]["GER"]["units"]["division"][0]["logical_country"] = "ITA"
+        with self.assertRaises(ValueError):
+            validate_creation_selection(before, "GER", 10, [1, 2])
+
+    def test_setup_after_save_reports_precondition_failure_without_exception(self):
+        before, _ = self.creation_fixture()
+        result = verify_army_creation(before, copy.deepcopy(before), "GER", 10, [1], "990001")
+        self.assertFalse(result["verified"])
+        self.assertFalse(result["checks"]["source_selection_valid"])
+        self.assertFalse(result["checks"]["one_new_army"])
+        self.assertTrue(result["checks"]["all_divisions_unchanged"])
+        self.assertTrue(result["checks"]["other_gameplay_unchanged"])
+
+    def test_explicit_source_transfer_preserves_orders_units_and_remaining_members(self):
+        before = copy.deepcopy(self.state)
+        before["countries"]["GER"]["units"]["division"][1]["location"] = 11
+        before["countries"]["GER"]["theatres"]["theatre"]["orders_group"]["order_instance"] = {"type": 5, "states": {"__items__": [1]}}
+        validate_creation_selection(before, "GER", 10, [1], from_army_id=7)
+        for bad_source in (8, True):
+            with self.assertRaises(ValueError):
+                validate_creation_selection(before, "GER", 10, [1], from_army_id=bad_source)
+        with self.assertRaises(ValueError):
+            validate_creation_selection(self.state, "GER", 10, [1, 2], from_army_id=7)
+        after = copy.deepcopy(before)
+        source = after["countries"]["GER"]["theatres"]["theatre"]["orders_group"]
+        source["member"] = {"unit": {"id": 2}}
+        after["countries"]["GER"]["theatres"]["theatre"]["orders_group"] = [source,
+            {"id": {"id": 99}, "name": "990002", "member": {"unit": {"id": 1}}}]
+        result = verify_army_creation(before, after, "GER", 10, [1], "990002", from_army_id=7)
+        self.assertTrue(result["verified"], result)
+        source["order_instance"]["states"] = {"__items__": [2]}
+        self.assertFalse(verify_army_creation(before, after, "GER", 10, [1], "990002", from_army_id=7)["verified"])
+
+    def test_setup_verification_rejects_wrong_members_movement_or_peer_changes(self):
+        before, good = self.creation_fixture()
+        for mutate in (
+            lambda value: value["countries"]["GER"]["theatres"]["theatre"]["orders_group"]["member"].append({"unit": {"id": 3}}),
+            lambda value: value["countries"]["GER"]["units"]["division"][0].update(location=11),
+            lambda value: value["countries"]["GER"]["theatres"]["theatre"]["orders_group"].update(order_instance={"type": 1}),
+            lambda value: value["countries"]["ITA"]["units"]["division"].update(path={"__items__": [10]}),
+            lambda value: value.update(date="1936.5.1.11")):
+            after = copy.deepcopy(good)
+            mutate(after)
+            self.assertFalse(verify_army_creation(before, after, "GER", 10, [1, 2], "990001")["verified"])
+
+    def test_creation_tooltip_distinguishes_army_group_and_disabled_plus(self):
+        self.assertTrue(new_army_tooltip(["点击 创建一个新的集团军，并编入已选中的陆军师"]))
+        self.assertFalse(new_army_tooltip(["点击创建一个新的集团军群，并编入已选中的集团军。 "]))
+        self.assertFalse(new_army_tooltip(["要创建集团军必须先选中一些陆军师"]))
+
+    def test_repeated_bulk_binding_does_not_rename_already_bound_cards(self):
+        view = SimpleNamespace(card_boxes=lambda image: [500], select_card=Mock(), rename_army=Mock())
+        tip = SimpleNamespace(read=lambda *args: ({"found": True, "region": [500, 500, 220, 150],
+            "lines": ["点击选中", "创建集团军之后就可以编写作战计划"]}, None, object()))
+        session = SimpleNamespace(grab=lambda: object(), window=SimpleNamespace(size=lambda: (1280, 720)))
+        modules = {"hoi4_live.game": SimpleNamespace(armyview=view), "hoi4_live.perception": SimpleNamespace(tooltip=tip)}
+        groups = {7: {"name": "990001"}, 8: {"name": "UNBOUND"}}
+        for numeric_reads in ([("990001", [], [])], [(None, [], []), ("990001", [], [])]):
+            with patch.dict("sys.modules", modules), patch("army_actions.clear_hover"), patch("army_actions.army_selection_points", return_value=[(500, 650, "bottom")]), patch("army_actions.numeric_army_identity", side_effect=numeric_reads):
+                records, skipped = bind_visible_armies(session, "GER", groups, {"7": {"name": "990001"}})
+            self.assertEqual(records, [])
+            self.assertEqual(skipped[0]["reason"], "already bound")
+            view.rename_army.assert_not_called()
+
+    def test_bulk_binding_stops_hovering_when_all_source_armies_are_accounted_for(self):
+        view = SimpleNamespace(select_card=Mock(), rename_army=Mock())
+        read = Mock(return_value=({"lines": ["点击选中", "创建集团军之后就可以编写作战计划"]}, None, object()))
+        modules = {"hoi4_live.game": SimpleNamespace(armyview=view), "hoi4_live.perception": SimpleNamespace(tooltip=SimpleNamespace(read=read))}
+        session = SimpleNamespace(grab=lambda: object(), window=SimpleNamespace(size=lambda: (1280, 720)))
+        with patch.dict("sys.modules", modules), patch("army_actions.clear_hover"), patch("army_actions.army_selection_points", return_value=[(500, 650, "bottom"), (600, 300, "theatre")]), patch("army_actions.numeric_army_identity", return_value=(None, [], [])):
+            records, _ = bind_visible_armies(session, "GER", {7: {"name": "OLD"}})
+        self.assertEqual(len(records), 1)
+        self.assertEqual(read.call_count, 1)
+        view.rename_army.assert_called_once()
+
+    def test_same_frame_fallback_requires_positive_existing_army_description(self):
+        image = object()
+        ocr = Mock(return_value=SimpleNamespace(lines=[SimpleNamespace(text=line) for line in
+            ["点 击 选 中", "第3集团军", "创建集团军之后就可以编写作战计划"]]))
+        session = SimpleNamespace(ocr=SimpleNamespace(recognize=ocr))
+        accepted, _ = existing_army_tooltip_frame(session, {"lines": ["亚眠"]}, image)
+        self.assertTrue(accepted)
+        ocr.assert_called_once_with(image, scale=1.5)
+        ocr.return_value = SimpleNamespace(lines=[SimpleNamespace(text="新建集团军群")])
+        self.assertFalse(existing_army_tooltip_frame(session, {"lines": []}, image)[0])
+
+    def test_training_overlay_retry_only_moves_failed_theatre_hover_six_pixels(self):
+        image = object()
+        first, second = {"lines": ["training icon"]}, {"lines": ["点击选中", "创建集团军之后就可以编写作战计划"]}
+        read = Mock(side_effect=[(first, None, image), (second, None, image)])
+        modules = {"hoi4_live.perception": SimpleNamespace(tooltip=SimpleNamespace(read=read))}
+        with patch.dict("sys.modules", modules), patch("army_actions.clear_hover"), patch("army_actions.existing_army_tooltip_frame", side_effect=[(False, first["lines"]), (True, second["lines"])]):
+            result = read_army_candidate(object(), 1007, 221, "theatre")
+        self.assertTrue(result[2])
+        self.assertEqual(result[-1], (1007, 227))
+        self.assertEqual([call.args[1:] for call in read.call_args_list], [(1007, 221), (1007, 227)])
+        for source, accepted in (("bottom", False), ("theatre", True)):
+            read = Mock(return_value=(first, None, image))
+            with patch.dict("sys.modules", {"hoi4_live.perception": SimpleNamespace(tooltip=SimpleNamespace(read=read))}), patch("army_actions.clear_hover"), patch("army_actions.existing_army_tooltip_frame", return_value=(accepted, first["lines"])):
+                read_army_candidate(object(), 1007, 221, source)
+            self.assertEqual(read.call_count, 1)
+
+    def test_army_selection_resets_land_mode_before_scanning_after_air_or_navy(self):
+        events = []
+        panels = SimpleNamespace(to_map=lambda session: events.append("map"))
+        session = SimpleNamespace(input=SimpleNamespace(key=lambda key: events.append(key)),
+                                  window=SimpleNamespace(size=lambda: (1280, 720)))
+        modules = {"hoi4_live.game": SimpleNamespace(armyview=SimpleNamespace(), panels=panels),
+                   "hoi4_live.perception": SimpleNamespace(tooltip=SimpleNamespace())}
+        def scan(session):
+            self.assertEqual(events, ["map", "f1"])
+            events.append("scan")
+            return []
+        with patch.dict("sys.modules", modules), patch("army_actions.army_selection_points", side_effect=scan), patch("army_actions.time.sleep"):
+            with self.assertRaises(RuntimeError):
+                select_bound_army(session, "990001", 1)
+        self.assertEqual(events, ["map", "f1", "scan"])
+
+    def test_sidebar_selection_resolves_stop_from_exact_named_bottom_card(self):
+        tip = {"found": True, "region": [450, 420, 340, 180]}
+        view = SimpleNamespace(card_boxes=lambda image: [580], card_points=lambda session, x: {"stop": (x - 21, 598)})
+        session = SimpleNamespace(grab=lambda: object(), window=SimpleNamespace(size=lambda: (1280, 720)))
+        modules = {"hoi4_live.game": SimpleNamespace(armyview=view),
+                   "hoi4_live.perception": SimpleNamespace(tooltip=SimpleNamespace(read=lambda *args: (tip, None, object())))}
+        with patch.dict("sys.modules", modules), patch("army_actions.clear_hover"), patch("army_actions.numeric_army_identity", return_value=("915206", [], [])):
+            card = resolve_selected_bottom_card(session, "915206", 1)
+        self.assertEqual(card["x"], 580)
+        self.assertEqual(card["source"], "bottom")
+        self.assertEqual(card["stop_point"], (559, 598))
+        tip["region"] = [0, 80, 400, 180]
+        with patch.dict("sys.modules", modules), patch("army_actions.clear_hover"), patch("army_actions.numeric_army_identity") as numeric:
+            with self.assertRaises(RuntimeError):
+                resolve_selected_bottom_card(session, "915206", 1)
+            numeric.assert_not_called()
+
+    def test_theatre_colour_candidates_allow_single_shields_and_reject_wrong_height(self):
+        import numpy as np
+        image = np.zeros((720, 1280, 3), dtype=np.uint8)
+        image[290:314, 968:1230, 0] = 160
+        points = theatre_shield_points(image)
+        self.assertTrue(points)
+        self.assertEqual({y for _, y in points}, {300})
+        self.assertEqual(theatre_shield_points(image[:600]), [])
+        image[:] = 0
+        image[290:295, 968:1230, 0] = 160
+        self.assertEqual(theatre_shield_points(image), [])
+        image[:] = 0
+        image[290:314, 968:988, 0] = 160
+        self.assertEqual({y for _, y in theatre_shield_points(image)}, {300})
+        image[:] = 0
+        image[405:460, 968:1230, 0] = 160
+        self.assertEqual(theatre_shield_points(image), [])
 
     def test_only_own_battle_participants_and_no_enemy_details_are_observed(self):
         self.state["countries"]["GER"]["units"]["division"][0]["last_combat_date"] = "1936.4.29.11"
@@ -90,6 +290,56 @@ class ArmyTests(unittest.TestCase):
         self.assertEqual(movement_targets(self.state, "GER", group, self.context, attack=True), [])
         self.state["provinces"]["20"] = {"controller": "ITA"}
         self.assertEqual(movement_targets(self.state, "GER", group, self.context, attack=True), [])
+
+    def test_defender_can_counterattack_from_opponent_only_public_war_record(self):
+        self.state["countries"]["GER"]["diplomacy"] = {}
+        self.state["countries"]["ITA"]["diplomacy"] = {"active_relations": {"GER": {"war_relation": {
+            "first": "ITA", "second": "GER", "first_casualties": 87654321,
+            "second_casualties": 17, "private_enemy_field": "NEVER_OBSERVE"}}}}
+        self.state["states"]["2"]["owner"] = "ITA"
+        context = copy.deepcopy(self.context)
+        context["operations"].append("army.attack")
+        data = army_observation(self.state, "GER", context)
+        self.assertEqual(data["wars"], [{"enemy": "ITA", "since": None, "our_casualties": 17}])
+        self.assertEqual(data["action_options"]["army.attack"]["armies"][0]["targets"][0]["province_id"], 20)
+        self.assertNotIn("87654321", json.dumps(data))
+        self.assertNotIn("NEVER_OBSERVE", json.dumps(data))
+        after = self.moved()
+        for row in after["countries"]["GER"]["units"]["division"][:2]:
+            row["path"] = {"__items__": [20]}
+        action = {"type": "army.attack", "args": {"army_id": 7, "target_province_id": 20, "target_state_id": 2}}
+        self.assertTrue(verify_army_action(action, self.state, after, "GER")["verified"])
+
+    def test_npc_attacker_public_projection_opens_counterattack_and_conflicts_reject(self):
+        self.state["countries"]["GER"]["diplomacy"] = {}
+        self.state["public_wars"] = [{"first": "POL", "second": "GER", "first_casualties": 87654321, "second_casualties": 9}]
+        context = copy.deepcopy(self.context)
+        context["operations"].append("army.attack")
+        data = army_observation(self.state, "GER", context)
+        self.assertEqual(data["wars"], [{"enemy": "POL", "since": None, "our_casualties": 9}])
+        self.assertIn("army.attack", data["action_options"])
+        self.assertNotIn("87654321", json.dumps(data))
+        self.state["countries"]["GER"]["diplomacy"] = {"active_relations": {"POL": {"war_relation": {
+            "first": "POL", "second": "GER", "first_casualties": 87654321, "second_casualties": 10}}}}
+        with self.assertRaises(ValueError):
+            army_observation(self.state, "GER", context)
+
+    def test_defender_loss_recovery_uses_own_shared_record_casualties(self):
+        checkpoint = self.moved()
+        checkpoint["countries"]["GER"]["diplomacy"] = {}
+        checkpoint["public_wars"] = [{"first": "POL", "second": "GER", "first_casualties": 5, "second_casualties": 9}]
+        checkpoint["combat"] = {"land_combat": {"id": {"id": 100}, "location": 20, "attacker": {"unit": {"id": 1}}}}
+        for row in checkpoint["countries"]["GER"]["units"]["division"][:2]:
+            row["path"] = {"__items__": [20]}
+        current = copy.deepcopy(checkpoint)
+        current["date"] = "1936.5.2.11"
+        current["countries"]["GER"]["units"]["division"] = current["countries"]["GER"]["units"]["division"][1:]
+        current["countries"]["GER"]["theatres"]["theatre"]["orders_group"]["member"] = {"unit": {"id": 2}}
+        current["public_wars"][0]["first_casualties"] = 500
+        action = {"type": "army.attack", "args": {"army_id": 7, "target_province_id": 20, "target_state_id": 2}}
+        self.assertFalse(retained_army_order(action, checkpoint, current, "GER"))
+        current["public_wars"][0]["second_casualties"] = 10
+        self.assertTrue(retained_army_order(action, checkpoint, current, "GER"))
 
     def test_attack_province_and_state_must_match(self):
         context = copy.deepcopy(self.context)

@@ -40,7 +40,7 @@ def country_fingerprint(state, country):
     return hashlib.sha256(encoded).hexdigest()
 
 
-def observation(state, country, match_id, turn_id, source, technology_index, focus_index, names, army_context=None):
+def observation(state, country, match_id, turn_id, source, technology_index, focus_index, names, army_context=None, naval_air_context=None):
     from hoi4_live.gamedata import tech, focus
     own = state["countries"][country]
     technology = own.get("technology", {})
@@ -91,6 +91,11 @@ def observation(state, country, match_id, turn_id, source, technology_index, foc
     }
     from army_actions import army_observation
     data["army"] = army_observation(state, country, army_context)
+    from diplomacy_actions import diplomacy_observation
+    data["diplomacy"] = diplomacy_observation(state, country, names)
+    from naval_air_actions import naval_air_observation, naval_air_fingerprint
+    data["naval_air"] = naval_air_observation(state, country, naval_air_context)
+    data["naval_air"]["state_fingerprint"] = naval_air_fingerprint(state, country)
     data["divisions"] = data["army"]["divisions"]
     encoded = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     data["observation_id"] = hashlib.sha256(encoded).hexdigest()
@@ -112,7 +117,10 @@ def validate_request(request, observed):
                "focus.select": {"focus_id"},
                "production.assign": {"line_id", "factories"},
                "construction.queue": {"state_id", "building_id", "count"},
-               "army.move": {"army_id", "target_province_id"}, "army.attack": {"army_id", "target_province_id", "target_state_id"}, "army.stop": {"army_id"}}
+               "army.move": {"army_id", "target_province_id"}, "army.attack": {"army_id", "target_province_id", "target_state_id"}, "army.stop": {"army_id"},
+               "diplomacy.declare_war": {"target_country", "wargoal_id"},
+               "air.assign": {"wing_id", "region_id", "mission"}, "air.stop": {"wing_id"},
+               "navy.assign": {"fleet_id", "region_id", "mission"}, "navy.move": {"fleet_id", "province_id"}, "navy.stop": {"fleet_id"}}
     for action in actions:
         if not isinstance(action, dict) or set(action) != {"id", "type", "args"}:
             raise ValueError("Action needs exactly id, type and args")
@@ -122,7 +130,13 @@ def validate_request(request, observed):
         if not isinstance(kind, str) or kind not in schemas or not isinstance(args, dict) or set(args) != schemas[kind]:
             raise ValueError("Unknown action or argument schema")
         identifiers.add(identity)
-        if kind.startswith("army."):
+        if kind.startswith(("air.", "navy.")):
+            from naval_air_actions import validate_naval_air_action
+            target = validate_naval_air_action(action, observed)
+        elif kind == "diplomacy.declare_war":
+            from diplomacy_actions import validate_declaration
+            target = validate_declaration(action, observed)
+        elif kind.startswith("army."):
             from army_actions import validate_army_action
             target = validate_army_action(action, observed)
         elif kind == "research.start":
@@ -157,6 +171,12 @@ def execute_action(session, country, action, state):
     from player_actions import research_start, focus_start, production_assign_one, construction_queue_one
     args, kind = action["args"], action["type"]
     own = state["countries"][country]
+    if kind.startswith(("air.", "navy.")):
+        from naval_air_actions import execute_naval_air_action
+        return execute_naval_air_action(session, country, action, state)
+    if kind == "diplomacy.declare_war":
+        from diplomacy_actions import declare_war
+        return declare_war(session, country, args["target_country"], args["wargoal_id"], state)
     if kind.startswith("army."):
         from army_actions import execute_army_action
         return execute_army_action(session, country, action, state)
@@ -180,12 +200,30 @@ def execute_action(session, country, action, state):
     raise ValueError("Unsupported action")
 
 
+def naval_air_isolation(proof, action, before, after, country):
+    from naval_air_actions import naval_air_fingerprint
+    proof["checks"]["peers_naval_air_unchanged"] = all(naval_air_fingerprint(before, tag) == naval_air_fingerprint(after, tag)
+                                                     for tag in before["countries"] if tag != country)
+    if not action["type"].startswith(("air.", "navy.")):
+        proof["checks"]["own_naval_air_unchanged"] = naval_air_fingerprint(before, country) == naval_air_fingerprint(after, country)
+    proof["verified"] = proof.get("verified") is True and all(proof["checks"].values())
+    if not proof["verified"] and proof.get("effect_status") in {"full", "already_present"}:
+        proof["effect_status"] = "unknown"
+    return proof
+
+
 def verify_action(action, before, after, country):
     """Check the effect in exact saves, including gameplay isolation from peers."""
     args, kind = action["args"], action["type"]
+    if kind.startswith(("air.", "navy.")):
+        from naval_air_actions import verify_naval_air_action
+        return naval_air_isolation(verify_naval_air_action(action, before, after, country), action, before, after, country)
+    if kind == "diplomacy.declare_war":
+        from diplomacy_actions import verify_declaration
+        return naval_air_isolation(verify_declaration(action, before, after, country), action, before, after, country)
     if kind.startswith("army."):
         from army_actions import verify_army_action
-        return verify_army_action(action, before, after, country)
+        return naval_air_isolation(verify_army_action(action, before, after, country), action, before, after, country)
     first, last = before["countries"][country], after["countries"][country]
     observations = {}
     checks = {"same_date": before["date"] == after["date"],
@@ -216,7 +254,7 @@ def verify_action(action, before, after, country):
         checks["not_instantly_built"] = all(value.get("buildings") == after["states"][sid].get("buildings") for sid, value in before["states"].items())
     else:
         raise ValueError("Unsupported action")
-    return {"verified": all(checks.values()), "checks": checks, "observations": observations}
+    return naval_air_isolation({"verified": all(checks.values()), "checks": checks, "observations": observations}, action, before, after, country)
 
 
 def export(save_path, output, match_id, turn_id, countries):

@@ -1,0 +1,6 @@
+{
+  "base_url": "https://kuaipao.ai/v1",
+  "model": "deepseek-v4.1-flash-1017-特价",
+  "api_key_env": "IRON_KUAIPAO_API_KEY",
+  "timeout_seconds": 120
+}

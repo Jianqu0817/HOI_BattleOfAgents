@@ -64,6 +64,11 @@ def voice_state(config, character_id):
         return {"status": "missing_weights", "missing": missing, "character_id": character_id}
     if not voice.get("ref_audio_path") or not Path(voice["ref_audio_path"]).is_file() or not voice.get("prompt_text"):
         return {"status": "missing_reference", "character_id": character_id}
+    auxiliary = voice.get("aux_ref_audio_paths", [])
+    if not isinstance(auxiliary, list) or any(not isinstance(path, str) or not path or not Path(path).is_file()
+                                               for path in auxiliary):
+        return {"status": "missing_reference", "character_id": character_id,
+                "missing": ["aux_ref_audio_paths"]}
     return {"status": "available", "character_id": character_id}
 
 
@@ -147,6 +152,10 @@ def synthesize(config, line, output_dir):
                "parallel_infer": False, "use_cuda_graph": False, "use_flash_attention": False,
                "seed": 0, **parameters}
     sources = {field: _source(voice[field]) for field in ("gpt_weights", "sovits_weights", "ref_audio_path")}
+    auxiliary = voice.get("aux_ref_audio_paths", [])
+    if auxiliary:
+        payload["aux_ref_audio_paths"] = [str(Path(path).resolve()) for path in auxiliary]
+        sources["aux_ref_audio_paths"] = [_source(path) for path in auxiliary]
     identity = {"payload": payload, "sources": sources, "character_id": line.character_id,
                 "backend_revision": config.get("backend_revision", ""), "api_version": API_VERSION}
     cache_key = hashlib.sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True).encode()).hexdigest()

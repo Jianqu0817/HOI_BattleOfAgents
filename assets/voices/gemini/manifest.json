@@ -1,0 +1,46 @@
+{
+  "voice_name": "泉奈",
+  "version": "v2",
+  "gpt_epoch": 15,
+  "sovits_epoch": 24,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\泉奈\\GPT_weights_v2\\QuanNai-e15.ckpt",
+      "path": "assets/voices/gemini/models/QuanNai-e15.ckpt",
+      "sha256": "6bbf67df34e7266f2284ab28990d2a94b0504803197ad7f59f3d1f8cb83ac844",
+      "bytes": 155312957
+    },
+    {
+      "source": "F:\\BAIDUPAN\\泉奈\\SoVITS_weights_v2\\QuanNai_e24_s432.pth",
+      "path": "assets/voices/gemini/models/QuanNai_e24_s432.pth",
+      "sha256": "b72c98d1ff1226ab5826bae46b157e14fa476265515ba6aa6ff3ec72a7ba88b4",
+      "bytes": 85007879
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_Lobby_5.wav",
+      "path": "assets/voices/gemini/references/CH0179_Lobby_5.wav",
+      "sha256": "f6eb8888de881db519e2c057b824f18b355218fe6a76e0c019b8bbcfbd877c38",
+      "bytes": 666574,
+      "prompt_text": "今度は、部長とツクヨ殿そして、主殿とみんなで海に遊びに行きたいです！",
+      "seconds": 7.556644
+    },
+    {
+      "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_MemorialLobby_4_2.wav",
+      "path": "assets/voices/gemini/references/CH0179_MemorialLobby_4_2.wav",
+      "sha256": "22a92150aa98fc2d90fa31515e8dc04f2350494ad0d660a8bcd15dffbc49f8e6",
+      "bytes": 608438,
+      "prompt_text": "今度また…もう一度泳ぎ方を、教えていただけないでしょうか？",
+      "seconds": 6.897506
+    },
+    {
+      "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_Relationship_Up_1.wav",
+      "path": "assets/voices/gemini/references/CH0179_Relationship_Up_1.wav",
+      "sha256": "b53124981f2fc6be0804019dbb56aabef0bd6b16d1b92ad646e3c56821656795",
+      "bytes": 676540,
+      "prompt_text": "この夏も、主殿と一緒にいられるなんて……。イズナ、すっごく幸せです！",
+      "seconds": 7.669637
+    }
+  ]
+}

@@ -105,14 +105,37 @@ class ModelClientTests(unittest.TestCase):
             with self.subTest(control=control), self.assertRaises(ValueError):
                 request_body({**CONFIG, **control}, MESSAGES)
 
-    def test_incomplete_or_missing_response_is_rejected(self):
+    def test_incomplete_or_missing_response_is_resampled_then_rejected(self):
         responses = [completion('{"incomplete":', "length"), completion(None), {"choices": []},
                      {"choices": [{"finish_reason": "tool_calls", "message": {"tool_calls": []}}]},
                      {"choices": [completion()["choices"][0], completion()["choices"][0]]}]
         with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}):
             for value in responses:
-                with self.subTest(response=value), patch("model_client.urllib.request.urlopen", return_value=Response(value)), self.assertRaises(RuntimeError):
+                with self.subTest(response=value), \
+                        patch("model_client.urllib.request.urlopen",
+                              side_effect=[Response(value) for _ in range(3)]) as opener, \
+                        patch("model_client.time.sleep"), self.assertRaises(RuntimeError):
                     complete(CONFIG, MESSAGES)
+                self.assertEqual(opener.call_count, 3)
+
+    def test_provider_variance_recovers_on_the_next_sample(self):
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                patch("model_client.urllib.request.urlopen",
+                      side_effect=[Response(completion('{"incomplete":', "length")), Response(completion())]) as opener, \
+                patch("model_client.time.sleep") as sleeper:
+            value, _ = complete(CONFIG, MESSAGES)
+        self.assertEqual(value, {"ok": True})
+        self.assertEqual(opener.call_count, 2)
+        sleeper.assert_called_once_with(2)
+
+    def test_permanent_http_4xx_is_never_resampled(self):
+        failure = urllib.error.HTTPError(CONFIG["base_url"], 402, "Payment Required", {}, io.BytesIO(b'{"code":30001}'))
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                patch("model_client.urllib.request.urlopen", side_effect=failure) as opener, \
+                patch("model_client.time.sleep") as sleeper, self.assertRaisesRegex(RuntimeError, "Model HTTP 402"):
+            complete(CONFIG, MESSAGES)
+        self.assertEqual(opener.call_count, 1)
+        sleeper.assert_not_called()
 
     def test_http_and_transport_errors_redact_credentials(self):
         errors = [urllib.error.HTTPError(CONFIG["base_url"], 401, "Unauthorized", {},

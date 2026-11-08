@@ -8,8 +8,10 @@ from unittest.mock import patch
 
 from model_trial import brief, call_country, country_messages
 from showrunner import check_message, extend_prompt, ledger, settings
+from story_channels import check_interview_answer
 from story_channels import (assign_public_message_ids, build_public_events, check_public_asides,
-                            interview_messages, private_feedback, public_context, public_source_ids,
+                            interview_messages, private_feedback, project_interview_answer,
+                            project_public_commentary, public_context, public_source_ids,
                             public_commentary_messages, check_public_commentary, compress_own_memory,
                             settle_commitments)
 from test_native_observation import observe
@@ -234,6 +236,40 @@ class StoryChannelTests(unittest.TestCase):
         observed["own_memory"]["country"] = "GER"
         with self.assertRaisesRegex(ValueError, "another scope"):
             brief(observed)
+
+
+class AudienceProjectionTests(unittest.TestCase):
+    SOURCES = {"T22-P1", "T22-P2"}
+
+    def test_host_lines_without_a_supplied_source_are_dropped_with_a_receipt(self):
+        value = {"commentary": [
+            {"ref": "T22-P1", "text": "有据可依的评论"},
+            {"ref": "T22-编造", "text": "无源评论"},
+            {"ref": "T22-P2", "text": ""}]}
+        raw = copy.deepcopy(value)
+        projected, dropped = project_public_commentary(value, self.SOURCES)
+        self.assertEqual(projected["commentary"], [{"ref": "T22-P1", "text": "有据可依的评论"}])
+        self.assertEqual([row["index"] for row in dropped], [1, 2])
+        self.assertEqual(dropped[0]["row"]["ref"], "T22-编造")
+        self.assertEqual(value, raw)
+
+    def test_malformed_host_payload_still_fails_the_strict_check(self):
+        projected, dropped = project_public_commentary({"commentary": "not-a-list"}, self.SOURCES)
+        self.assertEqual(dropped, [])
+        with self.assertRaises(ValueError):
+            check_public_commentary(projected, self.SOURCES)
+
+    def test_interview_extra_fields_are_projected_but_bad_content_is_not(self):
+        value = {"country": "AUS", "answer": "拒答。", "mood": "得意"}
+        original = copy.deepcopy(value)
+        projected, removed = project_interview_answer(value, "AUS")
+        self.assertEqual(projected, {"country": "AUS", "answer": "拒答。"})
+        self.assertEqual(removed, ["mood"])
+        self.assertEqual(value, original)
+        wrong = {"country": "GER", "answer": "替别人回答"}
+        self.assertEqual(project_interview_answer(wrong, "AUS"), (wrong, []))
+        with self.assertRaises(ValueError):
+            check_interview_answer(project_interview_answer(wrong, "AUS")[0], "AUS")
 
 
 if __name__ == "__main__":

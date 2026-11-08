@@ -1,5 +1,5 @@
 {
-  "registry": "configs/characters.example.json",
+  "registry": "configs/characters.authored.json",
   "assignments": {
     "GER": "gpt",
     "FRA": "claude",
@@ -9,5 +9,5 @@
     "host": "glm"
   },
   "target_seconds": 180,
-  "tts_config": "configs/tts.gpt_sovits.example.json"
+  "tts_config": "configs/tts.cast.json"
 }

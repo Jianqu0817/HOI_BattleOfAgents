@@ -11,52 +11,76 @@
   },
   "voices": {
     "deepseek": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 0.95
+      }
     },
     "claude": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 1.0
+      }
     },
     "qwen": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 1.0
+      }
     },
     "glm": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 0.9
+      }
     },
     "gemini": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 1.1
+      }
     },
     "gpt": {
-      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
-      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\gsv-v2final-pretrained\\s2G2333k.pth",
+      "aux_ref_audio_paths": [],
+      "gpt_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\s1v3.ckpt",
+      "sovits_weights": "D:\\GPT-SoVITS_IRON\\GPT_SoVITS\\pretrained_models\\v2Pro\\s2Gv2ProPlus.pth",
       "ref_audio_path": "",
       "prompt_text": "",
       "prompt_lang": "zh",
-      "text_lang": "zh"
+      "text_lang": "zh",
+      "request_parameters": {
+        "speed_factor": 1.0
+      }
     }
   }
 }

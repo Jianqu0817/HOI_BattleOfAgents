@@ -68,6 +68,32 @@ class EpisodeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             collect_episode(self.trial, self.turn)
 
+    def test_war_declaration_distinguishes_new_war_existing_war_and_failed_adapter(self):
+        path = self.turn / "result.json"
+        result = json.loads(path.read_text(encoding="utf-8"))
+        action = {"id": "declare", "type": "diplomacy.declare_war", "args": {"target_country": "ITA", "wargoal_id": 3}}
+        proof = {"verified": True, "effect_status": "full", "checks": {"same_date": True, "peers_unchanged": True},
+                 "observations": {"actor": "GER", "target_country": "ITA", "wargoal_id": 3, "new_war": True, "declaration_sent": True, "war_pairs_added": [["GER", "ITA"]]}}
+        result["actions"] = [{"country": "GER", "action": action, "status": "applied", "effect_status": "full", "verification": proof}]
+        self.put(path, result)
+        episode = collect_episode(self.trial, self.turn)
+        wars = [row for row in episode["events"] if row["kind"] == "war"]
+        self.assertEqual(len(wars), 1)
+        self.assertEqual(wars[0]["participants"], ["GER", "ITA"])
+        self.assertIn("被宣战方：意大利", wars[0]["text"])
+        proof.update(effect_status="already_present")
+        proof["observations"].update(new_war=False, declaration_sent=False, war_pairs_added=[])
+        result["actions"][0].update(effect_status="already_present")
+        self.put(path, result)
+        episode = collect_episode(self.trial, self.turn)
+        self.assertFalse(any(row["kind"] == "war" for row in episode["events"]))
+        self.assertIn("未重复宣战", next(row["text"] for row in episode["events"] if row["kind"] == "execution"))
+        result["actions"][0].update(status="not_applied", effect_status="none", ui_error="adapter failed", verification={"verified": False})
+        self.put(path, result)
+        episode = collect_episode(self.trial, self.turn)
+        self.assertFalse(any(row["kind"] == "war" for row in episode["events"]))
+        self.assertIn("不能直接认定为玩家反悔", next(row["text"] for row in episode["events"] if row["kind"] == "execution"))
+
     def test_sealed_order_must_match_actual_request(self):
         value = copy.deepcopy(self.requests["GER"])
         value["reason"] = "改写过的理由"

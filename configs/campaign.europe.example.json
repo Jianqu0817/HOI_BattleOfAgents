@@ -1,0 +1,26 @@
+{
+  "countries": ["GER", "FRA", "ITA", "AUS", "SWI"],
+  "step_hours": 24,
+  "turn_limit": 8,
+  "action_limit": 2,
+  "communication_rounds": 2,
+  "model_config": "configs/model.example.json",
+  "player_model_configs": {},
+  "model_commentary": true,
+  "summarize_lessons": true,
+  "scoring": {"mode": "territory_delta"},
+  "show": {
+    "enabled": true,
+    "intents": true,
+    "private_replies": true,
+    "common_rules_file": "configs/prompts/common_rules.md",
+    "guide_file": "configs/prompts/game_guide.md",
+    "profiles": {
+      "GER": {"name": "筹划者", "persona": "重视长期布局和可兑现的利益；依据实际可用的兵力与合法行动争取领土。"},
+      "FRA": {"name": "调停者", "persona": "优先保障本国安全，争取可核查的承诺；必要时使用武力保护利益。"},
+      "ITA": {"name": "交易家", "persona": "善于议价与灵活合作，愿意为明确机会承担风险，也评估失信的代价。"},
+      "AUS": {"name": "守门人", "persona": "在强国之间争取生存与收益，重视地形、防守和可靠的合作。"},
+      "SWI": {"name": "观察者", "persona": "谨慎核对情报，以本国目标为先，善用地形与时机，不预设永久盟友。"}
+    }
+  }
+}

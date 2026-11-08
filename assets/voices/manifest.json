@@ -1,0 +1,330 @@
+{
+  "schema": "iron.voice-assets.v1",
+  "model_selection": "highest training epoch, not download timestamp",
+  "voices": {
+    "qwen": {
+      "voice_name": "妃咲",
+      "version": "v2",
+      "gpt_epoch": 15,
+      "sovits_epoch": 24,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\GPT_weights_v2\\FeiXiao-e15.ckpt",
+          "path": "assets/voices/qwen/models/FeiXiao-e15.ckpt",
+          "sha256": "a3c5961f109f8cb5508360bc7071f06c6a38e37ec6ba806fbaa4681db6dc5d9c",
+          "bytes": 155312957
+        },
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\SoVITS_weights_v2\\FeiXiao_e24_s408.pth",
+          "path": "assets/voices/qwen/models/FeiXiao_e24_s408.pth",
+          "sha256": "e7baac8110189490f7a506ef121dc8eb0501aab4cdf94378fd6c7a269e5a68ab",
+          "bytes": 85007202
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_5_1.wav",
+          "path": "assets/voices/qwen/references/CH0139_Lobby_5_1.wav",
+          "sha256": "2916d07f7ea7e4fe0e1546c198d855628aeece34dfba5e9b9c4567111b9b41f6",
+          "bytes": 409000,
+          "prompt_text": "香をたいてみたのじゃ。不思議な香りがするじゃろう？",
+          "seconds": 4.636304
+        },
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_2_1.wav",
+          "path": "assets/voices/qwen/references/CH0139_Lobby_2_1.wav",
+          "sha256": "97678b316bbf199d13134688ee3b8f512ab8bebfc956abbfa3d0b3ec85d32d30",
+          "bytes": 731550,
+          "prompt_text": "何ぞ用でもあるかの？ふむ…声をかけてみただけ、と？",
+          "seconds": 8.293333
+        },
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_4_1.wav",
+          "path": "assets/voices/qwen/references/CH0139_Lobby_4_1.wav",
+          "sha256": "0f5266f254916ccb41820230bf4baec7850b29ea1e1287b88e1761118fd8381a",
+          "bytes": 637592,
+          "prompt_text": "時がこのまま止まってしまえばいい、そう思ったことはないかの？先生。",
+          "seconds": 7.22805
+        },
+        {
+          "source": "F:\\BAIDUPAN\\妃咲\\qwen\\CH0139_Lobby_4_2.wav",
+          "path": "assets/voices/qwen/references/CH0139_Lobby_4_2.wav",
+          "sha256": "9588cea7b461b39dcd3770cedbac33507fb3629a1d9c17b3690bff182c9f3617",
+          "bytes": 475258,
+          "prompt_text": "妾はあるぞ。いま、そう思っておる。",
+          "seconds": 5.387528
+        }
+      ]
+    },
+    "glm": {
+      "voice_name": "和纱",
+      "version": "v2",
+      "gpt_epoch": 15,
+      "sovits_epoch": 24,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\GPT_weights_v2\\HeSha-e15.ckpt",
+          "path": "assets/voices/glm/models/HeSha-e15.ckpt",
+          "sha256": "ddbdf63f8f429b821bc36d2e95c3a847b6055266f4b23dc9e44ddb72d2655619",
+          "bytes": 155312957
+        },
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\SoVITS_weights_v2\\HeSha_e24_s384.pth",
+          "path": "assets/voices/glm/models/HeSha_e24_s384.pth",
+          "sha256": "e5beaf1893a05d2c2f8a1fac3d98c87a6e80c6fe28718ece8182b8eb9fecb103",
+          "bytes": 85007879
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\参考音频\\all\\CH0250_Season_NewYear.wav",
+          "path": "assets/voices/glm/references/CH0250_Season_NewYear.wav",
+          "sha256": "4598e60ccdc4cf4194ff14fda1b372b56a829f8c4c4c3b79c0e83785aed067d8",
+          "bytes": 561352,
+          "prompt_text": "あけましておめでとうございます。先生。今年も宜しくお願いします。",
+          "seconds": 6.363651
+        },
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\CH0250_EventLobby_1.wav",
+          "path": "assets/voices/glm/references/CH0250_EventLobby_1.wav",
+          "sha256": "352a2bfaa9952af32fda91a8a57b59b3e62d14fb343c76174643d55f69a14066",
+          "bytes": 602124,
+          "prompt_text": "……ん？マイクに興味あるの？先生も一曲、歌ってみる？",
+          "seconds": 6.825918
+        },
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\CH0250_EventLogin_1.wav",
+          "path": "assets/voices/glm/references/CH0250_EventLogin_1.wav",
+          "sha256": "6c758a463c34066bc74f5c07df1f3f0b910efb86c600d7f4dfa61b5bed1ce6d0",
+          "bytes": 408650,
+          "prompt_text": "いらっしゃい、先生！ちょっと練習手伝ってくれない？",
+          "seconds": 4.632336
+        },
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\Kazusa_Lobby_3.wav",
+          "path": "assets/voices/glm/references/Kazusa_Lobby_3.wav",
+          "sha256": "7a5260472ef6536c250b7dd4dd7acebcf9f704a974d28c03091353a593ceb676",
+          "bytes": 499542,
+          "prompt_text": "先生、そろそろ何か食べたら？……外で何か買ってこようか？",
+          "seconds": 5.662857
+        },
+        {
+          "source": "F:\\BAIDUPAN\\和纱\\Kazusa_LogIn_1.wav",
+          "path": "assets/voices/glm/references/Kazusa_LogIn_1.wav",
+          "sha256": "bcb1c601763427d567082b5d25920043d279b3e0642184787efd7bda184c31ee",
+          "bytes": 451962,
+          "prompt_text": "ああ。おかえりなさい、先生。今日は何をするの？",
+          "seconds": 5.123401
+        }
+      ]
+    },
+    "gemini": {
+      "voice_name": "泉奈",
+      "version": "v2",
+      "gpt_epoch": 15,
+      "sovits_epoch": 24,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\泉奈\\GPT_weights_v2\\QuanNai-e15.ckpt",
+          "path": "assets/voices/gemini/models/QuanNai-e15.ckpt",
+          "sha256": "6bbf67df34e7266f2284ab28990d2a94b0504803197ad7f59f3d1f8cb83ac844",
+          "bytes": 155312957
+        },
+        {
+          "source": "F:\\BAIDUPAN\\泉奈\\SoVITS_weights_v2\\QuanNai_e24_s432.pth",
+          "path": "assets/voices/gemini/models/QuanNai_e24_s432.pth",
+          "sha256": "b72c98d1ff1226ab5826bae46b157e14fa476265515ba6aa6ff3ec72a7ba88b4",
+          "bytes": 85007879
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_Lobby_5.wav",
+          "path": "assets/voices/gemini/references/CH0179_Lobby_5.wav",
+          "sha256": "f6eb8888de881db519e2c057b824f18b355218fe6a76e0c019b8bbcfbd877c38",
+          "bytes": 666574,
+          "prompt_text": "今度は、部長とツクヨ殿そして、主殿とみんなで海に遊びに行きたいです！",
+          "seconds": 7.556644
+        },
+        {
+          "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_MemorialLobby_4_2.wav",
+          "path": "assets/voices/gemini/references/CH0179_MemorialLobby_4_2.wav",
+          "sha256": "22a92150aa98fc2d90fa31515e8dc04f2350494ad0d660a8bcd15dffbc49f8e6",
+          "bytes": 608438,
+          "prompt_text": "今度また…もう一度泳ぎ方を、教えていただけないでしょうか？",
+          "seconds": 6.897506
+        },
+        {
+          "source": "F:\\BAIDUPAN\\泉奈\\gemini\\CH0179_Relationship_Up_1.wav",
+          "path": "assets/voices/gemini/references/CH0179_Relationship_Up_1.wav",
+          "sha256": "b53124981f2fc6be0804019dbb56aabef0bd6b16d1b92ad646e3c56821656795",
+          "bytes": 676540,
+          "prompt_text": "この夏も、主殿と一緒にいられるなんて……。イズナ、すっごく幸せです！",
+          "seconds": 7.669637
+        }
+      ]
+    },
+    "gpt": {
+      "voice_name": "莉音",
+      "version": "v2ProPlus",
+      "gpt_epoch": 15,
+      "sovits_epoch": 18,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\GPT_weights_v2ProPlus\\LiYin-e15.ckpt",
+          "path": "assets/voices/gpt/models/LiYin-e15.ckpt",
+          "sha256": "eb092b33a644f9fb48154568458cd507de3bf237e1ad39443828d2798a5e0dbd",
+          "bytes": 155313011
+        },
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\SoVITS_weights_v2ProPlus\\LiYin_e18_s324.pth",
+          "path": "assets/voices/gpt/models/LiYin_e18_s324.pth",
+          "sha256": "6a3167b73bc3752742cca64e4ac96e19b4808f9af599c98ba9bbd488a87ab8e2",
+          "bytes": 172765299
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_growup_2.wav",
+          "path": "assets/voices/gpt/references/ch0158_growup_2.wav",
+          "sha256": "80550e1f3e622dc39f61ff9b7f651b4e4771218349f29c6e096eeecd44ade60e",
+          "bytes": 503170,
+          "prompt_text": "成長の余地がある者にリソースを割く……合理的な選択ね、先生。",
+          "seconds": 5.703991
+        },
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_2_2.wav",
+          "path": "assets/voices/gpt/references/ch0158_lobby_2_2.wav",
+          "sha256": "29821f9ca905c225187c3fa00cb21194a75c74630bc7467baa3a54b0b0b5f728",
+          "bytes": 766594,
+          "prompt_text": "つまり――私たちが星を目にしている時、「過去」と「現在」を同時に捉えている、とも言えるわね。",
+          "seconds": 8.690658
+        },
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_2_3.wav",
+          "path": "assets/voices/gpt/references/ch0158_lobby_2_3.wav",
+          "sha256": "6d95e146c6194c2f70fe350c351e606b58aa400ff7babeefd3bfa637cb523478",
+          "bytes": 458012,
+          "prompt_text": "……そこでも、「未来」を観測することはできないのだけれども。",
+          "seconds": 5.191995
+        },
+        {
+          "source": "F:\\BAIDUPAN\\莉音\\GPT娘\\ch0158_lobby_3_2.wav",
+          "path": "assets/voices/gpt/references/ch0158_lobby_3_2.wav",
+          "sha256": "016928624732aae60006595fd40bab20ca3986b70f5cf638736702315348deb6",
+          "bytes": 378986,
+          "prompt_text": "ずっと答えを出せずにいるの。でも……",
+          "seconds": 4.296009
+        }
+      ]
+    },
+    "claude": {
+      "voice_name": "佳代子",
+      "version": "v2",
+      "gpt_epoch": 15,
+      "sovits_epoch": 16,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\成品模型\\GPT_weights_v2\\Kayoko-e15.ckpt",
+          "path": "assets/voices/claude/models/Kayoko-e15.ckpt",
+          "sha256": "2eaa39246a3069ea9fde90ea560e69413e363be7c3364702131fae7ffde33697",
+          "bytes": 155312957
+        },
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\成品模型\\SoVITS_weights_v2\\Kayoko_e16_s400.pth",
+          "path": "assets/voices/claude/models/Kayoko_e16_s400.pth",
+          "sha256": "1b636bb60e0262d4601e9dda046fc6be2a58fa526609da5968b2c09d6c2debb5",
+          "bytes": 85007879
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_EventLobby_3.wav",
+          "path": "assets/voices/claude/references/CH0086_EventLobby_3.wav",
+          "sha256": "1be086ae05216b9dcac296d328fda9657ddec81ac87b191ae7463f52df9863ff",
+          "bytes": 568556,
+          "prompt_text": "ハルカ、最近疲れてるように見えるけど。大丈夫かな……。",
+          "seconds": 6.445329
+        },
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_EventLobby_2_1.wav",
+          "path": "assets/voices/claude/references/CH0086_EventLobby_2_1.wav",
+          "sha256": "e5a9e0ba277d207c3e9f1aa7eb68bd06da8a9c15a405132c9380dd3954962c6d",
+          "bytes": 527514,
+          "prompt_text": "新作アルバム代を全部お賽銭に使っちゃって、よかったのかって？",
+          "seconds": 5.98
+        },
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0086_Lobby_4.wav",
+          "path": "assets/voices/claude/references/CH0086_Lobby_4.wav",
+          "sha256": "9901dfc272bed7faaafd689bf5a381c03705b5c52b7b50a4c13863686426db39",
+          "bytes": 659108,
+          "prompt_text": "どうしたの、先生？私で役に立てるなら、なんでも言って。",
+          "seconds": 7.471995
+        },
+        {
+          "source": "F:\\BAIDUPAN\\佳代子\\日配数据集制\\claude\\CH0239_EventLogin_2.wav",
+          "path": "assets/voices/claude/references/CH0239_EventLogin_2.wav",
+          "sha256": "9c517452a869ded6f3e7b2c5827ea4ac195e07092792d4ff352dc5aca81ca92e",
+          "bytes": 281094,
+          "prompt_text": "…あ、ちょうど探してたんだ、先生。",
+          "seconds": 3.186122
+        }
+      ]
+    },
+    "deepseek": {
+      "voice_name": "宫子",
+      "version": "v2",
+      "gpt_epoch": 15,
+      "sovits_epoch": 16,
+      "models": [
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\成品模型\\GPT_weights_v2\\Miyako-e15.ckpt",
+          "path": "assets/voices/deepseek/models/Miyako-e15.ckpt",
+          "sha256": "f91027d011af5e0cf7318af98bda5275f91a36332dbf7d5a311b9e121d4c289a",
+          "bytes": 155312957
+        },
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\成品模型\\SoVITS_weights_v2\\Miyako_e16_s272.pth",
+          "path": "assets/voices/deepseek/models/Miyako_e16_s272.pth",
+          "sha256": "353d36b9044c1e10a705ed75db9815278d2c2ea2ae727df22d6032d1f2ef2877",
+          "bytes": 85007879
+        }
+      ],
+      "references": [
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_4_1.wav",
+          "path": "assets/voices/deepseek/references/CH0215_Lobby_4_1.wav",
+          "sha256": "def1b61fd21ab79ee701420847c03644f2b93ef18a0b7790c7313906f431187c",
+          "bytes": 702094,
+          "prompt_text": "ウサギは水が苦手だからなのでしょうか…ウサギ柄の水着を見たことがありません…",
+          "seconds": 7.959365
+        },
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_EventMission_Login_1.wav",
+          "path": "assets/voices/deepseek/references/CH0215_EventMission_Login_1.wav",
+          "sha256": "e290e2f3c73f5639d2f89435963b07f675ab8c43bc376f8b8561c258ca87137d",
+          "bytes": 479464,
+          "prompt_text": "来てくれましたか、先生。調査に必要なリストをまとめてみました。",
+          "seconds": 5.435215
+        },
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_3.wav",
+          "path": "assets/voices/deepseek/references/CH0215_Lobby_3.wav",
+          "sha256": "e62f09b1c0a30d9ac6816a5a19b3802ce425a80e5036540d69a6f3b08972cdc5",
+          "bytes": 624054,
+          "prompt_text": "今は作戦中ではないので…作戦外のことも、お手伝いできます。",
+          "seconds": 7.074558
+        },
+        {
+          "source": "F:\\BAIDUPAN\\宫子\\日配数据集制\\大肥鱼\\CH0215_Lobby_5.wav",
+          "path": "assets/voices/deepseek/references/CH0215_Lobby_5.wav",
+          "sha256": "177274b4e320d52b3222871807791449180bb7e76443edcbcc1999c0488b8617",
+          "bytes": 667544,
+          "prompt_text": "もっと気軽にお声がけください。私たちは、先生のために常時待機していますので。",
+          "seconds": 7.567642
+        }
+      ]
+    }
+  }
+}

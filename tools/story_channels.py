@@ -83,6 +83,9 @@ def public_context(messages, observed):
                 ("task", "match_rules", "game_guide", "own_profile", "participants", "turn_hours") if key in payload}
     if "own_profile" in selected:
         selected["own_profile"] = {key: value for key, value in selected["own_profile"].items() if key in ("name", "persona")}
+    if payload.get("public_cast"):
+        from showrunner import public_cast
+        selected["public_cast"] = public_cast(payload)
     selected["own_observation"] = {"identity": copy.deepcopy(payload["own_observation"]["identity"])}
     for key in ("date_raw", "execution_backend"):
         if key in observed:
@@ -169,7 +172,7 @@ def private_feedback(review, country, *, own_only=False):
     return result
 
 
-def interview_messages(observed, locked_decision, question, *, public=None, private=None, intent=None):
+def interview_messages(observed, locked_decision, question, *, public=None, private=None, intent=None, show=None):
     """Audience-only interview: own-visible evidence, no tools or state writeback."""
     from model_trial import brief
     from showrunner import check_history
@@ -193,6 +196,12 @@ def interview_messages(observed, locked_decision, question, *, public=None, priv
     payload = {"country": tag, "visibility": "audience_only", "question": question,
                "materials": materials, "sources": sources,
                "task": "决定已密封。回答一次赛后采访，可质疑问题或拒答，只输出{country,answer}。不提交动作、不修改决定。"}
+    if show and show.get("public_cast"):
+        from showrunner import public_cast
+        payload["public_cast"] = public_cast(show)
+        payload["own_profile"] = {key: show["profiles"].get(tag, {})[key] for key in ("name", "persona")
+                                  if key in show["profiles"].get(tag, {})}
+        payload["match_rules"] = show.get("common_rules", "")
     return [{"role": "system", "content": ("这是仅供观众的采访频道，回答绝不写回玩家决策历史。导演可以追问或挑动情绪，"
               "不能提供策略、指定战争或泄露第三方私密事实；采访材料只限受访国本来能看到的内容。无游戏工具。")},
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
@@ -205,7 +214,7 @@ def check_interview_answer(value, country):
     return value
 
 
-def public_commentary_messages(observed, public, question="概括刚才公开发生的变化与公开说法之间的张力。"):
+def public_commentary_messages(observed, public, question="概括刚才公开发生的变化与公开说法之间的张力。", *, show=None):
     """A public host sees the same allowlisted sources as public diplomacy."""
     from model_trial import country_messages
     if not isinstance(question, str) or not 0 < len(question) <= 600:
@@ -215,6 +224,14 @@ def public_commentary_messages(observed, public, question="概括刚才公开发
                                "提出问题，但不能把主张认证为事实，不能透露或猜作已知的密封理由与私信。"
                                "不提供战略建议、不指挥战争、不替玩家行动。只输出JSON。")
     payload = json.loads(messages[1]["content"])
+    if show and show.get("public_cast"):
+        from showrunner import public_cast
+        payload["public_cast"] = public_cast(show)
+        payload["own_profile"] = {key: show.get("host_profile", {})[key] for key in ("name", "persona")
+                                  if key in show.get("host_profile", {})}
+    if payload.get("public_host_messages"):
+        # Host comments cite direct player/world evidence, never host chains.
+        payload.pop("public_host_messages")
     payload["task"] = (question + " 输出{commentary:[{ref:给出的公开来源真实id,text:简短评论}]}，最多四条；"
                        "每条必须绑定真实来源，没有合适材料可输出空数组，不强求笑点。")
     payload["visibility"] = "public"
@@ -230,6 +247,34 @@ def check_public_commentary(value, source_ids):
                 or row["ref"] not in source_ids or not isinstance(row["text"], str) or not 0 < len(row["text"]) <= 400):
             raise ValueError("Public commentary must cite a supplied public source ID")
     return value
+
+
+def project_public_commentary(value, source_ids):
+    """Drop host lines that cite no supplied public source; the raw response stays in the call record."""
+    candidate = copy.deepcopy(value)
+    dropped = []
+    rows = candidate.get("commentary") if isinstance(candidate, dict) else None
+    if isinstance(rows, list):
+        kept = []
+        for index, row in enumerate(rows):
+            if (isinstance(row, dict) and set(row) == {"ref", "text"} and isinstance(row["ref"], str)
+                    and row["ref"] in source_ids and isinstance(row["text"], str) and 0 < len(row["text"]) <= 400):
+                kept.append(row)
+            else:
+                dropped.append({"index": index, "row": copy.deepcopy(row)})
+        candidate["commentary"] = kept
+    return candidate, dropped
+
+
+def project_interview_answer(value, country):
+    """Keep only the contracted interview fields; unrecoverable content still fails validation."""
+    if (not isinstance(value, dict) or not isinstance(value.get("country"), str) or value["country"] != country
+            or not isinstance(value.get("answer"), str) or not 0 < len(value["answer"]) <= 1000):
+        return value, []
+    removed = sorted(set(value) - {"country", "answer"})
+    if not removed:
+        return value, []
+    return {key: value[key] for key in ("country", "answer")}, removed
 
 
 def settle_commitments(entries, public_events, date_raw, turn_id):

@@ -10,8 +10,10 @@ import os
 from pathlib import Path
 import time
 
-from campaign import (ROOT, build_index, config_digest, key_envs, load_config, model_usage,
-                      name_ok, remember_commitments, turn_show_config)
+from campaign import (ROOT, apply_model_switch, build_index, build_switch_record, config_digest,
+                      effective_resumed_config, key_envs, load_config, model_slot_fingerprints, model_usage,
+                      name_ok, remember_commitments, switch_fingerprint_list, turn_show_config,
+                      validate_switch_spec)
 from episode import export_episode, generate_commentary
 from m0_probe import write_json
 from model_client import complete
@@ -48,8 +50,32 @@ def compact_history(trial, turn, tags):
 
 
 def require_no_pending_choice(world):
-    if world.get("pending_events", {}).get("pending"):
+    if world.get("pending_events", {}).get("pending") or world.get("pending_events", {}).get("resolved_windows"):
         raise RuntimeError("registered pending event needs a qualified normal choice; stop before model calls and game orders")
+
+
+def apply_campaign_switch(manifest, spec, *, reason, source):
+    """Record or reuse an auditable resume-time provider switch; returns the effective config and the active record."""
+    frozen = manifest["config"]
+    recorded = manifest.setdefault("model_switches", [])
+    config = frozen
+    for previous in recorded:
+        config = apply_model_switch(config, previous["spec"])
+    spec = validate_switch_spec(spec)
+    if recorded:
+        last = recorded[-1]
+        if last.get("spec") == spec and switch_fingerprint_list(model_slot_fingerprints(config)) == last.get("to_fingerprints"):
+            return config, last
+    base = recorded[-1] if recorded else None
+    reference = apply_model_switch(frozen, base["spec"]) if base else frozen
+    candidate = build_switch_record(reference, spec, reason=reason, source=source)
+    if base is not None and candidate["from"] != base["to"]:
+        raise ValueError("recorded model switches do not chain from the frozen configuration")
+    pending = [entry["index"] for entry in manifest["turns"] if entry.get("status") != "completed"]
+    candidate["first_affected_turn"] = min(pending) if pending else frozen["turn_limit"] + 1
+    candidate["applied_at"] = now()
+    recorded.append(candidate)
+    return apply_model_switch(config, spec), candidate
 
 
 def adapt_result(native, execution, trial, observed, after):
@@ -95,15 +121,28 @@ def verify_decisions(trial, observed):
 
 
 def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn=None,
-                 provider_check=False):
+                 provider_check=False, switch_model=None, switch_reason=None):
     directory = ROOT / "runs" / "campaigns" / name_ok(name)
     manifest_path = directory / "manifest.json"
     if resume:
         manifest = read(manifest_path)
-        config = manifest["config"]
+        if switch_model is not None:
+            if isinstance(switch_model, dict):
+                spec = switch_model
+            else:
+                path = Path(switch_model)
+                spec = read(path if path.is_absolute() else ROOT / path)
+            config, _ = apply_campaign_switch(manifest, spec,
+                                              reason=switch_reason or "resume provider switch",
+                                              source="resume command line")
+            write_json(manifest_path, manifest)
+        else:
+            config = effective_resumed_config(manifest)
     else:
         if manifest_path.exists():
             raise ValueError("campaign exists; use --resume to reuse completed model calls")
+        if switch_model is not None:
+            raise ValueError("--switch-model applies to --resume; set the provider in the model config for a new campaign")
         config = load_config(config_path)
         if config.get("execution_backend") != "native":
             raise ValueError("native campaign requires execution_backend=native")
@@ -202,9 +241,13 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
             if not (trial / "decision_result.json").exists() or read(trial / "decision_result.json")["status"] != "approved":
                 entry["status"] = "deciding"; write_json(manifest_path, manifest)
                 model_start = time.monotonic()
+                turn_switch = None
+                for record in manifest.get("model_switches", []):
+                    if record.get("first_affected_turn", config["turn_limit"] + 1) <= index:
+                        turn_switch = record
                 decide(trial, config["model"], tags, resume=(trial / "decision_result.json").exists(),
                        communication_rounds=config["communication_rounds"], private_diplomacy=True,
-                       show_config=turn_show)
+                       show_config=turn_show, model_switch=turn_switch)
                 entry["model_seconds"] = round(time.monotonic() - model_start, 3)
             requests = verify_decisions(trial, observed)
             performance = post_seal(trial, observed, config["model"], turn_show, config.get("performance", {}))
@@ -311,15 +354,25 @@ def main():
     parser.add_argument("--turns", type=int)
     parser.add_argument("--prompt-key", action="store_true")
     parser.add_argument("--provider-check", action="store_true")
+    parser.add_argument("--switch-model", help="JSON file with provider identity fields applied to every model slot on resume")
+    parser.add_argument("--switch-reason", help="Audit reason recorded with the model switch")
     args = parser.parse_args()
     if args.prompt_key:
-        config = (read(ROOT / "runs" / "campaigns" / name_ok(args.name) / "manifest.json")["config"]
-                  if args.resume else load_config(args.config))
+        if args.resume:
+            manifest = read(ROOT / "runs" / "campaigns" / name_ok(args.name) / "manifest.json")
+            spec = None
+            if args.switch_model:
+                path = Path(args.switch_model)
+                spec = read(path if path.is_absolute() else ROOT / path)
+            config = effective_resumed_config(manifest, spec)
+        else:
+            config = load_config(args.config)
         for key in key_envs(config):
             if not os.environ.get(key):
                 os.environ[key] = getpass.getpass(f"{key} (hidden): ")
     manifest = run_campaign(args.name, args.config, args.pid, args.save_dir,
-                            resume=args.resume, through_turn=args.turns, provider_check=args.provider_check)
+                            resume=args.resume, through_turn=args.turns, provider_check=args.provider_check,
+                            switch_model=args.switch_model, switch_reason=args.switch_reason)
     print(json.dumps({"status": manifest["status"], "turns": len(manifest["turns"]),
                       "elapsed_seconds": manifest.get("elapsed_seconds"), "usage": manifest["usage"]}, ensure_ascii=False))
 

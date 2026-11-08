@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 
-from m0_probe import ROOT, Probe, countries_from, settled_pause_state, write_json
+from m0_probe import ROOT, Probe, ai_receipt_state, countries_from, settled_pause_state, write_json
 from scoreboard import validate_rules, rules_text, score, controllers
 
 
@@ -60,11 +60,106 @@ def load_config(path):
     if "clock_policy" in config:
         rules = rules.replace(f"每回合{config['step_hours']}游戏小时", "每回合使用当轮公布的共同时间预算，重要事件可提前暂停")
     show["common_rules"] = show.get("common_rules", "") + rules
+    from production import configure_character_show
+    configure_character_show(config)
     return config
 
 
 def config_digest(config):
     return hashlib.sha256(json.dumps(config, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+SWITCH_FIELDS = ("base_url", "model", "api_key_env", "enable_thinking", "temperature", "max_tokens",
+                 "timeout_seconds", "include_thinking_parameter", "json_mode", "request_parameters")
+SWITCH_IDENTITY_FIELDS = ("base_url", "model", "api_key_env", "enable_thinking", "temperature",
+                          "timeout_seconds", "include_thinking_parameter", "json_mode", "request_parameters")
+
+
+def validate_switch_spec(spec):
+    """A recorded provider switch may only change identity and transport fields; never messages or secrets."""
+    if not isinstance(spec, dict) or not spec:
+        raise ValueError("model switch spec must be a non-empty object")
+    unknown = set(spec) - set(SWITCH_FIELDS)
+    if unknown:
+        raise ValueError("model switch spec may only contain: " + ", ".join(sorted(SWITCH_FIELDS)))
+    for key in ("base_url", "model"):
+        if not isinstance(spec.get(key), str) or not spec[key].strip():
+            raise ValueError("model switch spec requires a non-empty " + key)
+    if "api_key_env" in spec and (not isinstance(spec["api_key_env"], str) or not spec["api_key_env"].strip()):
+        raise ValueError("model switch api_key_env must be a non-empty string")
+    return copy.deepcopy(spec)
+
+
+def apply_model_switch(config, spec):
+    """Return a new config with the switch applied to every model slot; the frozen manifest config is not mutated."""
+    spec = validate_switch_spec(spec)
+    result = copy.deepcopy(config)
+    for slot in ("model", "commentary_model"):
+        if slot in result:
+            result[slot] = {**result[slot], **spec}
+    show = result.get("show", {})
+    if isinstance(show, dict):
+        if isinstance(show.get("referee_model"), dict):
+            show["referee_model"] = {**show["referee_model"], **spec}
+        for tag, model in (show.get("models") or {}).items():
+            if isinstance(model, dict):
+                show["models"][tag] = {**model, **spec}
+        for row in show.get("public_cast", []):
+            row["execution_model"] = spec["model"]
+    return result
+
+
+def model_slot_fingerprints(config):
+    """Non-secret settings fingerprints of every model slot, as cached call records store them."""
+    from showrunner import model_settings, country_model, referee_model
+    values = {"player_models": {tag: model_settings(country_model(config["model"], config.get("show", {}), tag))
+                                for tag in config["countries"]}}
+    if config.get("show", {}).get("referee_model"):
+        values["referee_model"] = model_settings(referee_model(config["model"], config["show"]))
+    if config.get("model_commentary", True) and config.get("commentary_model"):
+        values["commentary_model"] = model_settings(config["commentary_model"])
+    return values
+
+
+def switch_identity(fingerprint):
+    """max_tokens is legitimately capped per phase and must not decide whether a cached record matches."""
+    return {key: value for key, value in fingerprint.items() if key in SWITCH_IDENTITY_FIELDS}
+
+
+def switch_fingerprint_list(fingerprints):
+    """Flatten slot fingerprints (including per-country maps) into comparable identity dicts."""
+    rows = []
+    for value in fingerprints.values():
+        if not isinstance(value, dict):
+            continue
+        if value and all(isinstance(inner, dict) for inner in value.values()):
+            rows.extend(switch_identity(inner) for inner in value.values())
+        else:
+            rows.append(switch_identity(value))
+    return rows
+
+
+def build_switch_record(config, spec, *, reason, source):
+    """Build the auditable ledger entry for a resume-time provider switch; secrets stay out by construction."""
+    applied = apply_model_switch(config, spec)
+    old, new = model_slot_fingerprints(config), model_slot_fingerprints(applied)
+    old_players = list(old["player_models"].values())
+    if not new["player_models"] or all(switch_identity(value) == switch_identity(old_players[0])
+                                       for value in new["player_models"].values()):
+        raise ValueError("model switch must change provider identity or request parameters")
+    return {"schema": "iron.model-switch.v1", "spec": spec, "reason": reason, "source": source,
+            "from": old, "to": new,
+            "from_fingerprints": switch_fingerprint_list(old), "to_fingerprints": switch_fingerprint_list(new)}
+
+
+def effective_resumed_config(manifest, spec=None):
+    """The model configuration a resumed run must use: the CLI spec if given, else recorded switches, else frozen config."""
+    config = manifest["config"]
+    if spec is not None:
+        return apply_model_switch(config, spec)
+    for record in manifest.get("model_switches", []):
+        config = apply_model_switch(config, record["spec"])
+    return config
 
 
 def identity(session, pid):
@@ -159,10 +254,12 @@ def establish_control(config, directory, known_disabled_pid=None):
                         response = probe.command(["ai " + tag])
                         text = " ".join(response["results"][0].get("response", []))
                         record["toggles"].append({"country": tag, "response": text})
-                        if re.search(r"Disabled\s+AI\s+for\s*:\s*" + re.escape(tag), text, re.I):
+                        write_json(path, record)
+                        resulting_state = ai_receipt_state(response["results"][0].get("response", []), tag)
+                        if resulting_state == "disabled":
                             record["disabled_ai"].append(tag)
                             break
-                        if not re.search(r"Enabled\s+AI\s+for\s*:\s*" + re.escape(tag), text, re.I):
+                        if resulting_state != "enabled":
                             raise ValueError("无法确认 AI 状态，保持暂停: " + tag)
                     else:
                         raise ValueError("无法停用原生国家 AI: " + tag)

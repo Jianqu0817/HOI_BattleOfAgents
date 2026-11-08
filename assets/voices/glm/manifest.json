@@ -1,0 +1,62 @@
+{
+  "voice_name": "和纱",
+  "version": "v2",
+  "gpt_epoch": 15,
+  "sovits_epoch": 24,
+  "models": [
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\GPT_weights_v2\\HeSha-e15.ckpt",
+      "path": "assets/voices/glm/models/HeSha-e15.ckpt",
+      "sha256": "ddbdf63f8f429b821bc36d2e95c3a847b6055266f4b23dc9e44ddb72d2655619",
+      "bytes": 155312957
+    },
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\SoVITS_weights_v2\\HeSha_e24_s384.pth",
+      "path": "assets/voices/glm/models/HeSha_e24_s384.pth",
+      "sha256": "e5beaf1893a05d2c2f8a1fac3d98c87a6e80c6fe28718ece8182b8eb9fecb103",
+      "bytes": 85007879
+    }
+  ],
+  "references": [
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\参考音频\\all\\CH0250_Season_NewYear.wav",
+      "path": "assets/voices/glm/references/CH0250_Season_NewYear.wav",
+      "sha256": "4598e60ccdc4cf4194ff14fda1b372b56a829f8c4c4c3b79c0e83785aed067d8",
+      "bytes": 561352,
+      "prompt_text": "あけましておめでとうございます。先生。今年も宜しくお願いします。",
+      "seconds": 6.363651
+    },
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\CH0250_EventLobby_1.wav",
+      "path": "assets/voices/glm/references/CH0250_EventLobby_1.wav",
+      "sha256": "352a2bfaa9952af32fda91a8a57b59b3e62d14fb343c76174643d55f69a14066",
+      "bytes": 602124,
+      "prompt_text": "……ん？マイクに興味あるの？先生も一曲、歌ってみる？",
+      "seconds": 6.825918
+    },
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\CH0250_EventLogin_1.wav",
+      "path": "assets/voices/glm/references/CH0250_EventLogin_1.wav",
+      "sha256": "6c758a463c34066bc74f5c07df1f3f0b910efb86c600d7f4dfa61b5bed1ce6d0",
+      "bytes": 408650,
+      "prompt_text": "いらっしゃい、先生！ちょっと練習手伝ってくれない？",
+      "seconds": 4.632336
+    },
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\Kazusa_Lobby_3.wav",
+      "path": "assets/voices/glm/references/Kazusa_Lobby_3.wav",
+      "sha256": "7a5260472ef6536c250b7dd4dd7acebcf9f704a974d28c03091353a593ceb676",
+      "bytes": 499542,
+      "prompt_text": "先生、そろそろ何か食べたら？……外で何か買ってこようか？",
+      "seconds": 5.662857
+    },
+    {
+      "source": "F:\\BAIDUPAN\\和纱\\Kazusa_LogIn_1.wav",
+      "path": "assets/voices/glm/references/Kazusa_LogIn_1.wav",
+      "sha256": "bcb1c601763427d567082b5d25920043d279b3e0642184787efd7bda184c31ee",
+      "bytes": 451962,
+      "prompt_text": "ああ。おかえりなさい、先生。今日は何をするの？",
+      "seconds": 5.123401
+    }
+  ]
+}

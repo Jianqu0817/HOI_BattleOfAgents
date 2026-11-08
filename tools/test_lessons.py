@@ -63,6 +63,21 @@ class LessonTests(unittest.TestCase):
         self.assertIn("execution_adapter_error", value)
         self.assertNotIn("ENEMY_SECRET", value)
 
+    def test_war_target_receives_confirmed_public_event_without_enemy_private_reason(self):
+        path = self.turn / "result.json"
+        result = json.loads(path.read_text(encoding="utf-8"))
+        result["actions"] = [{"country": "GER", "action": {"id": "war", "type": "diplomacy.declare_war", "args": {"target_country": "ITA", "wargoal_id": 1}},
+                              "status": "applied", "verification": {"verified": True, "observations": {"new_war": True, "declaration_sent": True, "war_pairs_added": [["GER", "ITA"]]}}}]
+        self.put(path, result)
+        target = country_evidence(self.trial, self.turn, "ITA")
+        wars = [row for row in target["evidence"] if row["kind"] == "war"]
+        self.assertEqual(wars[0]["data"]["our_role"], "declared_target")
+        self.assertNotIn("GER_PRIVATE_PLAN", json.dumps(target))
+        self.assertFalse(any(row["kind"] == "war" for row in country_evidence(self.trial, self.turn, "JAP")["evidence"]))
+        result["actions"][0]["verification"]["observations"].update(new_war=False, declaration_sent=False)
+        self.put(path, result)
+        self.assertFalse(any(row["kind"] == "war" for row in country_evidence(self.trial, self.turn, "ITA")["evidence"]))
+
     def test_tainted_inbox_and_changed_request_are_rejected(self):
         self.put(self.trial / "private_diplomacy/GER.json", {"sent": [], "received": [{"country": "ITA", "to": "JAP", "message": "OTHER_SECRET"}]})
         with self.assertRaises(ValueError):

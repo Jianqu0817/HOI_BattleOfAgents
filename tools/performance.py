@@ -5,6 +5,7 @@ import json
 from m0_probe import write_json
 from model_trial import country_model, recorded_complete
 from story_channels import (check_interview_answer, check_public_commentary, interview_messages,
+                            project_interview_answer, project_public_commentary,
                             public_commentary_messages, public_source_ids)
 
 
@@ -21,10 +22,19 @@ def post_seal(trial, observed, model, show, config):
     hashes = {tag: hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest() for tag, value in sealed.items()}
     result = {"schema": "iron.performance.v1", "host": [], "interviews": [], "writeback": False}
     if config.get("public_host", True):
-        messages = public_commentary_messages(observed[tags[0]], public)
-        value = recorded_complete(trial, "public_host", {**model, "max_tokens": 700}, messages,
-                                  "public_host", require_settings=True)["response"]
-        check_public_commentary(value, public_source_ids(messages, observed[tags[0]]))
+        messages = public_commentary_messages(observed[tags[0]], public, show=show)
+        record = recorded_complete(trial, "public_host", {**model, "max_tokens": 700}, messages,
+                                   "public_host", require_settings=True)
+        payload = json.loads(messages[1]["content"])
+        direct = payload.get("public_diplomacy", []) + payload.get("public_board", [])
+        for history in payload.get("public_history", []):
+            direct += history.get("public_diplomacy", [])
+        sources = {row["id"] for row in direct if isinstance(row.get("id"), str)}
+        value, dropped = project_public_commentary(record["response"], sources)
+        if dropped:
+            record["host_projection"] = {"method": "sourced_public_commentary.v1", "dropped": dropped}
+            write_json(trial / "model_calls" / "public_host.json", record)
+        check_public_commentary(value, sources)
         for index, row in enumerate(value["commentary"]):
             identity = hashlib.sha256(json.dumps(row, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             result["host"].append({"id": "host-" + identity, "visibility": "public", "source_kind": "host_commentary",
@@ -40,10 +50,14 @@ def post_seal(trial, observed, model, show, config):
         question = "决定已密封，现在只聊感受：哪句已经公开的发言最让你想回应？可以质问、吐槽、表示好感，也可以拒答。"
         messages = interview_messages(observed[tag], sealed[tag], question, public=public,
                                       private=read(private_path) if private_path.exists() else None,
-                                      intent=read(intent_path) if intent_path.exists() else None)
-        value = recorded_complete(trial, "audience_interview_" + tag,
-                                  {**country_model(model, show, tag), "max_tokens": 600}, messages,
-                                  "audience_interview", tag, require_settings=True)["response"]
+                                      intent=read(intent_path) if intent_path.exists() else None, show=show)
+        record = recorded_complete(trial, "audience_interview_" + tag,
+                                   {**country_model(model, show, tag), "max_tokens": 600}, messages,
+                                   "audience_interview", tag, require_settings=True)
+        value, removed = project_interview_answer(record["response"], tag)
+        if removed:
+            record["interview_projection"] = {"method": "audience_interview_fields.v1", "removed": removed}
+            write_json(trial / "model_calls" / ("audience_interview_" + tag + ".json"), record)
         check_interview_answer(value, tag)
         result["interviews"].append({**value, "question": question, "visibility": "audience_only"})
     for tag in tags:

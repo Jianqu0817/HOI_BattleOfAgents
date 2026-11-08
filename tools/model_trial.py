@@ -317,15 +317,25 @@ def recover_observation_baseline(directory, tags, user_dir):
 
 
 def check_observation_checkpoint(baseline, current, tags):
-    if baseline["date"] != current["date"] or any(country_fingerprint(baseline, tag) != country_fingerprint(current, tag) for tag in tags):
+    from diplomacy_actions import diplomacy_fingerprint
+    from naval_air_actions import naval_air_fingerprint
+    from army_actions import army_activity
+    if (baseline["date"] != current["date"] or diplomacy_fingerprint(baseline) != diplomacy_fingerprint(current)
+            or any(country_fingerprint(baseline, tag) != country_fingerprint(current, tag)
+                   or naval_air_fingerprint(baseline, tag) != naval_air_fingerprint(current, tag) for tag in tags)):
         raise ValueError("Game changed during interrupted observation; original observations are frozen")
+    if any(army_activity(baseline["countries"][tag]) != army_activity(current["countries"][tag]) for tag in tags):
+        raise ValueError("Army activity changed during interrupted observation")
 
 
 def check_partial_observation(value, baseline, tag, source, expected_match, expected_turn):
+    from army_actions import army_activity
     if (value.get("country") != tag or value.get("match_id") != expected_match or value.get("turn_id") != expected_turn
             or value.get("date") != baseline["date"] or value.get("source", {}).get("sha256") != source["sha256"]
             or value.get("state_fingerprint") != country_fingerprint(baseline, tag)):
         raise ValueError("Partial observation does not match the frozen baseline for " + tag)
+    if "army_activity" in value and value["army_activity"] != army_activity(baseline["countries"][tag]):
+        raise ValueError("Partial observation army activity differs from the frozen baseline for " + tag)
     candidate = dict(value)
     saved_id = candidate.pop("observation_id", None)
     if saved_id != digest(candidate):
@@ -346,6 +356,7 @@ def prepare(directory, tags, expected_pid, previous_trial=None, previous_turn=No
             from hoi4_live.perception import topbar
             from hoi4_live.gamedata import tech, focus, loc
             from army_actions import context_for_session
+            from naval_air_actions import context_for_session as naval_air_context_for_session
             if settled_pause_state(probe.session)[0] != "paused":
                 raise ValueError("Observation requires a paused game")
             receipt = probe.receipts(tags + [tags[0]], "model_trial_start")
@@ -375,10 +386,16 @@ def prepare(directory, tags, expected_pid, previous_trial=None, previous_turn=No
                 prior_state = read(final)
                 if state["date"] != prior_state["date"] or any(country_fingerprint(state, tag) != country_fingerprint(prior_state, tag) for tag in tags):
                     raise ValueError("Game state does not continue from the previous completed turn")
+                from army_actions import army_activity
+                if any(army_activity(state["countries"][tag]) != army_activity(prior_state["countries"][tag]) for tag in tags):
+                    raise ValueError("Army activity does not continue from the previous completed turn")
             technologies, focuses = tech.for_session(probe.session), focus.for_session(probe.session)
             army_context = context_for_session(probe.session)
+            naval_air_context = naval_air_context_for_session(probe.session)
             keys = list(technologies["techs"]) + [f"STATE_{sid}" for sid in state["states"]]
             for tag in tags:
+                from diplomacy_actions import wargoals
+                keys += [tag, tag + "_DEF"] + [goal["type"] for goal in wargoals(state, tag)]
                 keys += list(focus.tree_focuses(focuses, state["countries"][tag]["focus_tree"]))
                 keys += [key for kind in state["equipments"] for key in (kind, f"{tag}_{kind}")]
             names = loc.for_session(probe.session).get_many(keys)
@@ -405,7 +422,9 @@ def prepare(directory, tags, expected_pid, previous_trial=None, previous_turn=No
                 slots = researchview.read_slots(probe.session, img=image)
                 history = own_history(previous_trial, previous, tag) if previous else []
                 observed = observation(state, tag, expected_match, expected_turn, source, technologies, focuses, names,
-                                       army_context=army_context)
+                                       army_context=army_context, naval_air_context=naval_air_context)
+                from army_actions import army_activity
+                observed["army_activity"] = army_activity(state["countries"][tag])
                 observed["recent_history"] = history
                 observed["research"]["visible_slots"] = [{key: row[key] for key in ("index", "state")} for row in slots]
                 observed["research"]["screen_evidence"] = probe.session.artifact(image, "slots_" + tag)
@@ -439,17 +458,48 @@ def private_context(tag, messages):
             "received": [value for value in messages if value["to"] == tag]}
 
 
+def decision_private_context(directory, tag, messages):
+    inbox = private_context(tag, messages)
+    path = directory / "model_calls" / ("reply_" + tag + ".json")
+    if path.exists():
+        record = read(path)
+        rejected = record.get("delivery_projection", {}).get("rejected", [])
+        if rejected:
+            if any(row.get("country") != tag for row in rejected):
+                raise ValueError("Delivery receipt belongs to another country")
+            inbox["delivery_receipts"] = rejected
+    return inbox
+
+
+def switch_covers(switch, record, config):
+    """A cached call may be reused across a recorded provider switch only when its saved identity is the
+    pre-switch fingerprint and the live config is the post-switch fingerprint; max_tokens is phase-capped."""
+    from campaign import switch_fingerprint_list, switch_identity
+    record_settings = record.get("request_config")
+    if not isinstance(record_settings, dict) or record_settings.get("model") != record["metadata"].get("requested_model"):
+        return False
+    current = switch_identity(model_settings(config))
+    record_identity = switch_identity(record_settings)
+    if current == record_identity:
+        return False
+    return record_identity in switch_fingerprint_list(switch["from"]) and current in switch_fingerprint_list(switch["to"])
+
+
 def recorded_complete(directory, label, config, messages, phase=None, country=None, require_settings=False):
     """Reuse the identical request, including its provider and generation parameters."""
     path = directory / "model_calls" / (label + ".json")
     if path.exists():
         record = read(path)
-        if record["messages"] != messages or record["metadata"]["requested_model"] != config["model"]:
+        if record["messages"] != messages:
             raise ValueError("Saved model call does not match this prompt: " + label)
-        if "request_config" in record:
-            if record["request_config"] != model_settings(config):
+        matched = (record["metadata"]["requested_model"] == config["model"]
+                   and ("request_config" not in record or record["request_config"] == model_settings(config)))
+        if not matched:
+            switch_path = directory / "model_switch.json"
+            switch = read(switch_path) if switch_path.exists() else None
+            if switch is None or not switch_covers(switch, record, config):
                 raise ValueError("Saved model call provider or parameters changed: " + label)
-        elif require_settings:
+        if "request_config" not in record and require_settings:
             raise ValueError("Legacy call lacks the provider fingerprint required by this show: " + label)
     else:
         value, metadata = complete(config, messages)
@@ -493,7 +543,8 @@ def call_country(directory, config, observed, phase, public, private=None, publi
         # Chat is a typed channel, not an execution envelope. Preserve all raw
         # annotations for audit while routing only contract fields to players.
         if value.get("actions"):
-            raise ValueError("A communication response cannot submit game actions")
+            record["chat_actions_projection"] = {"method": "chat_is_not_execution_envelope.v1",
+                                                 "rejected_actions": value["actions"]}
         allowed = {"country", "replies", "commitments"} if phase == "reply" else {"country", "message", "commitments", "commitments_note"}
         if phase == "private":
             allowed.add("to")
@@ -507,6 +558,13 @@ def call_country(directory, config, observed, phase, public, private=None, publi
             record["normalized_response"] = value
             record["normalizations"] = removed
             write_json(path, record)
+        if phase == "reply" and show_config and show_config.get("strict_public_context"):
+            from communication_annotations import project_reply_routes
+            value, rejected = project_reply_routes(value, tag, private["received"])
+            if rejected:
+                record["normalized_response"] = value
+                record["delivery_projection"] = {"method": "current_sender_delivery.v1", "rejected": rejected}
+                write_json(path, record)
         try:
             if phase == "reply":
                 check_replies(value, tag, private["received"], tags, observed["turn_id"])
@@ -516,10 +574,36 @@ def call_country(directory, config, observed, phase, public, private=None, publi
             quote_error = str(error) == "Commitment must quote an exact passage of this message"
             count_error = (str(error) == "A message permits at most three commitments"
                            and isinstance(value.get("commitments"), list) and len(value["commitments"]) > 3)
-            if not (quote_error or count_error):
+            deadline_error = (str(error) == "Commitment deadline must be within the next twelve turns"
+                              and show_config and show_config.get("strict_public_context"))
+            recipient_error = str(error) == "Private commitments must address the actual recipient"
+            undeliverable = (show_config and show_config.get("strict_public_context")
+                             and str(error) in ("Invalid diplomacy identity or schema", "Diplomacy message is too long or not text"))
+            if undeliverable:
+                # A decision-shaped or oversized payload cannot be delivered as speech; keep the raw
+                # payload in the record and send the contract's explicit no-op message instead.
+                record["speech_projection"] = {"method": "noop_message.v1", "raw": record["response"], "reason": str(error)}
+                projected = ({"country": tag, "to": None, "message": ""} if phase == "private"
+                             else {"country": tag, "replies": []} if phase == "reply"
+                             else {"country": tag, "message": ""})
+                record["normalized_response"] = projected
+                write_json(path, record)
+                return projected
+            if not (quote_error or count_error or deadline_error or recipient_error):
                 raise
             repair_label = label + "_" + tag + "_annotation_repair1"
             repair_path = directory / "model_calls" / (repair_label + ".json")
+            if show_config and show_config.get("strict_public_context") and not repair_path.exists():
+                from communication_annotations import project_commitment_quotes
+                projected, changes = project_commitment_quotes(value, turn_id=observed["turn_id"])
+                if phase == "reply":
+                    check_replies(projected, tag, private["received"], tags, observed["turn_id"])
+                else:
+                    check_message(projected, tag, tags, observed["turn_id"], private=phase == "private", public_sources=sources)
+                record["normalized_response"] = projected
+                record["annotation_projection"] = {"method": "literal_commitment_projection.v1", "changes": changes}
+                write_json(path, record)
+                return projected
             if not repair_path.exists() and len(list((directory / "model_calls").glob("*_repair1.json"))) >= 2:
                 raise ValueError("This turn reached its two annotation-repair limit") from error
             correction = ("原样保留country、to、message和replies内所有正文；保留承诺数量、对象、期限和条件。仅把不精确的commitments.text对齐为本条message中已存在、含义对应的逐字原话，不增加或改变发言。"
@@ -566,7 +650,13 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     return value
 
 
-def decide(directory, config, tags, resume=False, communication_rounds=1, private_diplomacy=False, show_config=None):
+def previous_setup_digest(setup, from_fingerprints):
+    """The setup digest a frozen decision phase recorded under the pre-switch provider fingerprints."""
+    return digest({**setup, "models": from_fingerprints["player_models"], "referee_model": from_fingerprints["referee_model"]})
+
+
+def decide(directory, config, tags, resume=False, communication_rounds=1, private_diplomacy=False, show_config=None,
+           model_switch=None):
     show_config = show_settings(show_config, tags)
     result_path = directory / "decision_result.json"
     if result_path.exists() and not resume:
@@ -581,13 +671,25 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
              "models": {tag: model_settings(model) for tag, model in models.items()}, "referee_model": model_settings(judge),
              "show": {key: value for key, value in show_config.items() if key not in {"models", "referee_model"}} if show_config else None}
     setup_sha256 = digest(setup)
+    switched = False
     if resume and previous_result.get("decision_setup_sha256", setup_sha256) != setup_sha256:
-        raise ValueError("Cannot change rules, profiles or models while resuming frozen decisions")
+        rebuilt = previous_setup_digest(setup, model_switch["from"]) if model_switch else None
+        if model_switch is None or previous_result.get("decision_setup_sha256") != rebuilt:
+            raise ValueError("Cannot change rules, profiles or models while resuming frozen decisions "
+                             f"(stored={previous_result.get('decision_setup_sha256')}, rebuilt={rebuilt}, "
+                             f"current={setup_sha256}, switch_present={model_switch is not None})")
+        switched = True
+        write_json(directory / "model_switch.json", model_switch)
     result = {"status": "communicating", "model": config["model"], "countries": tags,
               "settings": {key: config[key] for key in ("base_url", "enable_thinking", "temperature", "max_tokens", "timeout_seconds")},
               "communication_rounds": communication_rounds, "private_diplomacy": private_diplomacy,
               "step_days": (show_config["step_hours"] if show_config else 360) / 24,
               "decision_setup_sha256": setup_sha256}
+    if switched:
+        result["model_switch"] = {"from_setup_sha256": previous_result["decision_setup_sha256"],
+                                  "from": model_switch["from"], "to": model_switch["to"],
+                                  "applied_at": model_switch.get("applied_at"), "reason": model_switch.get("reason"),
+                                  "previous_error": previous_result.get("error")}
     if show_config:
         result["show"] = {key: show_config[key] for key in ("intents", "private_replies", "action_limit", "step_hours")}
         for key in ("strict_public_context", "performance", "game_time_commitments"):
@@ -658,7 +760,7 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
                 private_messages.extend({"country": tag, **reply, "kind": "reply"}
                                         for tag in tags for reply in replies[tag]["replies"])
             for tag in tags:
-                write_json(directory / "private_diplomacy" / (tag + ".json"), private_context(tag, private_messages))
+                write_json(directory / "private_diplomacy" / (tag + ".json"), decision_private_context(directory, tag, private_messages))
         if show_config:
             write_json(directory / "private_messages.json", private_messages)
             write_json(directory / "commitments.json", ledger(ordered_public, private_messages, observed[tags[0]]["turn_id"]))
@@ -667,7 +769,7 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
         decisions = {}
         with ThreadPoolExecutor(max_workers=len(tags)) as pool:
             futures = {pool.submit(call_country, directory, models[tag], observed[tag], "decision", ordered_public,
-                                   private_context(tag, private_messages) if private_diplomacy else None,
+                                   decision_private_context(directory, tag, private_messages) if private_diplomacy else None,
                                    1, tags, show_config, intents.get(tag)): tag for tag in tags}
             for future in as_completed(futures):
                 tag = futures[future]
@@ -689,6 +791,20 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
         reviews = referee.get("reviews", [])
         if len(reviews) != len(tags) or {row.get("country") for row in reviews} != set(tags):
             raise ValueError("Referee country list does not match")
+        sha_fixes = []
+        for review in reviews:
+            tag = review["country"]
+            if review.get("request_sha256") != hashes[tag]:
+                if review.get("approved") is not True:
+                    raise ValueError("Referee did not approve the unchanged request for " + tag)
+                # request_sha256 is a verbatim echo of an input the prompt supplied; restore the
+                # supplied value with a receipt instead of paying for a transcription retry.
+                sha_fixes.append({"country": tag, "recorded": review.get("request_sha256"), "corrected": hashes[tag]})
+                review["request_sha256"] = hashes[tag]
+        if sha_fixes:
+            record["normalized_response"] = referee
+            record["sha_projection"] = {"method": "referee_sha_echo.v1", "corrections": sha_fixes}
+            write_json(directory / "model_calls" / "referee.json", record)
         for review in reviews:
             tag = review["country"]
             if review.get("request_sha256") != hashes[tag] or review.get("approved") is not True:

@@ -67,10 +67,34 @@ def request_body(config, messages):
     return body
 
 
-def complete(config, messages):
+def complete(config, messages, attempts=3):
+    """One chat completion; provider-variance failures (transport, truncated, malformed JSON, 429/5xx)
+    are resampled up to three times because a fresh sample is independent and nothing is applied until
+    downstream validation passes. Permanent rejections such as HTTP 4xx auth/balance errors are never retried."""
     key = os.environ.get(config["api_key_env"])
     if not key:
         raise ValueError("Model API key environment variable is missing")
+    last_error = None
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            return _complete_once(config, messages, key)
+        except (RuntimeError, json.JSONDecodeError) as error:
+            last_error = error
+            text = str(error)
+            if isinstance(error, json.JSONDecodeError):
+                retryable = True
+            elif text.startswith("Model HTTP "):
+                code = text[len("Model HTTP "):].split(":", 1)[0].strip()
+                retryable = code == "429" or code.startswith("5")
+            else:
+                retryable = True
+            if attempt >= max(1, attempts) or not retryable:
+                raise
+            time.sleep(2 * attempt)
+    raise last_error
+
+
+def _complete_once(config, messages, key):
     body = request_body(config, messages)
     request = urllib.request.Request(config["base_url"].rstrip("/") + "/chat/completions",
                                      data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
@@ -94,9 +118,13 @@ def complete(config, messages):
     message = choice.get("message")
     content = message.get("content") if isinstance(message, dict) else None
     if choice.get("finish_reason") != "stop" or not isinstance(content, str):
-        raise RuntimeError("Model did not finish a complete text response")
+        raise RuntimeError(f"Model did not finish a complete text response (finish_reason={choice.get('finish_reason')!r}, "
+                           f"content_type={type(content).__name__}, reasoning_content_present={isinstance(message, dict) and bool(message.get('reasoning_content'))})")
     # JSON is parsed before any game executor sees the result.
-    result = json.loads(content)
+    try:
+        result = json.loads(content)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("Model returned malformed JSON: " + str(error)) from None
     return result, {"requested_model": config["model"], "returned_model": value.get("model"),
                     "response_id": value.get("id"), "trace_id": trace_id,
                     "usage": value.get("usage"), "elapsed_seconds": elapsed_seconds,

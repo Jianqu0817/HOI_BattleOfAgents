@@ -11,6 +11,14 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def ai_receipt_state(lines, country):
+    receipts = [line for line in lines if re.match(r"\s*(Enabled|Disabled)\s+A[Il1]\s+for", line, re.I)]
+    if not receipts:
+        return None
+    match = re.fullmatch(r"\s*(Enabled|Disabled)\s+A[Il1]\s+for\s*:\s*" + re.escape(country) + r"\s*", receipts[-1], re.I)
+    return match[1].lower() if match else None
+
+
 def countries_from(config):
     tags = config["countries"]
     if not isinstance(tags, list) or not 3 <= len(tags) <= 5:
@@ -64,6 +72,7 @@ class Probe:
         from hoi4_live import config, tools
         from hoi4_live.session import Session
         self.session = Session(config.get())
+        self.session._iron_control_tags = tuple(tags)
         self.session.image_mode = "none"
         self.directory = directory
         self.tags = tags
@@ -143,7 +152,7 @@ class Probe:
             self.record()
             result = self.command([f"ai {tag}"])
             response = " ".join(result["results"][0].get("response", []))
-            if not re.search(r"Disabled\s+AI\s+for\s*:\s*" + tag, response, re.I):
+            if ai_receipt_state(result["results"][0].get("response", []), tag) != "disabled":
                 raise RuntimeError(f"AI toggle outcome uncertain for {tag}: {response}")
             self.report["disabled_ai"].append(tag)
             self.report.pop("pending_ai_toggle", None)

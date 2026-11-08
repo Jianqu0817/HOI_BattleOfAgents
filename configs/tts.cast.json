@@ -1,0 +1,98 @@
+{
+  "backend": "gpt_sovits",
+  "base_url": "http://127.0.0.1:9880",
+  "api_version": "api_v2",
+  "backend_revision": "04a44eb977586645f33594b72af13a035a2056c6",
+  "timeout_seconds": 300,
+  "request_parameters": {
+    "text_split_method": "cut5",
+    "seed": 0,
+    "speed_factor": 1.0
+  },
+  "voices": {
+    "qwen": {
+      "voice_name": "妃咲",
+      "gpt_weights": "assets/voices/qwen/models/FeiXiao-e15.ckpt",
+      "sovits_weights": "assets/voices/qwen/models/FeiXiao_e24_s408.pth",
+      "ref_audio_path": "assets/voices/qwen/references/CH0139_Lobby_5_1.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/qwen/references/CH0139_Lobby_2_1.wav",
+        "assets/voices/qwen/references/CH0139_Lobby_4_1.wav",
+        "assets/voices/qwen/references/CH0139_Lobby_4_2.wav"
+      ],
+      "prompt_text": "香をたいてみたのじゃ。不思議な香りがするじゃろう？",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    },
+    "glm": {
+      "voice_name": "和纱",
+      "gpt_weights": "assets/voices/glm/models/HeSha-e15.ckpt",
+      "sovits_weights": "assets/voices/glm/models/HeSha_e24_s384.pth",
+      "ref_audio_path": "assets/voices/glm/references/CH0250_Season_NewYear.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/glm/references/CH0250_EventLobby_1.wav",
+        "assets/voices/glm/references/CH0250_EventLogin_1.wav",
+        "assets/voices/glm/references/Kazusa_Lobby_3.wav",
+        "assets/voices/glm/references/Kazusa_LogIn_1.wav"
+      ],
+      "prompt_text": "あけましておめでとうございます。先生。今年も宜しくお願いします。",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    },
+    "gemini": {
+      "voice_name": "泉奈",
+      "gpt_weights": "assets/voices/gemini/models/QuanNai-e15.ckpt",
+      "sovits_weights": "assets/voices/gemini/models/QuanNai_e24_s432.pth",
+      "ref_audio_path": "assets/voices/gemini/references/CH0179_Lobby_5.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/gemini/references/CH0179_MemorialLobby_4_2.wav",
+        "assets/voices/gemini/references/CH0179_Relationship_Up_1.wav"
+      ],
+      "prompt_text": "今度は、部長とツクヨ殿そして、主殿とみんなで海に遊びに行きたいです！",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    },
+    "gpt": {
+      "voice_name": "莉音",
+      "gpt_weights": "assets/voices/gpt/models/LiYin-e15.ckpt",
+      "sovits_weights": "assets/voices/gpt/models/LiYin_e18_s324.pth",
+      "ref_audio_path": "assets/voices/gpt/references/ch0158_growup_2.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/gpt/references/ch0158_lobby_2_2.wav",
+        "assets/voices/gpt/references/ch0158_lobby_2_3.wav",
+        "assets/voices/gpt/references/ch0158_lobby_3_2.wav"
+      ],
+      "prompt_text": "成長の余地がある者にリソースを割く……合理的な選択ね、先生。",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    },
+    "claude": {
+      "voice_name": "佳代子",
+      "gpt_weights": "assets/voices/claude/models/Kayoko-e15.ckpt",
+      "sovits_weights": "assets/voices/claude/models/Kayoko_e16_s400.pth",
+      "ref_audio_path": "assets/voices/claude/references/CH0086_EventLobby_3.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/claude/references/CH0086_EventLobby_2_1.wav",
+        "assets/voices/claude/references/CH0086_Lobby_4.wav",
+        "assets/voices/claude/references/CH0239_EventLogin_2.wav"
+      ],
+      "prompt_text": "ハルカ、最近疲れてるように見えるけど。大丈夫かな……。",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    },
+    "deepseek": {
+      "voice_name": "宫子",
+      "gpt_weights": "assets/voices/deepseek/models/Miyako-e15.ckpt",
+      "sovits_weights": "assets/voices/deepseek/models/Miyako_e16_s272.pth",
+      "ref_audio_path": "assets/voices/deepseek/references/CH0215_Lobby_4_1.wav",
+      "aux_ref_audio_paths": [
+        "assets/voices/deepseek/references/CH0215_EventMission_Login_1.wav",
+        "assets/voices/deepseek/references/CH0215_Lobby_3.wav",
+        "assets/voices/deepseek/references/CH0215_Lobby_5.wav"
+      ],
+      "prompt_text": "ウサギは水が苦手だからなのでしょうか…ウサギ柄の水着を見たことがありません…",
+      "prompt_lang": "ja",
+      "text_lang": "zh"
+    }
+  }
+}

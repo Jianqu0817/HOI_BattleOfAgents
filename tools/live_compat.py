@@ -3,6 +3,56 @@ import datetime
 import re
 
 
+def ai_receipt_from_reads(lines, known_tags):
+    candidates = {(match[1].lower(), match[2].upper()) for text in lines
+                  if (match := re.fullmatch(r"\s*(Enabled|Disabled)\s+A[Il1]\s+for\s*:\s*([A-Z0-9]{3})\s*", text, re.I))
+                  and match[2].upper() in known_tags}
+    if len(candidates) != 1:
+        return None
+    state, tag = next(iter(candidates))
+    return state.capitalize() + " AI for: " + tag
+
+
+def reread_ai_receipt(ocr, image, line, origin, known_tags):
+    """Resolve only this physical log row, against every configured country equally."""
+    resolved = ai_receipt_from_reads([line.text], known_tags)
+    if resolved is not None:
+        return resolved
+    origin_x, origin_y = origin
+    x, y, w, h = line.box
+    reads = [line.text]
+    for margin, region_h in ((8, 24), (8, 25), (9, 26), (10, 28)):
+        region = [max(0, origin_x + x - 5), max(0, origin_y + y - margin), max(165, w + 16), max(region_h, h + 12)]
+        # The 720p SWI glyphs merge at integer scales. 3.5x preserves all three
+        # letters in both recorded console fixtures, without substituting a tag.
+        for scale in (3, 3.5, 4, 5):
+            detail = ocr.recognize(image, region=region, scale=scale, language="en-US")
+            reads.extend(row.text for row in detail.lines)
+    return ai_receipt_from_reads(reads, known_tags)
+
+
+def close_profile_panel(session, panel, fallback, pause_menu_open):
+    """Esc closes the topmost diplomacy modal before the underlying side panel."""
+    if panel != "diplomacy":
+        return fallback(session)
+    import time
+    session.input.key("esc")
+    time.sleep(.8)
+    if pause_menu_open(session)[0]:
+        session.input.key("esc")
+        time.sleep(.6)
+    return panel
+
+
+def read_profile_title(session, fallback, img=None, attempts=2):
+    image = session.grab() if img is None else img
+    rows = session.ocr.recognize(image, region=[360, 120, 560, 45], scale=2).lines
+    for row in rows:
+        if re.sub(r"\s+", "", row.text) == "联队详情":
+            return "air_wing_details", row.text
+    return fallback(session, img=image, attempts=attempts)
+
+
 def army_card_count(text):
     text = (text or "").translate(str.maketrans({"／": "/", "⁄": "/"}))
     matches = {(int(a), int(b)) for a, b in re.findall(r"(\d{1,3})\s*/\s*(\d{1,3})", text)
@@ -74,7 +124,7 @@ def install():
     from hoi4_live.perception import topbar
     from hoi4_live.perception import screen
     from hoi4_live.game import console
-    from hoi4_live.game import panels, researchview, focusview, mapview, armyview
+    from hoi4_live.game import panels, researchview, focusview, mapview, armyview, menu
     from hoi4_live.gamedata import loc
     from hoi4_live.platform.windows import WindowsPlatform
     from hoi4_live.platform import windows_capture, windows_input
@@ -86,11 +136,20 @@ def install():
     topbar.parse_date = lambda text, lenient=False: parse_chinese_date(text, lenient) or original_parse(text, lenient)
 
     screen.PANELS[:0] = [("focus_tree", re.compile(r"国\s*策\s*树")),
+                         ("diplomacy", re.compile(r"^\s*外\s*交\s*$")),
                          ("politics", re.compile(r"^\s*政\s*治\s*$")),
                          ("construction", re.compile(r"^\s*建\s*设\s*$")),
                          ("research", re.compile(r"科\s*研")), ("production", re.compile(r"生\s*产"))]
     panels.norm = lambda value: re.sub(r"[^a-z0-9\u4e00-\u9fff]", "", (value or "").lower().translate(panels._NORM))
     panels.NOTICE_OK_RX = re.compile(r"^\W*([o0]k|close|continue|好\s*的|确\s*定|关\s*闭)\W*$", re.I)
+    original_read_title = panels.read_title
+    def read_title(session, img=None, attempts=2):
+        return read_profile_title(session, original_read_title, img=img, attempts=attempts)
+    panels.read_title = read_title
+    original_close_panel = panels.close
+    def close_panel(session, name=None):
+        return close_profile_panel(session, panels.current(session), original_close_panel, menu.esc_menu_open)
+    panels.close = close_panel
     original_notice = panels.find_notice
     def completion_notice(session, img=None):
         notice = original_notice(session, img)
@@ -205,6 +264,24 @@ def install():
         session.input.click(x0 + 30, y1 + 17)
         return mode
     console.open_console = focused_console
+
+    def ascii_console_output(session, img=None):
+        from hoi4_live.desktop import images
+        image = session.grab() if img is None else img
+        crop = images.crop(image, console.console_region(image))
+        rows = session.ocr.recognize(console._bright_text(crop), scale=2.5, pad=16, language="en-US")
+        lines = [line.text for line in rows.lines]
+        origin_x, origin_y, _, _ = console.console_region(image)
+        receipt_rows = [index for index, text in enumerate(lines) if re.match(r"\s*(Enabled|Disabled)\s+A[Il1]\s+for", text, re.I)]
+        known_tags = getattr(session, "_iron_control_tags", ())
+        if receipt_rows and known_tags:
+            index = receipt_rows[-1]
+            resolved = reread_ai_receipt(session.ocr, image, rows.lines[index], (origin_x, origin_y), known_tags)
+            if resolved:
+                lines[index] = resolved
+        return lines, image
+    # Engine command receipts are English even in the Chinese game UI.
+    console.read_output = ascii_console_output
 
     original_run = console.run
     def focused_commands(session, commands, keep_open=False, read=True):
