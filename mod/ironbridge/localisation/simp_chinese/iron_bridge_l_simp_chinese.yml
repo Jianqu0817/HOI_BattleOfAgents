@@ -1,0 +1,5 @@
+﻿l_simp_chinese:
+ IRON_BRIDGE_TITLE:0 "IRON 命令桥"
+ IRON_BRIDGE_SEQUENCE:0 "序号"
+ IRON_BRIDGE_ARGUMENT:0 "参数"
+ IRON_BRIDGE_APPLY:0 "提交测试请求"

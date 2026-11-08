@@ -1,0 +1,10 @@
+{
+  "game_dir": "YOUR_STEAM_LIBRARY/steamapps/common/Hearts of Iron IV",
+  "user_dir": "YOUR_DOCUMENTS/Paradox Interactive/Hearts of Iron IV",
+  "artifacts_dir": "runs/backend/artifacts",
+  "mode": "test",
+  "window": {"pin_client_to_origin": true},
+  "iron_profile": {"render_size": [1280, 720], "virtual_keys": true},
+  "ocr": {"language": "zh-Hans-CN"},
+  "call_log": "runs/backend/calls.jsonl"
+}

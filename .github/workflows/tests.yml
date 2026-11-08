@@ -1,0 +1,36 @@
+name: Offline checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install offline dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Unit tests without game or model API
+        run: python -m unittest discover -s tools -p "test_*.py" -v
+      - name: Save parser self-test
+        run: python -I tools/parse_save.py --selftest
+      - name: Compile Python modules
+        run: python -c "from pathlib import Path; import py_compile; [py_compile.compile(str(path), doraise=True) for path in Path('tools').glob('*.py')]"

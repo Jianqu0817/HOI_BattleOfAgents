@@ -1,0 +1,79 @@
+guiTypes = {
+    containerWindowType = {
+        name = "capie_v1_ed__iron__bridge"
+        position = { x = -210 y = -90 }
+        orientation = center
+        size = { width = 420 height = 180 }
+        clipping = no
+        background = { name = "Background" quadTextureSprite = "GFX_tiled_window_2b_border" }
+        instantTextboxType = {
+            name = "iron_bridge_title"
+            position = { x = 16 y = 12 }
+            font = "hoi_18mbs"
+            text = "IRON_BRIDGE_TITLE"
+            maxWidth = 350
+            maxHeight = 24
+            fixedsize = yes
+        }
+        instantTextboxType = {
+            name = "capie_v1_ep__iron__bridge"
+            position = { x = 0 y = 0 }
+            font = "hoi_16mbs"
+            text = "[?ROOT.iron_bridge_epoch|0]"
+            maxWidth = 80
+            maxHeight = 20
+            alwaystransparent = yes
+        }
+        instantTextboxType = {
+            name = "iron_bridge_seq_label"
+            position = { x = 16 y = 56 }
+            font = "hoi_16mbs"
+            text = "IRON_BRIDGE_SEQUENCE"
+            maxWidth = 80
+            maxHeight = 24
+            fixedsize = yes
+        }
+        editBoxType = {
+            name = "capie_v1_f__iron__bridge__1"
+            position = { x = 110 y = 56 }
+            size = { x = 200 y = 22 }
+            font = "hoi_18"
+            borderSize = { x = 0 y = 0 }
+            text = ""
+            ignore_enter = yes
+        }
+        instantTextboxType = {
+            name = "iron_bridge_arg_label"
+            position = { x = 16 y = 92 }
+            font = "hoi_16mbs"
+            text = "IRON_BRIDGE_ARGUMENT"
+            maxWidth = 80
+            maxHeight = 24
+            fixedsize = yes
+        }
+        editBoxType = {
+            name = "capie_v1_f__iron__bridge__2"
+            position = { x = 110 y = 92 }
+            size = { x = 200 y = 22 }
+            font = "hoi_18"
+            borderSize = { x = 0 y = 0 }
+            text = ""
+            ignore_enter = yes
+        }
+        buttonType = {
+            name = "capie_v1_ed__iron__bridge_apply"
+            position = { x = 360 y = 130 }
+            scale = 0.67
+            quadTextureSprite = "GFX_preset_button_save"
+            clicksound = click_default
+            shortcut = "RETURN"
+            pdx_tooltip = "IRON_BRIDGE_APPLY"
+        }
+        buttonType = {
+            name = "iron_bridge_close"
+            position = { x = 396 y = 8 }
+            quadTextureSprite = "GFX_closebutton_16"
+            clicksound = click_close
+        }
+    }
+}

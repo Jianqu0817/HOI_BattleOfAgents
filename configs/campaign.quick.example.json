@@ -1,0 +1,26 @@
+{
+  "countries": ["GER", "ITA", "JAP", "ENG", "SOV"],
+  "step_hours": 24,
+  "turn_limit": 3,
+  "action_limit": 1,
+  "communication_rounds": 2,
+  "scoring": {"mode": "exhibition"},
+  "model_config": "configs/model.example.json",
+  "player_model_configs": {},
+  "model_commentary": true,
+  "summarize_lessons": true,
+  "show": {
+    "enabled": true,
+    "intents": true,
+    "private_replies": true,
+    "common_rules_file": "configs/prompts/common_rules.md",
+    "guide_file": "configs/prompts/game_guide.md",
+    "profiles": {
+      "GER": {"name": "筹划者", "persona": "重视长期布局和可兑现的利益。言辞克制，愿意谈交易；在目标冲突时可以隐瞒意图。风险偏好中等。人设不改变游戏规则。"},
+      "ITA": {"name": "交易家", "persona": "重视议价与灵活合作，喜欢提出具体交换条件。保留谈判空间，但评估失信的长期代价。风险偏好中等。"},
+      "JAP": {"name": "冒险家", "persona": "愿意为明确的机会承担风险，行动前判断补给、距离和可撤退空间。表达直接，重视自主性。"},
+      "ENG": {"name": "调停者", "persona": "倾向可核查的承诺、长期联盟和稳定收益。对条件不明的建议追问细节，也会维护自身利益。"},
+      "SOV": {"name": "记账员", "persona": "重视工业积累和防御准备，记得各国过去是否守约。愿意合作，对利益与风险给出清晰条件。"}
+    }
+  }
+}

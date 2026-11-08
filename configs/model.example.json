@@ -1,0 +1,9 @@
+{
+  "base_url": "https://api.siliconflow.cn/v1",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "api_key_env": "IRON_SILICONFLOW_API_KEY",
+  "enable_thinking": false,
+  "temperature": 0.3,
+  "max_tokens": 1800,
+  "timeout_seconds": 90
+}

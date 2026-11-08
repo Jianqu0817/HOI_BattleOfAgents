@@ -1,0 +1,15 @@
+.deps/
+.venv/
+__pycache__/
+*.pyc
+runs/
+configs/*.local.json
+.env
+.env.*
+recordings/
+exports/
+*.hoi4
+*.mp4
+*.mkv
+*.wav
+*.log

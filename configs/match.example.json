@@ -1,0 +1,11 @@
+{
+  "countries": ["GER", "ITA", "JAP", "ENG", "SOV"],
+  "min_players": 3,
+  "max_players": 5,
+  "step_hours": 24,
+  "turn_limit": 10,
+  "observation_mode": "public_debug",
+  "execution_order": "rotate",
+  "backend": "hoi4_live_tools",
+  "backend_revision": "f644f9a0c8f86c8d8d635687b93116437870e085"
+}
