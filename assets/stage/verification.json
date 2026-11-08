@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "ai_generated_layers": 5,
+  "native_canvas": [
+    3840,
+    2160
+  ],
+  "transparent_foregrounds": 2,
+  "static_examples": 4,
+  "screen_masks": 2,
+  "new_game_turns": 0,
+  "speech_generation": false
+}

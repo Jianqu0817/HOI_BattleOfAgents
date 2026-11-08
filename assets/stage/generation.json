@@ -1,0 +1,66 @@
+{
+  "schema": "iron.stage-assets.v1",
+  "created_at": "2026-11-08T23:00:57.874915+00:00",
+  "requested_model": "gpt-image-2.5-4k",
+  "endpoint": "https://kuaipao.ai/v1/images/edits",
+  "execution": "imagegen Skill CLI; first layout master then four concurrent edits",
+  "canvas": [
+    3840,
+    2160
+  ],
+  "assets": [
+    {
+      "id": "council_backdrop",
+      "path": "assets/stage/backdrops/council.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGB",
+      "sha256": "bf463be0855f89917bf8a5308886e0b8144820a68cc6e048691a77eadd35668f"
+    },
+    {
+      "id": "briefing_backdrop",
+      "path": "assets/stage/backdrops/briefing.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGB",
+      "sha256": "a0dc83167784831f3897c3ab7f8365f57691ecb5bab0a25a645d1e8dac070de7"
+    },
+    {
+      "id": "speaker_backdrop",
+      "path": "assets/stage/backdrops/speaker.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGB",
+      "sha256": "db23e94ebe5cb776758399982a55cffebc1fdbf7e1590f4d1f6f14c3d6275f54"
+    },
+    {
+      "id": "debate_foreground",
+      "path": "assets/stage/foregrounds/debate_podiums.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "sha256": "7e5f211d5fd4ae102eba25f8289e3de29749a3a04d2ec6de9e0584673fd26e9e"
+    },
+    {
+      "id": "speaker_foreground",
+      "path": "assets/stage/foregrounds/speaker_podium.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "sha256": "1b7ffced219e9462afa9df3365077d7bdb951261beb22e3c5a4bc6696c45e253"
+    }
+  ],
+  "lighting": "local procedural compositing overlays",
+  "screen_geometry": "measured blue display component; masks preserve decorative frame",
+  "source_game_frame": "previous paused-game recording acceptance, not live"
+}

@@ -1,0 +1,71 @@
+{
+  "model": "gpt-image-2.5-4k",
+  "target_canvas": [
+    3840,
+    2160
+  ],
+  "jobs": [
+    {
+      "id": "council_backdrop",
+      "out": "assets/stage/backdrops/council.png",
+      "images": [
+        "assets/stage/references/council_layout_3840x2160.png",
+        "assets/stage/references/stage_reference_3.png"
+      ],
+      "background": "opaque",
+      "prompt": "Create one clean production background for a bright anime visual-novel diplomatic stage, cohesive with the supplied ivory-and-gold theatre/council references. Light cheerful high-quality CEL-SHADED environment illustration: clear fine line art, luminous ivory plaster, restrained warm brass/gold moldings, polished honey wood and deep navy accents, simple crisp architectural shadows. No photorealism, no gloomy war bunker, no painterly grime, no heavy sepia, no sci-fi neon overload.\nLandscape 16:9, target native 4K 3840x2160 or 4096x2304. Straight-on camera, level horizon, no tilted perspective. Draw NO people, silhouettes, portraits, character cutouts, text, numbers, brand logos, subtitles, UI panels, team banners or watermarks. Do not copy the people, text or watermarks from the references.\nThis is a reusable EMPTY STAGE plate for separately composited characters and real gameplay. Keep clear actor zones and a clean lower composition. No characters or fake game information may be baked into the image.\nGrand diplomatic debate hall. Follow the first image ONLY as a layout guide; erase ALL guide outlines and writing in the final art. Use white inset wall panels, elegant gilded pilasters, graceful side arches and a gently receding warm wood stage floor. Large central wall-mounted panoramic monitor in a thin elegant gold-and-navy frame, perfectly rectangular and front-facing, intrinsic 16:9 aspect. Its inner flat screen occupies x=29%-71% and y=13.5%-55.5% of the canvas, with a plain uniform muted blue-gray surface; NO map, labels or graphics inside it. Keep the entire inner rectangle unobstructed, no mullions or ornaments crossing it.\nClear standing/podium character zones at x=3%-28% and x=72%-97%; left and right stage spaces must be calm and uncluttered, so foreground characters remain readable. Warm balanced stage lighting with slightly brighter left actor zone. NO lecterns, desks, chairs, tables, dialogue panels or foreground railing in this BACKDROP; these will be a separate transparent layer. The stage floor continues cleanly to the bottom edge.",
+      "prompt_file": "assets/stage/prompts/council_backdrop.txt",
+      "model": "gpt-image-2.5-4k",
+      "size": "auto"
+    },
+    {
+      "id": "briefing_backdrop",
+      "out": "assets/stage/backdrops/briefing.png",
+      "images": [
+        "assets/stage/references/briefing_layout_3840x2160.png",
+        "assets/stage/backdrops/council.png"
+      ],
+      "background": "opaque",
+      "prompt": "Create one clean production background for a bright anime visual-novel diplomatic stage, cohesive with the supplied ivory-and-gold theatre/council references. Light cheerful high-quality CEL-SHADED environment illustration: clear fine line art, luminous ivory plaster, restrained warm brass/gold moldings, polished honey wood and deep navy accents, simple crisp architectural shadows. No photorealism, no gloomy war bunker, no painterly grime, no heavy sepia, no sci-fi neon overload.\nLandscape 16:9, target native 4K 3840x2160 or 4096x2304. Straight-on camera, level horizon, no tilted perspective. Draw NO people, silhouettes, portraits, character cutouts, text, numbers, brand logos, subtitles, UI panels, team banners or watermarks. Do not copy the people, text or watermarks from the references.\nThis is a reusable EMPTY STAGE plate for separately composited characters and real gameplay. Keep clear actor zones and a clean lower composition. No characters or fake game information may be baked into the image.\nTactical briefing scene in the SAME ivory/gold/navy council complex, with an elegant very large flush-mounted wall display occupying the LEFT 65 percent of the stage. The display is a perfectly front-facing 16:9 rectangle with a narrow brass frame; inner flat screen extends approximately x=4%-69%, y=14%-79% with plain uniform muted blue-gray fill. Absolutely no maps, pseudo text or diagrams inside it. Reserve a completely clear standing presenter zone on the RIGHT x=72%-96%, from y=18% to the floor, with a subtle shallow arch behind it and gentle warm side light. Open warm wood floor, restrained decorative detail. No desks or furniture, no people. This layout prioritizes readable real HOI4 footage on the left and one speaking character on the right.",
+      "prompt_file": "assets/stage/prompts/briefing_backdrop.txt",
+      "model": "gpt-image-2.5-4k",
+      "size": "auto"
+    },
+    {
+      "id": "speaker_backdrop",
+      "out": "assets/stage/backdrops/speaker.png",
+      "images": [
+        "assets/stage/backdrops/council.png"
+      ],
+      "background": "opaque",
+      "prompt": "Create one clean production background for a bright anime visual-novel diplomatic stage, cohesive with the supplied ivory-and-gold theatre/council references. Light cheerful high-quality CEL-SHADED environment illustration: clear fine line art, luminous ivory plaster, restrained warm brass/gold moldings, polished honey wood and deep navy accents, simple crisp architectural shadows. No photorealism, no gloomy war bunker, no painterly grime, no heavy sepia, no sci-fi neon overload.\nLandscape 16:9, target native 4K 3840x2160 or 4096x2304. Straight-on camera, level horizon, no tilted perspective. Draw NO people, silhouettes, portraits, character cutouts, text, numbers, brand logos, subtitles, UI panels, team banners or watermarks. Do not copy the people, text or watermarks from the references.\nThis is a reusable EMPTY STAGE plate for separately composited characters and real gameplay. Keep clear actor zones and a clean lower composition. No characters or fake game information may be baked into the image.\nClose frontal speaking-podium background inside the SAME council theatre. A refined shallow ivory arch and calm inset white wall panel fill the central 65 percent behind one large upper-body speaker; delicate symmetrical brass trim, navy-blue curtain slivers at the far sides, gentle sunlit warm stage illumination and a subtle focused pool of light around the speaker zone. Clear quiet space behind the head centered at x=50%, y=30%. No screen or complex decoration directly behind the face. Subtle architecture layers in the far background, no foreground furniture; a separate lectern will cover the lower 20 percent. Warm elegant and lively rather than an empty flat wall.",
+      "prompt_file": "assets/stage/prompts/speaker_backdrop.txt",
+      "model": "gpt-image-2.5-4k",
+      "size": "auto"
+    },
+    {
+      "id": "debate_foreground",
+      "out": "assets/stage/foregrounds/debate_podiums.png",
+      "images": [
+        "assets/stage/backdrops/council.png"
+      ],
+      "background": "transparent",
+      "prompt": "Create a separate FOREGROUND OVERLAY, landscape 16:9 target 4K, for the SAME bright ivory, warm honey-wood, brass-gold and navy anime diplomatic debate stage shown in the references. ONLY TWO matching physical wooden curved podium fronts, one at the lower LEFT and one at the lower RIGHT. Podium centers x=16% and x=84%, widths about 27% each; their top rims at y=72%, fronts continue to the bottom edge. The central gap x=31%-69% must remain fully TRANSPARENT, as must ALL space above the podiums. Elegant polished honey wood top lip, restrained gold edging, ivory/navy inset front panels without letters or emblems, light clean cel shading. Strict front camera matching the reference stage, furniture upper rims give a natural shallow physical depth. No people, no walls, no floor, no stage scenery, no screen, no text or watermark, no fake checkerboard. Genuine transparent RGBA PNG, keep the background completely empty.",
+      "prompt_file": "assets/stage/prompts/debate_foreground.txt",
+      "model": "gpt-image-2.5-4k",
+      "size": "auto"
+    },
+    {
+      "id": "speaker_foreground",
+      "out": "assets/stage/foregrounds/speaker_podium.png",
+      "images": [
+        "assets/stage/backdrops/council.png"
+      ],
+      "background": "transparent",
+      "prompt": "Create a separate FOREGROUND OVERLAY, landscape 16:9 target 4K, matching the supplied ivory/gold/honey-wood/navy anime council stage. ONLY ONE elegant broad physical curved wooden lectern at the bottom center. Width about 68% of canvas, centered x=50%, top curved rim at y=77%, its front panel continues to the bottom edge. Warm polished honey wood top lip with restrained brass trim, graceful ivory/navy inset panel, flat bright cel shading. Keep ALL area above y=76% and the side margins fully TRANSPARENT; no floor, wall, background, people, screen, lettering or watermark. Genuine transparent RGBA PNG. This furniture is meant to sit in front of a separately composited upper-body speaker, not a UI speech bubble.",
+      "prompt_file": "assets/stage/prompts/speaker_foreground.txt",
+      "model": "gpt-image-2.5-4k",
+      "size": "auto"
+    }
+  ]
+}

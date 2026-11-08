@@ -1,0 +1,67 @@
+{
+  "canvas": [
+    3840,
+    2160
+  ],
+  "screen_fit": "contain; preserve full game UI with navy side bars when needed",
+  "screen_bounds": {
+    "council": [
+      1110,
+      307,
+      1621,
+      762
+    ],
+    "briefing": [
+      278,
+      256,
+      2228,
+      1013
+    ]
+  },
+  "screen_masks": {
+    "council": "screen_masks/council.png",
+    "briefing": "screen_masks/briefing.png"
+  },
+  "actor_slots": {
+    "council": {
+      "left": {
+        "center_x": 615,
+        "height": 1858,
+        "bottom": 2117
+      },
+      "right": {
+        "center_x": 3225,
+        "height": 1858,
+        "bottom": 2117
+      }
+    },
+    "briefing": {
+      "center_x": 3264,
+      "height": 1793,
+      "bottom": 2073
+    },
+    "speaker": {
+      "center_x": 1920,
+      "height": 1900,
+      "bottom": 2150,
+      "crop_height": 960
+    }
+  },
+  "foreground_offsets": {
+    "debate_podiums": [
+      0,
+      300
+    ],
+    "speaker_podium": [
+      0,
+      500
+    ]
+  },
+  "examples": [
+    "council_left_speaking.png",
+    "council_right_speaking.png",
+    "briefing_presenter.png",
+    "speaker_close.png"
+  ],
+  "map_example_notice": "Saved paused game frame from the previous recording acceptance; not a new game turn or live feed."
+}

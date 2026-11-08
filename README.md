@@ -24,6 +24,12 @@
 
 [完整立绘说明](docs/CHARACTER_ART.md) · [图片与生成清单](assets/characters/poses/)；下载后可打开该目录的 `index.html` 查看全部姿势及表情。角色图更新不恢复剪辑或语音制作。
 
+## 4K舞台素材
+
+提供三种议事厅/战况解说/单人发言后景、两种透明讲台前景，以及发言者灯光、屏幕遮罩与静态组合示例。五张模型生成原图均为3840×2160，地图使用真实游戏截图嵌入实体屏幕；后景不烘焙角色或游戏信息。
+
+[分层说明与坐标](assets/stage/README.md) · [舞台素材目录](assets/stage/)；下载后打开该目录 `index.html` 浏览原图及示例。当前仍只制作静态素材，未恢复视频剪辑、语音生成或对局运行。
+
 ## 文档导航
 
 - [快速上手](docs/QUICKSTART.md)：原生 CLI 初始化、开始／恢复和离线审计；另有旧 UI 操作说明。
@@ -110,6 +116,6 @@ python -m unittest discover -s tools -p 'test_*.py' -v
 python -I tools/parse_save.py --selftest
 ```
 
-发布前本机319项离线测试通过，存档解析自测、89个Python模块编译以及两个事件sidecar的隔离构建/自测通过。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
+发布前本机319项离线测试通过，存档解析自测、Python模块编译以及两个事件sidecar的隔离构建/自测通过。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
 
 [场景与计分](docs/SCENARIOS.md) · [陆军校准](docs/ARMY_CONTROL.md) · [模型接口](docs/MODEL_INTERFACE.md) · [技术路线](docs/TECHNICAL_ROADMAP.md) · [第三方声明](NOTICE.md)
