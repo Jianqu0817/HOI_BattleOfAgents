@@ -1,0 +1,1177 @@
+{
+  "model": "gpt-image-2.5-2k",
+  "characters": {
+    "gemini": {
+      "name": "基米",
+      "identity": "Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.",
+      "poses": [
+        [
+          "cat_paws",
+          "Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence."
+        ],
+        [
+          "playful_greeting",
+          "One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "playful attentive small smile, eyes open"
+        ],
+        [
+          "excited",
+          "bright delighted open-mouth smile, sparkling eyes"
+        ],
+        [
+          "pout",
+          "adorable determined pout, gently lowered eyebrows, not aggressive"
+        ],
+        [
+          "surprised",
+          "clearly surprised wide eyes and small open mouth"
+        ],
+        [
+          "flustered",
+          "shy bashful smile, soft blush and slightly averted eyes"
+        ]
+      ]
+    },
+    "claude": {
+      "name": "克莱德大小姐",
+      "identity": "Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.",
+      "poses": [
+        [
+          "book_hold",
+          "Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant."
+        ],
+        [
+          "book_read",
+          "Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "calm gentle composed expression, soft closed-mouth smile"
+        ],
+        [
+          "amused",
+          "warm quietly amused smile, naturally smiling eyes"
+        ],
+        [
+          "questioning",
+          "mildly inquisitive or skeptical, one eyebrow slightly raised, no sneer"
+        ],
+        [
+          "concerned",
+          "softly concerned, lips gently parted and eyes sympathetic"
+        ],
+        [
+          "flustered",
+          "delicate embarrassed smile and light cheek blush, maintaining dignity"
+        ]
+      ]
+    },
+    "qwen": {
+      "name": "千问大小姐",
+      "identity": "Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.",
+      "poses": [
+        [
+          "fan_greeting",
+          "Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt."
+        ],
+        [
+          "fan_thought",
+          "Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "serene friendly small smile"
+        ],
+        [
+          "confident",
+          "quietly assured smile, restrained and courteous rather than smug"
+        ],
+        [
+          "curious",
+          "interested curious gaze, gently lifted eyebrows"
+        ],
+        [
+          "exasperated",
+          "mildly exasperated small pout, composed and not hostile"
+        ],
+        [
+          "delighted",
+          "genuine delighted smile with bright eyes"
+        ]
+      ]
+    },
+    "deepseek": {
+      "name": "大肥鱼",
+      "identity": "Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.",
+      "poses": [
+        [
+          "maid_greeting",
+          "One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress."
+        ],
+        [
+          "notebook",
+          "Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "friendly attentive small smile"
+        ],
+        [
+          "happy",
+          "bright earnest happy smile, cheerful eyes"
+        ],
+        [
+          "questioning",
+          "curious slightly confused expression with raised eyebrows"
+        ],
+        [
+          "sleepy",
+          "slightly sleepy half-lidded eyes and a small relaxed smile, not sad"
+        ],
+        [
+          "flustered",
+          "gentle embarrassed pout with blush, cute but not exaggerated"
+        ]
+      ]
+    },
+    "glm": {
+      "name": "大狐狸",
+      "identity": "Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.",
+      "poses": [
+        [
+          "book_thought",
+          "Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail."
+        ],
+        [
+          "book_explain",
+          "Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "relaxed calm small smile"
+        ],
+        [
+          "deadpan",
+          "dry deadpan half-lidded look, closed mouth, understated humor"
+        ],
+        [
+          "amused",
+          "subtle mischievous amused smile, not malicious or domineering"
+        ],
+        [
+          "annoyed",
+          "mild restrained annoyance with a tiny pout"
+        ],
+        [
+          "shy",
+          "slightly shy smile and light blush"
+        ]
+      ]
+    },
+    "gpt": {
+      "name": "白色龙娘酱",
+      "identity": "White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.",
+      "poses": [
+        [
+          "cloud_present",
+          "One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail."
+        ],
+        [
+          "cloud_greeting",
+          "The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt."
+        ]
+      ],
+      "expressions": [
+        [
+          "neutral",
+          "calm attentive youthful expression with soft eyes"
+        ],
+        [
+          "confident",
+          "gentle assured small smile, no arrogance"
+        ],
+        [
+          "skeptical",
+          "mildly puzzled skeptical eyes, subtle eyebrow tilt"
+        ],
+        [
+          "stern",
+          "quiet serious determined expression, composed rather than angry"
+        ],
+        [
+          "flustered",
+          "slight bashful smile with soft cheek blush"
+        ]
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "id": "gemini-cat_paws-neutral",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "cat_paws",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/gemini_1.webp",
+        "assets/characters/poses/references/gemini_2.png"
+      ],
+      "out": "assets/characters/poses/gemini/cat_paws/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.\nExpression: playful attentive small smile, eyes open.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-cat_paws-excited",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "cat_paws",
+      "emotion": "excited",
+      "images": [
+        "assets/characters/poses/gemini/cat_paws/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/cat_paws/excited.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.\nExpression: bright delighted open-mouth smile, sparkling eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-cat_paws-pout",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "cat_paws",
+      "emotion": "pout",
+      "images": [
+        "assets/characters/poses/gemini/cat_paws/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/cat_paws/pout.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.\nExpression: adorable determined pout, gently lowered eyebrows, not aggressive.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-cat_paws-surprised",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "cat_paws",
+      "emotion": "surprised",
+      "images": [
+        "assets/characters/poses/gemini/cat_paws/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/cat_paws/surprised.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.\nExpression: clearly surprised wide eyes and small open mouth.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-cat_paws-flustered",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "cat_paws",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/gemini/cat_paws/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/cat_paws/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.\nExpression: shy bashful smile, soft blush and slightly averted eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-playful_greeting-neutral",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "playful_greeting",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/gemini_1.webp",
+        "assets/characters/poses/references/gemini_2.png"
+      ],
+      "out": "assets/characters/poses/gemini/playful_greeting/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.\nExpression: playful attentive small smile, eyes open.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-playful_greeting-excited",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "playful_greeting",
+      "emotion": "excited",
+      "images": [
+        "assets/characters/poses/gemini/playful_greeting/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/playful_greeting/excited.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.\nExpression: bright delighted open-mouth smile, sparkling eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-playful_greeting-pout",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "playful_greeting",
+      "emotion": "pout",
+      "images": [
+        "assets/characters/poses/gemini/playful_greeting/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/playful_greeting/pout.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.\nExpression: adorable determined pout, gently lowered eyebrows, not aggressive.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-playful_greeting-surprised",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "playful_greeting",
+      "emotion": "surprised",
+      "images": [
+        "assets/characters/poses/gemini/playful_greeting/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/playful_greeting/surprised.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.\nExpression: clearly surprised wide eyes and small open mouth.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gemini-playful_greeting-flustered",
+      "character_id": "gemini",
+      "character_name": "基米",
+      "pose": "playful_greeting",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/gemini/playful_greeting/neutral.png",
+        "assets/characters/poses/references/gemini_1.webp"
+      ],
+      "out": "assets/characters/poses/gemini/playful_greeting/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Playful energetic purple-blue to pink long-haired cat girl; fluffy cat ears and tail, small hair buns, bright star hair ornaments, heterochromia: pink-red eye on viewer left and golden eye on viewer right. Preserve the navy/white/purple asymmetrical outfit, detached wide sleeves, star chains, short skirt and boots.\nPose: One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.\nExpression: shy bashful smile, soft blush and slightly averted eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_hold-neutral",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_hold",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/claude_1.webp",
+        "assets/characters/poses/references/claude_2.png"
+      ],
+      "out": "assets/characters/poses/claude/book_hold/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.\nExpression: calm gentle composed expression, soft closed-mouth smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_hold-amused",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_hold",
+      "emotion": "amused",
+      "images": [
+        "assets/characters/poses/claude/book_hold/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_hold/amused.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.\nExpression: warm quietly amused smile, naturally smiling eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_hold-questioning",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_hold",
+      "emotion": "questioning",
+      "images": [
+        "assets/characters/poses/claude/book_hold/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_hold/questioning.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.\nExpression: mildly inquisitive or skeptical, one eyebrow slightly raised, no sneer.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_hold-concerned",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_hold",
+      "emotion": "concerned",
+      "images": [
+        "assets/characters/poses/claude/book_hold/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_hold/concerned.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.\nExpression: softly concerned, lips gently parted and eyes sympathetic.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_hold-flustered",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_hold",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/claude/book_hold/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_hold/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.\nExpression: delicate embarrassed smile and light cheek blush, maintaining dignity.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_read-neutral",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_read",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/claude_1.webp",
+        "assets/characters/poses/references/claude_2.png"
+      ],
+      "out": "assets/characters/poses/claude/book_read/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.\nExpression: calm gentle composed expression, soft closed-mouth smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_read-amused",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_read",
+      "emotion": "amused",
+      "images": [
+        "assets/characters/poses/claude/book_read/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_read/amused.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.\nExpression: warm quietly amused smile, naturally smiling eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_read-questioning",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_read",
+      "emotion": "questioning",
+      "images": [
+        "assets/characters/poses/claude/book_read/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_read/questioning.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.\nExpression: mildly inquisitive or skeptical, one eyebrow slightly raised, no sneer.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_read-concerned",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_read",
+      "emotion": "concerned",
+      "images": [
+        "assets/characters/poses/claude/book_read/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_read/concerned.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.\nExpression: softly concerned, lips gently parted and eyes sympathetic.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "claude-book_read-flustered",
+      "character_id": "claude",
+      "character_name": "克莱德大小姐",
+      "pose": "book_read",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/claude/book_read/neutral.png",
+        "assets/characters/poses/references/claude_1.webp"
+      ],
+      "out": "assets/characters/poses/claude/book_read/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Elegant orange long-haired young lady, warm amber eyes, orange flower hair ornament with black ribbon and tassels, matching flower brooch, ivory/orange/black long ruffled dress, fitted black waist and delicate chains, cream lace-up boots. Preserve the beautiful brown hardcover book with a small orange flower motif.\nPose: Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.\nExpression: delicate embarrassed smile and light cheek blush, maintaining dignity.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_greeting-neutral",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_greeting",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_greeting/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.\nExpression: serene friendly small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_greeting-confident",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_greeting",
+      "emotion": "confident",
+      "images": [
+        "assets/characters/poses/qwen/fan_greeting/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_greeting/confident.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.\nExpression: quietly assured smile, restrained and courteous rather than smug.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_greeting-curious",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_greeting",
+      "emotion": "curious",
+      "images": [
+        "assets/characters/poses/qwen/fan_greeting/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_greeting/curious.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.\nExpression: interested curious gaze, gently lifted eyebrows.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_greeting-exasperated",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_greeting",
+      "emotion": "exasperated",
+      "images": [
+        "assets/characters/poses/qwen/fan_greeting/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_greeting/exasperated.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.\nExpression: mildly exasperated small pout, composed and not hostile.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_greeting-delighted",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_greeting",
+      "emotion": "delighted",
+      "images": [
+        "assets/characters/poses/qwen/fan_greeting/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_greeting/delighted.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.\nExpression: genuine delighted smile with bright eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_thought-neutral",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_thought",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_thought/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.\nExpression: serene friendly small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_thought-confident",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_thought",
+      "emotion": "confident",
+      "images": [
+        "assets/characters/poses/qwen/fan_thought/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_thought/confident.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.\nExpression: quietly assured smile, restrained and courteous rather than smug.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_thought-curious",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_thought",
+      "emotion": "curious",
+      "images": [
+        "assets/characters/poses/qwen/fan_thought/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_thought/curious.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.\nExpression: interested curious gaze, gently lifted eyebrows.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_thought-exasperated",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_thought",
+      "emotion": "exasperated",
+      "images": [
+        "assets/characters/poses/qwen/fan_thought/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_thought/exasperated.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.\nExpression: mildly exasperated small pout, composed and not hostile.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "qwen-fan_thought-delighted",
+      "character_id": "qwen",
+      "character_name": "千问大小姐",
+      "pose": "fan_thought",
+      "emotion": "delighted",
+      "images": [
+        "assets/characters/poses/qwen/fan_thought/neutral.png",
+        "assets/characters/poses/references/qwen_1.webp"
+      ],
+      "out": "assets/characters/poses/qwen/fan_thought/delighted.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Periwinkle-blue long-haired Chinese-inspired young lady with a thick side braid, purple eyes, small blue-and-white tilted hat, white high-collar qipao-inspired long dress and navy wide-sleeved outer robe, gold ornaments and tassels, white gloves and blue shoes. Keep the folding fan and the small blue/white embroidered handbag as signature accessories.\nPose: Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.\nExpression: genuine delighted smile with bright eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-maid_greeting-neutral",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "maid_greeting",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/deepseek_1.webp",
+        "assets/characters/poses/references/deepseek_2.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.\nExpression: friendly attentive small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-maid_greeting-happy",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "maid_greeting",
+      "emotion": "happy",
+      "images": [
+        "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/maid_greeting/happy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.\nExpression: bright earnest happy smile, cheerful eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-maid_greeting-questioning",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "maid_greeting",
+      "emotion": "questioning",
+      "images": [
+        "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/maid_greeting/questioning.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.\nExpression: curious slightly confused expression with raised eyebrows.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-maid_greeting-sleepy",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "maid_greeting",
+      "emotion": "sleepy",
+      "images": [
+        "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/maid_greeting/sleepy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.\nExpression: slightly sleepy half-lidded eyes and a small relaxed smile, not sad.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-maid_greeting-flustered",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "maid_greeting",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/maid_greeting/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.\nExpression: gentle embarrassed pout with blush, cute but not exaggerated.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-notebook-neutral",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "notebook",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/deepseek_1.webp",
+        "assets/characters/poses/references/deepseek_2.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/notebook/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.\nExpression: friendly attentive small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-notebook-happy",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "notebook",
+      "emotion": "happy",
+      "images": [
+        "assets/characters/poses/deepseek/notebook/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/notebook/happy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.\nExpression: bright earnest happy smile, cheerful eyes.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-notebook-questioning",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "notebook",
+      "emotion": "questioning",
+      "images": [
+        "assets/characters/poses/deepseek/notebook/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/notebook/questioning.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.\nExpression: curious slightly confused expression with raised eyebrows.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-notebook-sleepy",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "notebook",
+      "emotion": "sleepy",
+      "images": [
+        "assets/characters/poses/deepseek/notebook/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/notebook/sleepy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.\nExpression: slightly sleepy half-lidded eyes and a small relaxed smile, not sad.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "deepseek-notebook-flustered",
+      "character_id": "deepseek",
+      "character_name": "大肥鱼",
+      "pose": "notebook",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/deepseek/notebook/neutral.png",
+        "assets/characters/poses/references/deepseek_1.webp"
+      ],
+      "out": "assets/characters/poses/deepseek/notebook/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Youthful blue-haired whale maid, large bright blue eyes, softly rounded youthful cheeks, navy to cyan long wavy hair, whale-fin ears, large navy whale tail, white frilled maid headband, navy long maid dress and white apron with small whale emblem, blue ribbons and low shoes. Keep natural slender proportions, youthful face, not a chibi or mature heavy face.\nPose: Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.\nExpression: gentle embarrassed pout with blush, cute but not exaggerated.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_thought-neutral",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_thought",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_thought/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.\nExpression: relaxed calm small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_thought-deadpan",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_thought",
+      "emotion": "deadpan",
+      "images": [
+        "assets/characters/poses/glm/book_thought/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_thought/deadpan.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.\nExpression: dry deadpan half-lidded look, closed mouth, understated humor.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_thought-amused",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_thought",
+      "emotion": "amused",
+      "images": [
+        "assets/characters/poses/glm/book_thought/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_thought/amused.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.\nExpression: subtle mischievous amused smile, not malicious or domineering.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_thought-annoyed",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_thought",
+      "emotion": "annoyed",
+      "images": [
+        "assets/characters/poses/glm/book_thought/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_thought/annoyed.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.\nExpression: mild restrained annoyance with a tiny pout.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_thought-shy",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_thought",
+      "emotion": "shy",
+      "images": [
+        "assets/characters/poses/glm/book_thought/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_thought/shy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.\nExpression: slightly shy smile and light blush.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_explain-neutral",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_explain",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_explain/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.\nExpression: relaxed calm small smile.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_explain-deadpan",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_explain",
+      "emotion": "deadpan",
+      "images": [
+        "assets/characters/poses/glm/book_explain/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_explain/deadpan.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.\nExpression: dry deadpan half-lidded look, closed mouth, understated humor.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_explain-amused",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_explain",
+      "emotion": "amused",
+      "images": [
+        "assets/characters/poses/glm/book_explain/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_explain/amused.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.\nExpression: subtle mischievous amused smile, not malicious or domineering.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_explain-annoyed",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_explain",
+      "emotion": "annoyed",
+      "images": [
+        "assets/characters/poses/glm/book_explain/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_explain/annoyed.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.\nExpression: mild restrained annoyance with a tiny pout.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "glm-book_explain-shy",
+      "character_id": "glm",
+      "character_name": "大狐狸",
+      "pose": "book_explain",
+      "emotion": "shy",
+      "images": [
+        "assets/characters/poses/glm/book_explain/neutral.png",
+        "assets/characters/poses/references/glm_1.webp"
+      ],
+      "out": "assets/characters/poses/glm/book_explain/shy.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: Black-haired black fox girl, very long flowing hair with cool blue sheen, large black fox ears, large fluffy dark fox tail, white/black frilled elegant long dress, white sleeves, silver bells hanging by the ear, black sleep mask on her head, Z-shaped hair/bow emblems and restrained silver chains. Keep a black notebook/book with a simple Z symbol, no new invented text.\nPose: Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.\nExpression: slightly shy smile and light blush.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_present-neutral",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_present",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_present/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.\nExpression: calm attentive youthful expression with soft eyes.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_present-confident",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_present",
+      "emotion": "confident",
+      "images": [
+        "assets/characters/poses/gpt/cloud_present/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_present/confident.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.\nExpression: gentle assured small smile, no arrogance.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_present-skeptical",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_present",
+      "emotion": "skeptical",
+      "images": [
+        "assets/characters/poses/gpt/cloud_present/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_present/skeptical.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.\nExpression: mildly puzzled skeptical eyes, subtle eyebrow tilt.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_present-stern",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_present",
+      "emotion": "stern",
+      "images": [
+        "assets/characters/poses/gpt/cloud_present/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_present/stern.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.\nExpression: quiet serious determined expression, composed rather than angry.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_present-flustered",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_present",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/gpt/cloud_present/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_present/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.\nExpression: slight bashful smile with soft cheek blush.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_greeting-neutral",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_greeting",
+      "emotion": "neutral",
+      "images": [
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.\nExpression: calm attentive youthful expression with soft eyes.\nThe first input is the identity/clothing design reference. Any second input is supporting gesture/accessory guidance; do not copy its background or framing.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_greeting-confident",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_greeting",
+      "emotion": "confident",
+      "images": [
+        "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_greeting/confident.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.\nExpression: gentle assured small smile, no arrogance.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_greeting-skeptical",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_greeting",
+      "emotion": "skeptical",
+      "images": [
+        "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_greeting/skeptical.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.\nExpression: mildly puzzled skeptical eyes, subtle eyebrow tilt.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_greeting-stern",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_greeting",
+      "emotion": "stern",
+      "images": [
+        "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_greeting/stern.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.\nExpression: quiet serious determined expression, composed rather than angry.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    },
+    {
+      "id": "gpt-cloud_greeting-flustered",
+      "character_id": "gpt",
+      "character_name": "白色龙娘酱",
+      "pose": "cloud_greeting",
+      "emotion": "flustered",
+      "images": [
+        "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+        "assets/characters/poses/references/gpt_1.webp"
+      ],
+      "out": "assets/characters/poses/gpt/cloud_greeting/flustered.png",
+      "prompt": "Use case: identity-preserve anime character sprite.\nCreate ONE clean reusable FULL-BODY character illustration from head ornaments to the tips of shoes, wings and tail. Never crop hair, hands, props or feet. Center the full silhouette with 5 percent clear safety margins. Exactly one person, no duplicate views or contact sheet.\nStyle: bright, light, clean Japanese anime CEL SHADING; clear thin colored line art, flat luminous base colors, simple crisp 1-2 step shadows, delicate highlights. Match the light cheerful original reference style, not gritty painting, not watercolor, not sketch cross-hatching, not 3D. Youthful shoujo facial proportions: soft round cheeks, delicate small nose and chin, expressive eyes; natural body scale, not chibi, not a mature elongated face. Keep outfit colors and identifying accessories from the full-body reference. Respect the character's personality, no domineering or crazed grin.\nBackground: genuine fully transparent alpha, PNG cutout, no room, no scenery, no floor, no cast shadow, no colored backdrop, no painted checkerboard. No captions, labels, watermark, speech bubbles or extra text. Preserve clean fine hair edges and opaque white clothing.\n\nIdentity: White long-haired dragon girl, lavender eyes, two curved white dragon horns, long pointed ears, small white bat-like wings, large scaled white dragon tail, white and pale lavender long slit dress with decorative knots, silver chains and tassels, delicate white shoes. Preserve the small soft pale-blue cloud familiar with blue eyes as a signature prop.\nPose: The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.\nExpression: slight bashful smile with soft cheek blush.\nThe first input is the approved pose master. KEEP the exact same body pose, silhouette, hands, clothing, prop locations, framing, scale and colors. Change ONLY the facial expression: eyebrows, eyelids, pupils, mouth and subtle cheek blush. Do not redraw a different pose. The second input is the identity design reference.\n",
+      "model": "gpt-image-2.5-2k",
+      "size": "1024x1536",
+      "background": "transparent"
+    }
+  ]
+}

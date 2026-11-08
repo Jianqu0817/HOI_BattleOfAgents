@@ -5,66 +5,206 @@
       "name": "大肥鱼",
       "card_file": "configs/characters/cards/deepseek.json",
       "portraits": {
-        "neutral": "assets/characters/deepseek/neutral.png",
-        "happy": "assets/characters/deepseek/happy.png",
-        "questioning": "assets/characters/deepseek/questioning.png",
-        "confident": "assets/characters/deepseek/confident.png",
-        "flustered": "assets/characters/deepseek/flustered.png"
+        "neutral": "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+        "happy": "assets/characters/poses/deepseek/maid_greeting/happy.png",
+        "questioning": "assets/characters/poses/deepseek/maid_greeting/questioning.png",
+        "sleepy": "assets/characters/poses/deepseek/maid_greeting/sleepy.png",
+        "flustered": "assets/characters/poses/deepseek/maid_greeting/flustered.png",
+        "confident": "assets/characters/poses/deepseek/notebook/happy.png"
+      },
+      "default_pose": "maid_greeting",
+      "poses": {
+        "maid_greeting": {
+          "description": "One hand gently lifting a small edge of her skirt, the other making a relaxed open greeting gesture, slight light forward step; her whale tail is fully visible and curls beside the dress.",
+          "portraits": {
+            "neutral": "assets/characters/poses/deepseek/maid_greeting/neutral.png",
+            "happy": "assets/characters/poses/deepseek/maid_greeting/happy.png",
+            "questioning": "assets/characters/poses/deepseek/maid_greeting/questioning.png",
+            "sleepy": "assets/characters/poses/deepseek/maid_greeting/sleepy.png",
+            "flustered": "assets/characters/poses/deepseek/maid_greeting/flustered.png"
+          }
+        },
+        "notebook": {
+          "description": "Holding a small spiral checklist notepad toward the viewer and a blue pen raised near her cheek, several blue pens tucked into the apron pocket, an attentive lively lean. Preserve whale maid identity and playful practical accessories from the supporting reference.",
+          "portraits": {
+            "neutral": "assets/characters/poses/deepseek/notebook/neutral.png",
+            "happy": "assets/characters/poses/deepseek/notebook/happy.png",
+            "questioning": "assets/characters/poses/deepseek/notebook/questioning.png",
+            "sleepy": "assets/characters/poses/deepseek/notebook/sleepy.png",
+            "flustered": "assets/characters/poses/deepseek/notebook/flustered.png"
+          }
+        }
       }
     },
     "claude": {
       "name": "克莱德大小姐",
       "card_file": "configs/characters/cards/claude.json",
       "portraits": {
-        "neutral": "assets/characters/claude/neutral.png",
-        "amused": "assets/characters/claude/amused.png",
-        "stern": "assets/characters/claude/stern.png",
-        "concerned": "assets/characters/claude/concerned.png",
-        "surprised": "assets/characters/claude/surprised.png"
+        "neutral": "assets/characters/poses/claude/book_hold/neutral.png",
+        "amused": "assets/characters/poses/claude/book_hold/amused.png",
+        "questioning": "assets/characters/poses/claude/book_hold/questioning.png",
+        "concerned": "assets/characters/poses/claude/book_hold/concerned.png",
+        "flustered": "assets/characters/poses/claude/book_hold/flustered.png"
+      },
+      "default_pose": "book_hold",
+      "poses": {
+        "book_hold": {
+          "description": "Holding the closed brown flower-decorated book gracefully against her chest with both hands, a subtle gentle head tilt and relaxed shoulders, poised yet approachable rather than arrogant.",
+          "portraits": {
+            "neutral": "assets/characters/poses/claude/book_hold/neutral.png",
+            "amused": "assets/characters/poses/claude/book_hold/amused.png",
+            "questioning": "assets/characters/poses/claude/book_hold/questioning.png",
+            "concerned": "assets/characters/poses/claude/book_hold/concerned.png",
+            "flustered": "assets/characters/poses/claude/book_hold/flustered.png"
+          }
+        },
+        "book_read": {
+          "description": "Holding the same book open at waist-to-chest level with one hand supporting the spine and the other touching the page edge; looking up toward the viewer with a slight head tilt, one foot placed delicately forward.",
+          "portraits": {
+            "neutral": "assets/characters/poses/claude/book_read/neutral.png",
+            "amused": "assets/characters/poses/claude/book_read/amused.png",
+            "questioning": "assets/characters/poses/claude/book_read/questioning.png",
+            "concerned": "assets/characters/poses/claude/book_read/concerned.png",
+            "flustered": "assets/characters/poses/claude/book_read/flustered.png"
+          }
+        }
       }
     },
     "qwen": {
       "name": "千问大小姐",
       "card_file": "configs/characters/cards/qwen.json",
       "portraits": {
-        "neutral": "assets/characters/qwen/neutral.png",
-        "confident": "assets/characters/qwen/confident.png",
-        "curious": "assets/characters/qwen/curious.png",
-        "exasperated": "assets/characters/qwen/exasperated.png",
-        "delighted": "assets/characters/qwen/delighted.png"
+        "neutral": "assets/characters/poses/qwen/fan_greeting/neutral.png",
+        "confident": "assets/characters/poses/qwen/fan_greeting/confident.png",
+        "curious": "assets/characters/poses/qwen/fan_greeting/curious.png",
+        "exasperated": "assets/characters/poses/qwen/fan_greeting/exasperated.png",
+        "delighted": "assets/characters/poses/qwen/fan_greeting/delighted.png"
+      },
+      "default_pose": "fan_greeting",
+      "poses": {
+        "fan_greeting": {
+          "description": "Holding an open blue folding fan near shoulder height in one hand, carrying the small embroidered handbag in the other, a graceful light step and a friendly slight head tilt.",
+          "portraits": {
+            "neutral": "assets/characters/poses/qwen/fan_greeting/neutral.png",
+            "confident": "assets/characters/poses/qwen/fan_greeting/confident.png",
+            "curious": "assets/characters/poses/qwen/fan_greeting/curious.png",
+            "exasperated": "assets/characters/poses/qwen/fan_greeting/exasperated.png",
+            "delighted": "assets/characters/poses/qwen/fan_greeting/delighted.png"
+          }
+        },
+        "fan_thought": {
+          "description": "Holding the partly opened fan delicately near her chin as if considering a witty reply, handbag hanging from the opposite wrist while that hand rests naturally at her waist; gentle three-quarter stance.",
+          "portraits": {
+            "neutral": "assets/characters/poses/qwen/fan_thought/neutral.png",
+            "confident": "assets/characters/poses/qwen/fan_thought/confident.png",
+            "curious": "assets/characters/poses/qwen/fan_thought/curious.png",
+            "exasperated": "assets/characters/poses/qwen/fan_thought/exasperated.png",
+            "delighted": "assets/characters/poses/qwen/fan_thought/delighted.png"
+          }
+        }
       }
     },
     "glm": {
       "name": "大狐狸",
       "card_file": "configs/characters/cards/glm.json",
       "portraits": {
-        "neutral": "assets/characters/glm/neutral.png",
-        "deadpan": "assets/characters/glm/deadpan.png",
-        "amused": "assets/characters/glm/amused.png",
-        "annoyed": "assets/characters/glm/annoyed.png",
-        "shy": "assets/characters/glm/shy.png"
+        "neutral": "assets/characters/poses/glm/book_thought/neutral.png",
+        "deadpan": "assets/characters/poses/glm/book_thought/deadpan.png",
+        "amused": "assets/characters/poses/glm/book_thought/amused.png",
+        "annoyed": "assets/characters/poses/glm/book_thought/annoyed.png",
+        "shy": "assets/characters/poses/glm/book_thought/shy.png"
+      },
+      "default_pose": "book_thought",
+      "poses": {
+        "book_thought": {
+          "description": "Cradling the black Z book with one arm and lightly resting the other index finger near her chin, a subtle knowing head tilt, soft curved posture and visible fox tail.",
+          "portraits": {
+            "neutral": "assets/characters/poses/glm/book_thought/neutral.png",
+            "deadpan": "assets/characters/poses/glm/book_thought/deadpan.png",
+            "amused": "assets/characters/poses/glm/book_thought/amused.png",
+            "annoyed": "assets/characters/poses/glm/book_thought/annoyed.png",
+            "shy": "assets/characters/poses/glm/book_thought/shy.png"
+          }
+        },
+        "book_explain": {
+          "description": "Holding the black Z book open with one hand and gently presenting the other palm upward as a witty host explaining something, relaxed elegant stance and expressive fox ears.",
+          "portraits": {
+            "neutral": "assets/characters/poses/glm/book_explain/neutral.png",
+            "deadpan": "assets/characters/poses/glm/book_explain/deadpan.png",
+            "amused": "assets/characters/poses/glm/book_explain/amused.png",
+            "annoyed": "assets/characters/poses/glm/book_explain/annoyed.png",
+            "shy": "assets/characters/poses/glm/book_explain/shy.png"
+          }
+        }
       }
     },
     "gemini": {
       "name": "基米",
       "card_file": "configs/characters/cards/gemini.json",
       "portraits": {
-        "neutral": "assets/characters/gemini/neutral.png",
-        "excited": "assets/characters/gemini/excited.png",
-        "playful": "assets/characters/gemini/playful.png",
-        "surprised": "assets/characters/gemini/surprised.png",
-        "flustered": "assets/characters/gemini/flustered.png"
+        "neutral": "assets/characters/poses/gemini/cat_paws/neutral.png",
+        "excited": "assets/characters/poses/gemini/cat_paws/excited.png",
+        "pout": "assets/characters/poses/gemini/cat_paws/pout.png",
+        "surprised": "assets/characters/poses/gemini/cat_paws/surprised.png",
+        "flustered": "assets/characters/poses/gemini/cat_paws/flustered.png",
+        "playful": "assets/characters/poses/gemini/playful_greeting/excited.png"
+      },
+      "default_pose": "cat_paws",
+      "poses": {
+        "cat_paws": {
+          "description": "Both hands raised near her cheeks in playful curled cat-paw fists, elbows bent, a lively slight forward lean and one knee relaxed, tail curving playfully. Match the cat-punch gesture of the supporting screenshot; no violence.",
+          "portraits": {
+            "neutral": "assets/characters/poses/gemini/cat_paws/neutral.png",
+            "excited": "assets/characters/poses/gemini/cat_paws/excited.png",
+            "pout": "assets/characters/poses/gemini/cat_paws/pout.png",
+            "surprised": "assets/characters/poses/gemini/cat_paws/surprised.png",
+            "flustered": "assets/characters/poses/gemini/cat_paws/flustered.png"
+          }
+        },
+        "playful_greeting": {
+          "description": "One index finger lightly touching her cheek, the other hand making a lively open welcoming gesture; slight three-quarter turn with a relaxed crossed step and swishing tail, as in the full-body design reference.",
+          "portraits": {
+            "neutral": "assets/characters/poses/gemini/playful_greeting/neutral.png",
+            "excited": "assets/characters/poses/gemini/playful_greeting/excited.png",
+            "pout": "assets/characters/poses/gemini/playful_greeting/pout.png",
+            "surprised": "assets/characters/poses/gemini/playful_greeting/surprised.png",
+            "flustered": "assets/characters/poses/gemini/playful_greeting/flustered.png"
+          }
+        }
       }
     },
     "gpt": {
       "name": "白色龙娘酱",
       "card_file": "configs/characters/cards/gpt.json",
       "portraits": {
-        "neutral": "assets/characters/gpt/neutral.png",
-        "confident": "assets/characters/gpt/confident.png",
-        "skeptical": "assets/characters/gpt/skeptical.png",
-        "stern": "assets/characters/gpt/stern.png",
-        "flustered": "assets/characters/gpt/flustered.png"
+        "neutral": "assets/characters/poses/gpt/cloud_present/neutral.png",
+        "confident": "assets/characters/poses/gpt/cloud_present/confident.png",
+        "skeptical": "assets/characters/poses/gpt/cloud_present/skeptical.png",
+        "stern": "assets/characters/poses/gpt/cloud_present/stern.png",
+        "flustered": "assets/characters/poses/gpt/cloud_present/flustered.png"
+      },
+      "default_pose": "cloud_present",
+      "poses": {
+        "cloud_present": {
+          "description": "One hand held palm-up presenting the tiny pale-blue cloud familiar beside her, the other hand resting lightly near her collarbone; graceful three-quarter stance with visible wings and tail.",
+          "portraits": {
+            "neutral": "assets/characters/poses/gpt/cloud_present/neutral.png",
+            "confident": "assets/characters/poses/gpt/cloud_present/confident.png",
+            "skeptical": "assets/characters/poses/gpt/cloud_present/skeptical.png",
+            "stern": "assets/characters/poses/gpt/cloud_present/stern.png",
+            "flustered": "assets/characters/poses/gpt/cloud_present/flustered.png"
+          }
+        },
+        "cloud_greeting": {
+          "description": "The tiny cloud floating beside one shoulder; one hand makes a small open welcoming/explanatory gesture while the other lightly gathers the edge of the loose white sleeve, relaxed straight posture and soft head tilt.",
+          "portraits": {
+            "neutral": "assets/characters/poses/gpt/cloud_greeting/neutral.png",
+            "confident": "assets/characters/poses/gpt/cloud_greeting/confident.png",
+            "skeptical": "assets/characters/poses/gpt/cloud_greeting/skeptical.png",
+            "stern": "assets/characters/poses/gpt/cloud_greeting/stern.png",
+            "flustered": "assets/characters/poses/gpt/cloud_greeting/flustered.png"
+          }
+        }
       }
     }
   }

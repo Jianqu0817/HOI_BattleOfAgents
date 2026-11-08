@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "characters": 6,
+  "poses": 12,
+  "png_files": 60,
+  "unique_hashes": 60,
+  "alpha_validated": true,
+  "total_bytes": 126148453,
+  "api_generation_reused_existing_pose_masters": true
+}
