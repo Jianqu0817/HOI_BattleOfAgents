@@ -44,6 +44,21 @@ class NativeCampaignAuditTests(unittest.TestCase):
         audit_sealed(audit, self.path, self.observations, self.decisions, self.result, "turn_1", 2)
         return audit
 
+    def test_deferred_interviews_are_pending_not_missing_live_content(self):
+        self.write("performance.json", {"schema": "iron.performance.v1", "host": [], "interviews": [], "writeback": False})
+        self.write("public_diplomacy.json", [])
+        config = {"countries": ["AUS"], "audience_timing": "postmatch",
+                  "performance": {"enabled": True, "public_host": False, "interviews_per_turn": 1}}
+        audit = Audit(self.path)
+        audit_performance(audit, self.path, config, self.observations, {}, "deferred")
+        self.assertFalse(any(row["status"] == "failed" for row in audit.checks))
+        self.assertTrue(any(row["check"].endswith("audience_interviews_pending") and row["status"] == "unknown"
+                            for row in audit.checks))
+        config["audience_timing"] = "inline"
+        audit = Audit(self.path)
+        audit_performance(audit, self.path, config, self.observations, {}, "inline")
+        self.assertTrue(any(row["status"] == "failed" for row in audit.checks))
+
     def test_original_sealed_decision_accepted(self):
         audit = self.sealed_audit()
         self.assertTrue(audit.checks)

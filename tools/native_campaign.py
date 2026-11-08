@@ -146,10 +146,13 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
         config = load_config(config_path)
         if config.get("execution_backend") != "native":
             raise ValueError("native campaign requires execution_backend=native")
+        config.setdefault("audience_timing", "postmatch")
         manifest = {"schema": "iron.native-campaign.v1", "name": name, "config": config,
                     "config_sha256": config_digest(config), "started_at": now(),
                     "status": "starting", "turns": [], "usage": {}, "timings": {}}
         write_json(manifest_path, manifest)
+    if config.get("audience_timing", "inline") not in ("inline", "postmatch"):
+        raise ValueError("audience_timing must be inline or postmatch")
     limit = config["turn_limit"] if through_turn is None else through_turn
     if not 1 <= limit <= config["turn_limit"]:
         raise ValueError("requested turn count exceeds the frozen campaign")
@@ -250,7 +253,9 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                        show_config=turn_show, model_switch=turn_switch)
                 entry["model_seconds"] = round(time.monotonic() - model_start, 3)
             requests = verify_decisions(trial, observed)
-            performance = post_seal(trial, observed, config["model"], turn_show, config.get("performance", {}))
+            deferred = config.get("audience_timing", "inline") == "postmatch"
+            performance = post_seal(trial, observed, config["model"], turn_show, config.get("performance", {}),
+                                    phase="live" if deferred else "all")
             plan = to_native_plan(requests, observed, step_hours=selection["step_hours"],
                                   label=f"{name} turn {index}", save_basename=f"iron_{name}_t{index}")
             if "policy" in selection:
@@ -297,7 +302,7 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
             compatibility["public_events"] = public_board
             write_json(turn / "public_events.json", public_board)
             write_json(turn / "result.json", compatibility)
-            commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) else None
+            commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) and not deferred else None
             export_episode(trial, turn, directory / "episodes" / f"turn_{index:03d}", commentary=commentary)
             if config.get("production"):
                 from production import export_production
@@ -344,12 +349,52 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
     return manifest
 
 
+def complete_audience(name, *, through_turn=None):
+    """Generate viewer-only sidecars from frozen turns, without connecting to the game."""
+    directory = ROOT / "runs" / "campaigns" / name_ok(name)
+    manifest_path = directory / "manifest.json"
+    manifest = read(manifest_path)
+    if manifest.get("schema") != "iron.native-campaign.v1":
+        raise ValueError("audience completion requires a native campaign")
+    for entry in manifest["turns"]:
+        index = entry["index"]
+        if entry["status"] != "completed" or (through_turn is not None and index > through_turn):
+            continue
+        audience_start = time.monotonic()
+        config = manifest["config"]
+        for switch in manifest.get("model_switches", []):
+            if switch["first_affected_turn"] <= index:
+                config = apply_model_switch(config, switch["spec"])
+        trial = directory / "trials" / f"turn_{index:03d}"
+        turn = directory / "turns" / f"turn_{index:03d}"
+        observed = {tag: read(trial / "observations" / (tag + ".json")) for tag in config["countries"]}
+        verify_decisions(trial, observed)
+        show = {**config["show"], **read(trial / "show_profiles.json")}
+        post_seal(trial, observed, config["model"], show, config.get("performance", {}), phase="audience")
+        commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) else None
+        output = directory / "episodes_postmatch" / f"turn_{index:03d}"
+        export_episode(trial, turn, output, commentary=commentary)
+        if config.get("production"):
+            from production import export_production
+            export_production(output, config["production"])
+        entry["usage"] = model_usage(trial)
+        entry["audience_completed_at"] = now()
+        entry["audience_seconds"] = round(time.monotonic() - audience_start, 3)
+        entry["audience_episode"] = str(output)
+        manifest["usage"] = {key: sum(row.get("usage", {}).get(key, 0) for row in manifest["turns"])
+                             for key in ("calls", "prompt_tokens", "completion_tokens", "total_tokens", "calls_without_usage")}
+        write_json(manifest_path, manifest)
+        print(f"AUDIENCE TURN {index}: {output}", flush=True)
+    return manifest
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--name", required=True)
     parser.add_argument("--config", default="configs/campaign.native.example.json")
-    parser.add_argument("--pid", type=int, required=True)
-    parser.add_argument("--save-dir", type=Path, required=True)
+    parser.add_argument("--pid", type=int)
+    parser.add_argument("--save-dir", type=Path)
+    parser.add_argument("--postmatch", action="store_true", help="Generate audience interviews and commentary without the game")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--turns", type=int)
     parser.add_argument("--prompt-key", action="store_true")
@@ -357,8 +402,10 @@ def main():
     parser.add_argument("--switch-model", help="JSON file with provider identity fields applied to every model slot on resume")
     parser.add_argument("--switch-reason", help="Audit reason recorded with the model switch")
     args = parser.parse_args()
+    if not args.postmatch and (args.pid is None or args.save_dir is None):
+        parser.error("--pid and --save-dir are required when running the game")
     if args.prompt_key:
-        if args.resume:
+        if args.resume or args.postmatch:
             manifest = read(ROOT / "runs" / "campaigns" / name_ok(args.name) / "manifest.json")
             spec = None
             if args.switch_model:
@@ -367,12 +414,24 @@ def main():
             config = effective_resumed_config(manifest, spec)
         else:
             config = load_config(args.config)
-        for key in key_envs(config):
+        keys = set(key_envs(config))
+        if args.postmatch:
+            historical = manifest["config"]
+            keys.update(key_envs(historical))
+            for switch in manifest.get("model_switches", []):
+                historical = apply_model_switch(historical, switch["spec"])
+                keys.update(key_envs(historical))
+        for key in sorted(keys):
             if not os.environ.get(key):
                 os.environ[key] = getpass.getpass(f"{key} (hidden): ")
-    manifest = run_campaign(args.name, args.config, args.pid, args.save_dir,
-                            resume=args.resume, through_turn=args.turns, provider_check=args.provider_check,
-                            switch_model=args.switch_model, switch_reason=args.switch_reason)
+    if args.postmatch:
+        if args.switch_model or args.provider_check:
+            parser.error("--postmatch reuses recorded providers and does not perform provider checks")
+        manifest = complete_audience(args.name, through_turn=args.turns)
+    else:
+        manifest = run_campaign(args.name, args.config, args.pid, args.save_dir,
+                                resume=args.resume, through_turn=args.turns, provider_check=args.provider_check,
+                                switch_model=args.switch_model, switch_reason=args.switch_reason)
     print(json.dumps({"status": manifest["status"], "turns": len(manifest["turns"]),
                       "elapsed_seconds": manifest.get("elapsed_seconds"), "usage": manifest["usage"]}, ensure_ascii=False))
 

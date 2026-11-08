@@ -275,6 +275,10 @@ def audit_performance(audit, trial, config, observed, calls, prefix):
     count = config["performance"].get("interviews_per_turn", 1)
     offset = (observed[tags[0]]["turn_id"] - 1) % len(tags)
     interviews = performance.get("interviews", [])
+    if config.get("audience_timing") == "postmatch" and not interviews and not any(
+            name.startswith("audience_interview_") for name in calls):
+        audit.add(prefix + ":audience_interviews_pending", None)
+        return
     audit.add(prefix + ":interview_rotation", [row.get("country") for row in interviews]
               == [tags[(offset + index) % len(tags)] for index in range(count)])
     for row in interviews:
@@ -291,7 +295,7 @@ def audit_performance(audit, trial, config, observed, calls, prefix):
                            and projected_answer == {key: row[key] for key in ("country", "answer")})))
 
 
-def audit_players(audit, trial, config, observed, decisions, prefix, switch_steps=()):
+def audit_players(audit, trial, config, observed, decisions, prefix, switch_steps=(), *, audience_config=None, completed_at=None):
     tags = config["countries"]
     public = read(trial / "public_diplomacy.json")
     calls = {path.stem: read(path) for path in (trial / "model_calls").glob("*.json")}
@@ -314,6 +318,8 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
     for label, record in calls.items():
         tag, phase = record.get("country"), record["phase"]
         effective = effective_config_at(switch_steps, config, record.get("metadata", {}).get("started_at"))
+        if phase == "audience_interview" and audience_config is not None and completed_at and record.get("metadata", {}).get("started_at", "") > completed_at:
+            effective = audience_config
         expected = (effective["show"]["referee_model"] if phase == "referee" else
                     {**effective["model"], **effective["show"].get("models", {}).get(tag, {})})
         cap_phase = label.split("_")[0]
@@ -508,7 +514,7 @@ def audit_commentary_normalization(audit, call, commentary, base, prefix):
               and commentary.get("normalizations", []) == normalizations)
 
 
-def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=True):
+def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=True, audience_deferred=False):
     from episode import validate_commentary
     episode = read(output / "episode.json")
     undelivered = [row for path in sorted((trial / "model_calls").glob("reply_*.json"))
@@ -530,6 +536,9 @@ def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=
                       and all(value in ids for value in source["evidence_ids"]))
         else:
             audit.add(prefix + f":source_{index}", target is not None and target.is_file() and file_hash(target) == source.get("sha256"))
+    if audience_deferred and not (trial / "audience_commentary/commentary.json").exists():
+        audit.add(prefix + ":audience_commentary_pending", None)
+        return
     commentary = read(trial / "audience_commentary/commentary.json")
     call = read(trial / "audience_commentary/model_call.json")
     base = {**episode, "events": [row for row in episode["events"] if row["kind"] != "commentary"]}
@@ -662,21 +671,31 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
                 audit.add(prefix + ":unchanged_native_plan", plan == read(execution / "plan.json"))
                 audit_clock(audit, manifest["initial_date_raw"], selection["step_hours"], index, native, after["manifest"], entry, prefix, start_raw=start_raw)
                 audit_native_execution(audit, directory, execution, plan, native, result, journals, identity, prefix, skip_save_bytes=skip_save_bytes)
-                calls = audit_players(audit, trial, config, observed, decisions, prefix, switch_steps)
+                audience_config = config
+                for switch in manifest.get("model_switches", []):
+                    if switch["first_affected_turn"] <= index:
+                        audience_config = apply_model_switch(audience_config, switch["spec"])
+                calls = audit_players(audit, trial, config, observed, decisions, prefix, switch_steps,
+                                      audience_config=audience_config, completed_at=entry.get("completed_at"))
                 usage = model_usage(trial)
                 audit.add(prefix + ":actual_provider_usage_totals", usage == entry.get("usage") and usage["calls_without_usage"] == 0)
                 all_usage.update(usage)
                 returned_models.update(row["metadata"].get("returned_model") for row in calls.values())
                 for key in ("model_seconds", "native_seconds", "elapsed_seconds"):
                     audit.add(prefix + ":recorded_" + key, isinstance(entry.get(key), (int, float)) and entry[key] >= 0)
-                output = directory / "episodes" / f"turn_{index:03d}"
+                output = directory / ("episodes_postmatch" if entry.get("audience_completed_at") else "episodes") / f"turn_{index:03d}"
+                deferred = config.get("audience_timing") == "postmatch" and not entry.get("audience_completed_at")
                 audit_episode(audit, output, result, prefix + ":episode")
                 audit_export_sources(audit, output, trial, turn, prefix + ":episode",
-                                     strict_evidence=bool(config["show"].get("strict_public_context")))
+                                     strict_evidence=bool(config["show"].get("strict_public_context")), audience_deferred=deferred)
                 audit_production(audit, output, config, root, prefix + ":production")
-                call = read(trial / "audience_commentary/model_call.json")
-                effective = effective_config_at(switch_steps, config, call.get("metadata", {}).get("started_at"))
-                audit_model(audit, call, effective["commentary_model"], prefix + ":commentary_API")
+                commentary_call = trial / "audience_commentary/model_call.json"
+                if not deferred or commentary_call.exists():
+                    call = read(commentary_call)
+                    effective = effective_config_at(switch_steps, config, call.get("metadata", {}).get("started_at"))
+                    if entry.get("audience_completed_at") and call.get("metadata", {}).get("started_at", "") > entry.get("completed_at", ""):
+                        effective = audience_config
+                    audit_model(audit, call, effective["commentary_model"], prefix + ":commentary_API")
                 before = after
                 total_actions += sum(len(row["actions"]) for row in requests.values())
                 total_decisions += len(requests)

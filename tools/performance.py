@@ -13,7 +13,9 @@ def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def post_seal(trial, observed, model, show, config):
+def post_seal(trial, observed, model, show, config, *, phase="all"):
+    if phase not in ("all", "live", "audience"):
+        raise ValueError("unknown performance phase")
     if not config.get("enabled", False):
         return {"host": [], "interviews": []}
     tags = list(observed)
@@ -21,7 +23,12 @@ def post_seal(trial, observed, model, show, config):
     sealed = {tag: read(trial / "private_decisions" / (tag + ".json")) for tag in tags}
     hashes = {tag: hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest() for tag, value in sealed.items()}
     result = {"schema": "iron.performance.v1", "host": [], "interviews": [], "writeback": False}
-    if config.get("public_host", True):
+    previous = read(trial / "performance.json") if (trial / "performance.json").exists() else {}
+    if phase == "audience":
+        result["host"] = previous.get("host", [])
+    if phase == "live":
+        result["interviews"] = previous.get("interviews", [])
+    if config.get("public_host", True) and phase != "audience":
         messages = public_commentary_messages(observed[tags[0]], public, show=show)
         record = recorded_complete(trial, "public_host", {**model, "max_tokens": 700}, messages,
                                    "public_host", require_settings=True)
@@ -43,7 +50,7 @@ def post_seal(trial, observed, model, show, config):
     if type(count) is not int or not 0 <= count <= len(tags):
         raise ValueError("interviews_per_turn exceeds participants")
     offset = (observed[tags[0]]["turn_id"] - 1) % len(tags)
-    for index in range(count):
+    for index in range(0 if phase == "live" else count):
         tag = tags[(offset + index) % len(tags)]
         private_path = trial / "private_diplomacy" / (tag + ".json")
         intent_path = trial / "private_intents" / (tag + ".json")

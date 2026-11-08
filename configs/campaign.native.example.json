@@ -14,6 +14,7 @@
   "model_config": "configs/model.example.json",
   "player_model_configs": {},
   "model_commentary": true,
+  "audience_timing": "postmatch",
   "scoring": {
     "mode": "exhibition"
   },

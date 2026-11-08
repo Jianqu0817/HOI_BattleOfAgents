@@ -30,6 +30,18 @@ python tools/native_campaign.py --name native_show --pid YOUR_PID --save-dir "YO
 
 打开 `runs/campaigns/NAME/index.html`。每回合导出 HTML、SRT、CSV、JSONL、旁白和镜头素材；私密意图是事前摘要，不是隐藏思维链。解说只对观众可见，不进入玩家下一回合上下文。
 
+新建原生对局默认 `audience_timing: "postmatch"`：赛中保留两轮公开讨论、私聊、密封决策、裁判审核和公开主持；观众专属采访及全知导演点评延后生成，不阻塞下一回合。需要原有同步生成行为时可设为 `"inline"`。已有冻结对局未记录该字段时继续沿用原行为，不更改历史配置。
+
+赛后可在没有游戏进程的情况下补齐已完成回合：
+
+```powershell
+python tools/native_campaign.py --name native_show --postmatch --prompt-key
+# 也可只补齐前五个已完成回合
+python tools/native_campaign.py --name native_show --postmatch --turns 5 --prompt-key
+```
+
+该入口复用各回合当时的观察、人设、密封决定及已记录的模型切换，不读取之后的局势给采访对象。公开主持原文保留，采访不回写玩家观察、记忆或命令。新增模型调用仍记录实际 token 用量；失败后重跑复用已成功的调用。补齐后的观众素材另存 `episodes_postmatch/turn_NNN/`，原 `episodes/` 导出包保留。此步骤需要可用的模型接口，会产生模型调用费用；不会合成语音或启动剪辑软件。
+
 `manifest.json` 记录每轮开始/结束时间、模型和原生阶段耗时、实际 token 用量。`native_requests/` 与 `native_turns/` 保留意图、回执和效果；移动路径与实际抵达分开标记。完整原文、密封决定、原生存档均留在本机，不上传 GitHub。
 
 ```powershell

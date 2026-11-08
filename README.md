@@ -67,6 +67,8 @@ python tools/setup.py
 
 玩家只能看到本国观察和本人参与的私信。全知解说不回流玩家。“私密意图”是模型事前提交的简短摘要，不是隐藏思维链。承诺保留逐字原话、对象、条件与期限；聊天不会自动变成游戏条约、贸易或援助。
 
+新建原生对局将观众专属采访和导演点评延后到赛后；两轮公开讨论、私聊和公开主持仍在赛中运行。赛后使用 `python tools/native_campaign.py --name native_show --postmatch --prompt-key` 补齐观众内容，无需启动游戏。已有冻结对局保持原配置，详见[原生对局说明](docs/NATIVE_CAMPAIGN.md)。
+
 ## 可用功能
 
 - 原生 CLI 管理冻结配置、分阶段恢复、同步沟通、密封决定、裁判审查、动作执行与共同时间。
@@ -116,6 +118,6 @@ python -m unittest discover -s tools -p 'test_*.py' -v
 python -I tools/parse_save.py --selftest
 ```
 
-发布前本机319项离线测试通过，存档解析自测、Python模块编译以及两个事件sidecar的隔离构建/自测通过。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
+本机322项离线测试通过，存档解析自测通过；此前还完成了Python模块编译以及两个事件sidecar的隔离构建/自测。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
 
 [场景与计分](docs/SCENARIOS.md) · [陆军校准](docs/ARMY_CONTROL.md) · [模型接口](docs/MODEL_INTERFACE.md) · [技术路线](docs/TECHNICAL_ROADMAP.md) · [第三方声明](NOTICE.md)
