@@ -1,0 +1,30 @@
+{
+  "schema": "iron.stage-academy.v1",
+  "created_at": "2026-11-08T23:15:38.943732+00:00",
+  "requested_model": "gpt-image-2.5-4k",
+  "canvas": [
+    3840,
+    2160
+  ],
+  "assets": [
+    {
+      "file": "backdrops/map_focus.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGB",
+      "sha256": "8982693a4233dea0777db012783bbc3e8660f7b7681123395e37d5811e023d53"
+    },
+    {
+      "file": "foregrounds/side_lectern.png",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "sha256": "66e250556dc5164edb71db93b876e867b2c153a3c5034bee6bffb69705fc3050"
+    }
+  ],
+  "map_example": "previous saved paused game frame; static compositing only"
+}

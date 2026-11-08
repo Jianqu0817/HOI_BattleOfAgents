@@ -1,5 +1,7 @@
 # IRON 舞台分层素材
 
+**学院讲堂大屏修订版：**按用户反馈新增普通学院讲堂方案，地图显示面积约为本版战况解说场景的2.3倍，人物与简洁讲台位于右侧。见 [学院讲堂素材](academy/README.md)，下载后打开 `academy/index.html` 浏览。本目录下的原白金议事厅素材保留供对比。
+
 本组舞台采用明亮的象牙白、金色雕饰、蜂蜜色木材和藏蓝幕布，与现有角色的赛璐璐风格相配。五张绘制素材使用用户指定的4K模型标识 `gpt-image-2.5-4k`，实际原图均为 **3840×2160**。
 
 ## 文件
@@ -42,9 +44,9 @@
 从项目根目录运行：
 
 ```powershell
-.venv/Scripts/python.exe tools/stage_preview.py
+.venv/Scripts/python.exe tools/stage_preview.py --theme classic
 # 替换成自己保存的真实游戏截图
-.venv/Scripts/python.exe tools/stage_preview.py --game-frame "C:/captures/hoi4.png"
+.venv/Scripts/python.exe tools/stage_preview.py --theme classic --game-frame "C:/captures/hoi4.png"
 ```
 
 该工具只做本地静态合成，不启动游戏、不调用模型、不生成语音或视频。默认读取项目既有角色PNG及本包 `examples/hoi4_saved_frame.png`；首次在本机生成示例时，该帧从之前的录制验收包复制。传入 `--game-frame` 可替换为自己保存的截图。单独下载素材包即可浏览所有示例，重新合成则需项目角色库。

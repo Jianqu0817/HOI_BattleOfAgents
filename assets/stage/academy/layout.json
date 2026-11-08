@@ -1,0 +1,33 @@
+{
+  "canvas": [
+    3840,
+    2160
+  ],
+  "theme": "academy",
+  "screen_bounds": [
+    127,
+    121,
+    2851,
+    1548
+  ],
+  "screen_mask": "screen_masks/map_focus.png",
+  "game_frame_fit": [
+    2752,
+    1548
+  ],
+  "map_area_vs_previous_briefing": 2.335,
+  "actor_slots": {
+    "qwen": {
+      "center_x": 3393,
+      "height": 1486,
+      "bottom": 2100
+    },
+    "claude": {
+      "center_x": 3399,
+      "height": 1381,
+      "bottom": 2100
+    }
+  },
+  "screen_fit": "contain, preserve the complete screenshot",
+  "notice": "Static examples use a previously saved paused game screenshot, not a new turn or live feed."
+}

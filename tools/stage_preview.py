@@ -115,7 +115,61 @@ def render(frame_path=None):
     print(json.dumps({"examples": examples, "canvas": SIZE, "screen_bounds": layout["screen_bounds"]}, ensure_ascii=False))
 
 
+def render_academy(frame_path=None):
+    """Map-first lecture-room revision, keeping the presenter beside the screen."""
+    (STAGE / "examples").mkdir(exist_ok=True)
+    target = STAGE / "examples/hoi4_saved_frame.png"
+    source = Path(frame_path) if frame_path else target if target.exists() else ROOT / "assets/stage/examples/hoi4_saved_frame.png"
+    if source.resolve() != target.resolve():
+        shutil.copy2(source, target)
+    bounds, mask = screen_geometry("map_focus")
+    with Image.open(target) as image:
+        frame = image.convert("RGB")
+    background = Image.open(STAGE / "backdrops/map_focus.png").convert("RGBA")
+    put_screen(background, frame, bounds, mask)
+    background.convert("RGB").save(STAGE / "examples/screen_only.png")
+    right = SIZE[0] - 30
+    available = right - (bounds[0] + bounds[2] + 20)
+    slots = {}
+    for identity, filename, sprite_path, with_lectern in [
+        ("qwen", "map_presenter.png", "assets/characters/poses/qwen/fan_greeting/curious.png", False),
+        ("claude", "lectern_presenter.png", "assets/characters/poses/claude/book_hold/amused_talk.png", True),
+    ]:
+        with Image.open(ROOT / sprite_path) as sprite:
+            bbox = sprite.getchannel("A").point(lambda value: 255 if value > 200 else 0).getbbox()
+            height = min(1728, int(available * sprite.height / (bbox[2] - bbox[0])))
+            scale = height / sprite.height
+            left = round(right - bbox[2] * scale)
+            center = left + round(sprite.width * scale) // 2
+        canvas = background.copy()
+        actor(canvas, sprite_path, center=center, height=height, bottom=2100)
+        slots[identity] = {"center_x": center, "height": height, "bottom": 2100}
+        if with_lectern:
+            with Image.open(STAGE / "foregrounds/side_lectern.png") as image:
+                foreground = image.convert("RGBA")
+            box = foreground.getchannel("A").point(lambda value: 255 if value > 10 else 0).getbbox()
+            furniture = foreground.crop(box)
+            furniture.thumbnail((available, 756), Image.Resampling.LANCZOS)
+            canvas.alpha_composite(furniture, (right-furniture.width, SIZE[1]-furniture.height))
+        canvas.convert("RGB").save(STAGE / "examples" / filename)
+    fit = ImageOps.contain(frame, (bounds[2], bounds[3]), Image.Resampling.LANCZOS).size
+    previous = ImageOps.contain(frame, (2228, 1013), Image.Resampling.LANCZOS).size
+    layout = {"canvas": list(SIZE), "theme": "academy", "screen_bounds": bounds,
+              "screen_mask": "screen_masks/map_focus.png", "game_frame_fit": list(fit),
+              "map_area_vs_previous_briefing": round(fit[0]*fit[1]/(previous[0]*previous[1]), 3),
+              "actor_slots": slots, "screen_fit": "contain, preserve the complete screenshot",
+              "notice": "Static examples use a previously saved paused game screenshot, not a new turn or live feed."}
+    (STAGE / "layout.json").write_text(json.dumps(layout, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+    print(json.dumps(layout, ensure_ascii=False))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--game-frame", type=Path, help="Use a saved game screenshot instead of the bundled example")
-    render(parser.parse_args().game_frame)
+    parser.add_argument("--theme", choices=("classic", "academy"), default="academy")
+    arguments = parser.parse_args()
+    if arguments.theme == "academy":
+        STAGE = ROOT / "assets/stage/academy"
+        render_academy(arguments.game_frame)
+    else:
+        render(arguments.game_frame)
