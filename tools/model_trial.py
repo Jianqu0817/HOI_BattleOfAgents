@@ -36,6 +36,8 @@ def normalize_request(value):
 
 
 def options(observed):
+    if observed.get("execution_backend") == "native":
+        return observed["action_options"]
     # Restrict the first model trial to operations with calibrated UI targets.
     idle = [row["index"] for row in observed["research"]["visible_slots"] if row["state"] == "idle"]
     line = next((row for row in observed["military_production"] if row["display_line"] == 1), None)
@@ -49,26 +51,86 @@ def options(observed):
         "construction.queue": {"state_id": 64, "building_id": "industrial_complex", "count": 1}
                               if observed["country"] == "GER" else None}
     menu.update(observed.get("army", {}).get("action_options", {}))
+    menu.update(observed.get("diplomacy", {}).get("action_options", {}))
+    menu.update(observed.get("naval_air", {}).get("action_options", {}))
     return menu
 
 
 def brief(observed):
+    if observed.get("execution_backend") == "native":
+        return native_brief(observed)
     return {"identity": {key: observed[key] for key in IDENTITY},
             "political_power": observed["political_power"], "government": observed["government"],
             "current_focus": observed["focus"], "research": {key: value for key, value in observed["research"].items() if key != "screen_evidence"},
             "military_production": observed["military_production"], "construction": observed["construction"],
             "division_count": len(observed["divisions"]), "owned_state_count": len(observed["owned_states"]),
             "army": observed.get("army", {}),
+            "diplomacy": observed.get("diplomacy", {}),
+            "naval_air": observed.get("naval_air", {}),
             "construction_facts": {"queued_projects": len(observed["construction"]),
                                    "queue_capacity_known": False, "free_building_slots_known": False},
             "recent_private_history": observed.get("recent_history", [])[-2:],
             "unavailable": observed["unavailable"], "action_options": options(observed)}
 
 
+def native_brief(observed):
+    """Keep full audit records on disk; send only actionable native facts to models."""
+    menu = options(observed)
+    units = {row["args"].get("unit_id") for choices in menu.values() for row in choices}
+    history = []
+    for row in observed.get("recent_history", [])[-2:]:
+        history.append({"turn_id": row["turn_id"],
+                        "own_decision": row.get("private_decision"),
+                        "own_intent": row.get("private_intent"),
+                        "execution": row.get("execution", []),
+                        "public_diplomacy": row.get("public_diplomacy", [])[-5:],
+                        "own_private_diplomacy": row.get("private_diplomacy", {})})
+    return {"identity": {key: observed[key] for key in IDENTITY},
+            "date_raw": observed["date_raw"], "execution_backend": "native",
+            "division_count": len(observed["divisions"]),
+            "divisions_with_available_orders": [row for row in observed["divisions"] if row["id"] in units],
+            "wars": observed["army"]["wars"],
+            "air_wing_count": len(observed["naval_air"]["air_wings"]),
+            "task_force_count": len(observed["naval_air"]["task_forces"]),
+            "recent_private_history": history,
+            "unavailable": observed["unavailable"], "action_options": menu}
+
+
+def compact_native_context(payload):
+    """Remove duplicated annotations/provenance, retaining speech and live choices."""
+    observed = payload["own_observation"]
+    for row in observed.get("recent_private_history", []):
+        decision = row.get("own_decision")
+        if decision:
+            row["own_decision"] = {key: decision[key] for key in ("country", "actions", "reason") if key in decision}
+        for key in ("public_diplomacy",):
+            row[key] = [{field: message[field] for field in ("country", "to", "message") if field in message}
+                        for message in row.get(key, [])]
+        private = row.get("own_private_diplomacy", {})
+        for direction in ("sent", "received"):
+            private[direction] = [{key: message[key] for key in ("country", "to", "message") if key in message}
+                                  for message in private.get(direction, [])]
+        for execution in row.get("execution", []):
+            dispatch = execution.get("dispatch", {})
+            execution["dispatch"] = {key: dispatch[key] for key in ("province", "path", "current", "region", "at_war") if key in dispatch}
+    promises, seen = [], set()
+    for row in payload.get("own_commitment_memory", []):
+        promise = {key: row[key] for key in ("country", "to", "text", "due_turn", "condition", "visibility", "status") if key in row}
+        identity = json.dumps(promise, sort_keys=True, ensure_ascii=False)
+        if identity not in seen:
+            promises.append(promise); seen.add(identity)
+    if "own_commitment_memory" in payload:
+        payload["own_commitment_memory"] = promises
+    payload["history_notice"] = "历史聊天只保留发言正文，承诺元数据以本国承诺台账为准；完整原文、来源和重复记录保留在审计文件中。"
+    return payload
+
+
 def factual_notes(request, observed):
     """Flag the concrete unsupported interpretations seen in live trials."""
     reason = request.get("reason", "")
     notes = []
+    if observed.get("execution_backend") == "native":
+        return notes
     if "建造队列已满" in reason:
         notes.append(f"观察只确认有{len(observed['construction'])}项在建，未提供队列容量或完整民工总量，不能据此确认已满。")
     if "可用上限" in reason:
@@ -111,6 +173,12 @@ def country_messages(observed, phase, public, private=None, public_round=1):
 
 
 def validate_trial_request(request, observed, action_limit=1):
+    if observed.get("execution_backend") == "native":
+        from native_observation import validate_request as validate_native_request
+        actions = validate_native_request(request, observed)
+        if len(actions) > action_limit:
+            raise ValueError("Native decision exceeds the configured action limit")
+        return actions
     actions = validate_request(request, observed)
     if len(actions) > action_limit:
         raise ValueError(f"This turn permits at most {action_limit} action(s) per country")
@@ -351,10 +419,81 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     tag = observed["country"]
     messages = country_messages(observed, phase, public, private, public_round)
     messages = extend_prompt(messages, observed, phase, show_config, tags, intent, private)
+    if observed.get("execution_backend") == "native":
+        payload = json.loads(messages[1]["content"])
+        if phase == "decision":
+            limit = show_config["action_limit"] if show_config else 1
+            payload["task"] = (f"外交结束。为接下来{show_config['step_hours'] if show_config else 360}游戏小时提交密封决定。"
+                               f"最多{limit}个动作，也可actions=[]保持已有命令。"
+                               "action_options每项都是完整候选{id,type,args}，选择时逐字复制整项，包括id和所有参数。"
+                               "不要改写为旧版army.move/air.assign接口。只控制本国，不能新增目标或参数。"
+                               "输出{identity:原样复制本国identity,actions:[候选项],reason:简短中文理由}。"
+                               "对外发言和承诺不会自动执行；不能看到他国密封决定。理由不超过100字。")
+        elif phase in ("diplomacy", "private", "reply"):
+            payload["task"] += " 保持简短：每条正文建议60字以内，避免复述整个局势。"
+        if show_config and show_config.get("compact_native_context", False):
+            payload = compact_native_context(payload)
+        messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
+        if show_config and phase in show_config.get("phase_max_tokens", {}):
+            config = {**config, "max_tokens": min(config["max_tokens"], show_config["phase_max_tokens"][phase])}
     label = phase + ("_" + str(public_round) if phase == "diplomacy" and public_round > 1 else "")
     path = directory / "model_calls" / (label + "_" + tag + ".json")
     record = recorded_complete(directory, label + "_" + tag, config, messages, phase, tag, bool(show_config))
     value = record["response"]
+    if observed.get("execution_backend") == "native" and phase in ("diplomacy", "private", "reply"):
+        # Chat is a typed channel, not an execution envelope. Preserve all raw
+        # annotations for audit while routing only contract fields to players.
+        if value.get("actions"):
+            raise ValueError("A communication response cannot submit game actions")
+        allowed = {"country", "replies", "commitments"} if phase == "reply" else {"country", "message", "commitments", "commitments_note"}
+        if phase == "private":
+            allowed.add("to")
+        removed = sorted(set(value) - allowed)
+        value = {key: item for key, item in value.items() if key in allowed}
+        if "commitments_note" in value and value["commitments_note"] is None:
+            value.pop("commitments_note"); removed.append("null commitments_note")
+        if removed:
+            record["normalized_response"] = value
+            record["normalizations"] = removed
+            write_json(path, record)
+        try:
+            if phase == "reply":
+                check_replies(value, tag, private["received"], tags, observed["turn_id"])
+            else:
+                check_message(value, tag, tags, observed["turn_id"], private=phase == "private")
+        except ValueError as error:
+            quote_error = str(error) == "Commitment must quote an exact passage of this message"
+            count_error = (str(error) == "A message permits at most three commitments"
+                           and isinstance(value.get("commitments"), list) and len(value["commitments"]) > 3)
+            if not (quote_error or count_error):
+                raise
+            repair_label = label + "_" + tag + "_annotation_repair1"
+            repair_path = directory / "model_calls" / (repair_label + ".json")
+            if not repair_path.exists() and len(list((directory / "model_calls").glob("*_repair1.json"))) >= 2:
+                raise ValueError("This turn reached its two annotation-repair limit") from error
+            correction = ("原样保留country、to、message和replies内所有正文；保留承诺数量、对象、期限和条件。仅把不精确的commitments.text对齐为本条message中已存在、含义对应的逐字原话，不增加或改变发言。"
+                          if quote_error else "原样保留country、to、message和replies内所有正文。commitments最多保留原列表中的三条，每条的对象、期限、条件与逐字引文都不改；不添加承诺。其他承诺的原文仍保留在原始审计记录及message中。")
+            repair_messages = [{"role": "system", "content": "你只修复结构化承诺的逐字引用，不重新进行外交或游戏决策。只输出JSON。"},
+                               {"role": "user", "content": json.dumps({"original_response": value,
+                                "validation_error": str(error), "task": correction + "输出修正后的完整JSON。"}, ensure_ascii=False)}]
+            repaired = recorded_complete(directory, repair_label, config, repair_messages,
+                                         "communication_annotation_repair", tag, require_settings=True)["response"]
+            def speech(item):
+                return {key: item.get(key) for key in ("country", "to", "message")} | {
+                    "replies": [{key: reply.get(key) for key in ("to", "message")} for reply in item.get("replies", [])]}
+            def conditions(item):
+                groups = [item] + item.get("replies", [])
+                return [[{key: promise.get(key) for key in ("to", "due_turn", "condition")} for promise in group.get("commitments", [])] for group in groups]
+            same_conditions = conditions(repaired) == conditions(value)
+            if count_error:
+                same_conditions = (len(repaired.get("commitments", [])) == 3
+                                   and all(promise in value["commitments"] for promise in repaired.get("commitments", [])))
+            if speech(repaired) != speech(value) or not same_conditions:
+                raise ValueError("Quote repair changed speech or commitment conditions")
+            value = repaired
+            record["normalized_response"] = value
+            record["annotation_repair"] = repair_label
+            write_json(path, record)
     if phase == "intent":
         check_intent(value, tag)
     elif phase == "reply":

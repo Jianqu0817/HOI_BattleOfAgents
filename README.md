@@ -8,7 +8,7 @@
 
 原生 Windows API 与实机验收说明：[原生 API](docs/NATIVE_API.md) · [验收记录](docs/NATIVE_ACCEPTANCE.md)。
 
-军事控制现在可走[原生五国批量入口](docs/NATIVE_TURN.md)：正常移动、宣战、海空军任务和区域均已实机核验，全程使用原生命令队列。下方 `campaign.py` 是原有完整节目流程，其执行器仍使用 UI；原生军事入口单独运行。
+五国聊天、私信、密封决策、裁判与视频导出已接入[原生模型对局入口](docs/NATIVE_CAMPAIGN.md)，完成了连续五回合、共 75 个游戏日的[实局验收](docs/NATIVE_CAMPAIGN_VALIDATION.md)。底层也提供[确定性军事批量入口](docs/NATIVE_TURN.md)。`campaign.py` 保留为旧 UI 执行器。
 
 ## 启动
 
@@ -53,6 +53,15 @@ python tools/setup.py
 字幕使用建议剪辑时间，须在剪辑软件中与 OBS 等录屏对齐。观众素材含全部秘密，不能作为玩家输入。
 
 ## 运行示例
+
+原生模型对局（先按原生 API 文档加载桥接模块，游戏暂停且参赛国原版 AI 已关闭）：
+
+```powershell
+.venv/Scripts/python.exe tools/native_campaign.py --name native_show --pid YOUR_PID --save-dir "YOUR_SAVE_DIRECTORY" --prompt-key
+.venv/Scripts/python.exe tools/native_campaign.py --name native_show --pid YOUR_PID --save-dir "YOUR_SAVE_DIRECTORY" --resume --prompt-key
+```
+
+旧 UI 经营对局：
 
 ```powershell
 .venv/Scripts/python.exe tools/campaign.py doctor --config configs/campaign.quick.example.json

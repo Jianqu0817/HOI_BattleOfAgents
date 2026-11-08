@@ -52,6 +52,35 @@ def action_text(action):
         return f"生产线 {args.get('line_id')} 请求分配 {args.get('factories')} 间工厂"
     if kind == "construction.queue":
         return f"地区 {args.get('state_id')} 排队建造 {args.get('count')} 个 {args.get('building_id')}"
+    if kind == "diplomacy.declare_war":
+        target = args.get("target_country", args.get("recipient"))
+        goal = args.get("wargoal_id", args.get("goal_handle"))
+        return f"请求向{NAMES.get(target, target)}（{target}）宣战，战争目标 {goal}"
+    if kind == "division.move":
+        return f"师 {args.get('unit_id')} 请求从 {args.get('source')} 移动至 {args.get('target')}"
+    if kind == "air.mission":
+        mission = {1: "制空", 2: "密接支援", 4: "拦截"}.get(args.get("mission_bit"), f"任务位 {args.get('mission_bit')}")
+        return f"空军联队 {args.get('wing_id')} 的{mission}任务设为{'启用' if args.get('enabled') else '停用'}（预期掩码 {args.get('expected_mask')}）"
+    if kind == "air.region":
+        return f"空军联队 {args.get('wing_id')} 从空域 {args.get('expected_region')} 调往空域 {args.get('target_region')}"
+    if kind == "navy.mission":
+        mission = args.get("mission_type")
+        name = {0: "无任务", 1: "巡逻", 2: "打击舰队", 3: "袭击运输船", 4: "护航", 5: "布雷", 6: "扫雷", 7: "训练", 9: "海军入侵支援"}.get(mission, f"任务类型 {mission}")
+        return f"特遣舰队 {args.get('task_force_id')} 任务由 {args.get('expected_type')} 改为{name}"
+    if kind == "navy.regions":
+        return f"特遣舰队 {args.get('task_force_id')} 的活动海域由 {', '.join(map(str, args.get('expected_regions', [])))} 改为 {', '.join(map(str, args.get('target_regions', [])))}"
+    if kind == "air.assign":
+        mission = {"air_superiority": "夺取制空", "cas": "密接支援"}.get(args.get("mission"), args.get("mission"))
+        return f"空军联队 {args.get('wing_id')} 在空域 {args.get('region_id')} 执行{mission}"
+    if kind == "air.stop":
+        return f"取消空军联队 {args.get('wing_id')} 的当前任务"
+    if kind == "navy.assign":
+        mission = {"patrol": "巡逻", "strike_force": "打击舰队任务"}.get(args.get("mission"), args.get("mission"))
+        return f"舰队 {args.get('fleet_id')} 在海域 {args.get('region_id')} 执行{mission}"
+    if kind == "navy.move":
+        return f"舰队 {args.get('fleet_id')} 驶向海洋省份 {args.get('province_id')}"
+    if kind == "navy.stop":
+        return f"舰队 {args.get('fleet_id')} 驻留并停止移动"
     return f"{kind}：{json.dumps(args, ensure_ascii=False, sort_keys=True)}"
 
 
@@ -80,6 +109,7 @@ def collect_episode(trial, turn):
     result = read(result_path)
     tags = result["countries"]
     events, images, observations, markers = [], {}, {}, []
+    war_story = any(entry.get("action", {}).get("type") == "diplomacy.declare_war" for entry in result.get("actions", []))
 
     def call_time(label):
         path = trial / "model_calls" / (label + ".json")
@@ -101,6 +131,7 @@ def collect_episode(trial, turn):
         observation_path = trial / "observations" / (tag + ".json")
         if observation_path.exists():
             observations[tag] = read(observation_path)
+            war_story = war_story or "diplomacy" in observations[tag]
             for image in _image_paths(observations[tag].get("research", {})):
                 images[str(image)] = {"path": str(image), "country": tag, "role": "观察截图"}
         path = trial / "private_intents" / (tag + ".json")
@@ -178,18 +209,38 @@ def collect_episode(trial, turn):
 
     for index, entry in enumerate(result.get("actions", [])):
         tag = entry["country"]
-        effect = entry.get("effect_status") or ("full" if entry["status"] == "applied" else "none" if entry["status"] == "not_applied" else "unknown")
-        label = "部分响应（存档核验）" if effect == "partial" else STATUS.get(entry["status"], entry["status"])
+        proof = entry.get("verification", {})
+        dispatch = proof.get("observations", {})
+        native = result.get("execution_backend") == "native"
+        declaration = entry["action"]["type"] == "diplomacy.declare_war"
+        target = (entry["action"]["args"].get("target_country", entry["action"]["args"].get("recipient"))
+                  if declaration else None)
+        effect = entry.get("effect_status") or proof.get("effect_status") or ("full" if entry["status"] == "applied" else "none" if entry["status"] == "not_applied" else "unknown")
+        if native:
+            label = {"applied": "已执行（原生状态核验）", "not_applied": "未执行",
+                     "rejected": "已拒绝", "unknown": "结果未确认"}.get(entry["status"], entry["status"])
+            if entry["status"] == "applied" and proof.get("verified") is not True:
+                label = "已提交，原生状态未确认"
+            if effect == "ordered":
+                label = "移动命令已下达（原生状态核验；尚未确认抵达）"
+        else:
+            label = "部分响应（存档核验）" if effect == "partial" else STATUS.get(entry["status"], entry["status"])
+        new_declaration = declaration and entry["status"] == "applied" and proof.get("verified") is True and dispatch.get("new_war") is True and dispatch.get("declaration_sent") is True
+        if not native and declaration and effect == "already_present":
+            label = "已处于交战状态，本次未重复宣战（存档核验）"
+        elif not native and new_declaration:
+            label = "新宣战已生效（存档核验）"
         text = action_text(entry["action"]) + "\n" + label
         if entry.get("effect_status") == "partial":
-            dispatch = entry.get("verification", {}).get("observations", {})
             text += f"\n部分响应：{len(dispatch.get('responded_units', []))} 个单位取得目标命令，{len(dispatch.get('blocked_units', []))} 个单位正在防守而阻塞。"
-        if entry.get("ui_error"):
+        if entry.get("ui_error") and not native:
             text += "\n界面执行出现异常；应以存档核验为准，不能直接认定为玩家反悔。"
         if entry.get("verification", {}).get("checks"):
-            text += "\n核验：" + "；".join(key + (" ✓" if value else " ✗") for key, value in entry["verification"]["checks"].items())
-        event = add("execution", f"实际执行 · {NAMES.get(tag, tag)}", text,
-            _source(result_path, turn, "turn", f"/actions/{index}"), tag,
+            check_label = "原生状态核验" if native else "核验"
+            text += "\n" + check_label + "：" + "；".join(key + (" ✓" if value else " ✗") for key, value in entry["verification"]["checks"].items())
+        title = f"宣战执行 · {tag} → {target}" if declaration else f"实际执行 · {NAMES.get(tag, tag)}"
+        event = add("execution", title, text,
+            _source(result_path, turn, "turn", f"/actions/{index}"), tag, to=target,
             data={"status": entry["status"], "action": entry["action"], "verified": entry.get("verification", {}).get("verified"),
                   "effect_status": effect, "dispatch": entry.get("verification", {}).get("observations", {})},
             recorded_at=entry.get("ended_at") or entry.get("started_at"))
@@ -199,6 +250,15 @@ def collect_episode(trial, turn):
                                 "game_date": event["game_date"], "label": event["title"]})
         for image in _image_paths(entry.get("ui_result", {})):
             images[str(image)] = {"path": str(image), "country": tag, "role": "动作界面证据"}
+        if new_declaration:
+            pairs = dispatch.get("war_pairs_added", [])
+            text = f"宣战方：{NAMES.get(tag, tag)}（{tag}）\n被宣战方：{NAMES.get(target, target)}（{target}）\n执行后存档已确认新的战争状态。"
+            if pairs:
+                text += "\n新增交战关系：" + "；".join(" ↔ ".join(pair) for pair in pairs)
+            add("war", f"宣战生效 · {tag} → {target}", text,
+                _source(result_path, turn, "turn", f"/actions/{index}/verification/observations"), tag, target,
+                data={key: dispatch.get(key) for key in ("actor", "target_country", "wargoal_id", "wargoal_type", "new_war", "declaration_sent", "war_pairs_added")},
+                recorded_at=entry.get("ended_at"))
 
     for index, value in enumerate(result.get("public_notices", [])):
         if value.get("proof", {}).get("major") != "yes":
@@ -214,7 +274,39 @@ def collect_episode(trial, turn):
             images[str(image)] = {"path": str(image), "country": None, "role": role}
     final = result.get("final_save", {})
     final_path = turn / (final.get("name", "").removeprefix("hoi4live_") + ".json")
-    if final.get("name") and final_path.is_file():
+    if result.get("execution_backend") == "native":
+        for tag in tags:
+            state = result.get("native_after", {}).get(tag)
+            if not isinstance(state, dict):
+                continue
+            army = state.get("army", {})
+            divisions = state.get("divisions", [])
+            naval_air = state.get("naval_air", {})
+            wars = army.get("wars", [])
+            wings = naval_air.get("air_wings", [])
+            task_forces = naval_air.get("task_forces", [])
+            text = f"原生状态回读 · {state.get('date', '日期未记录')}"
+            text += f"\n陆军师：{army.get('division_count', len(divisions))}"
+            if divisions:
+                text += "\n师位置：" + "；".join(
+                    f"{row.get('id')} 位于 {row.get('location', '未知')}" +
+                    (f"（路径：{' → '.join(map(str, row['path']))}）" if row.get("path") else "")
+                    for row in divisions)
+            text += "\n交战关系：" + ("；".join(
+                f"{row.get('enemy', row.get('country', row))}" if isinstance(row, dict) else str(row)
+                for row in wars) or "无已记录交战关系")
+            text += f"\n空军联队：{len(wings)}；特遣舰队：{len(task_forces)}"
+            for wing in wings:
+                text += f"\n空军 {wing.get('id')}：空域 {wing.get('region', '未知')}，任务掩码 {wing.get('current', '未知')}"
+            for force in task_forces:
+                text += f"\n特遣舰队 {force.get('id')}：所属舰队 {force.get('fleet_id', '未记录')}，任务类型 {force.get('current', '未知')}，海域 {', '.join(map(str, force.get('regions', [])))}"
+            snapshot = {"date": state.get("date"), "date_raw": state.get("date_raw"),
+                        "division_count": army.get("division_count", len(divisions)), "divisions": divisions,
+                        "wars": wars, "air_wings": wings, "task_forces": task_forces}
+            add("outcome", f"原生回读状态 · {NAMES.get(tag, tag)}", text,
+                _source(result_path, turn, "turn", f"/native_after/{tag}"), tag, data=snapshot)
+            events[-1]["game_date"] = state.get("date") or result.get("before_save", {}).get("parsed_date")
+    elif final.get("name") and final_path.is_file():
         state = read(final_path)
         for tag in tags:
             own, old = state["countries"][tag], observations.get(tag, {})
@@ -226,11 +318,27 @@ def collect_episode(trial, turn):
             text += f"\n当前国策：{snapshot['focus'].get('current') or '无'}；进度：{snapshot['focus'].get('progress', '未知')}"
             text += f"\n师数量：{len(old['divisions']) if 'divisions' in old else '未记录'} → {snapshot['division_count']}"
             text += "\n在研项目：" + "、".join(key for key in snapshot["research_slots"] if key != "empty")
+            if war_story:
+                from army_actions import own_wars, own_active_battles
+                wars, battles = own_wars(own, tag), own_active_battles(state, tag)
+                snapshot.update(own_wars=wars, active_battles=battles, combat_observation_available="combat" in state)
+                text += "\n当前交战国家：" + ("、".join(f"{NAMES.get(row['enemy'], row['enemy'])}（{row['enemy']}）" for row in wars) or "无已记录交战关系")
+                text += f"\n已记录本国陆战：{len(battles)} 处" if "combat" in state else "\n陆战数据：本次存档未采集"
+            if "naval_air" in old:
+                from naval_air_actions import naval_air_observation
+                forces = naval_air_observation(state, tag)
+                snapshot["naval_air"] = {key: forces[key] for key in ("air_wings", "fleets", "air_data_available")}
+                text += f"\n本国海军：{len(forces['fleets'])} 支舰队"
+                text += f"\n本国空军：{len(forces['air_wings'])} 个联队" if forces["air_data_available"] else "\n空军数据：本次存档未采集"
             event = add("outcome", f"回合后状态 · {NAMES.get(tag, tag)}", text,
                         _source(final_path, turn, "turn", "/countries/" + tag), tag, data=snapshot)
             event["game_date"] = state["date"]
-    ending = (f"回合状态：{result['status']}\n共同推进：{result.get('elapsed_game_hours', '未完成')} 游戏小时"
-              f"\n终点：{final.get('parsed_date', result.get('after_clock', {}).get('date', '未核验'))}")
+    if result.get("execution_backend") == "native":
+        ending = (f"回合状态：{result['status']}\n共同推进：{result.get('elapsed_game_hours', '未完成')} 游戏小时"
+                  f"\n终点：{final.get('parsed_date', '未记录')}\n存档文件核验：{'已确认' if final.get('path') else '未记录'}")
+    else:
+        ending = (f"回合状态：{result['status']}\n共同推进：{result.get('elapsed_game_hours', '未完成')} 游戏小时"
+                  f"\n终点：{final.get('parsed_date', result.get('after_clock', {}).get('date', '未核验'))}")
     add("clock", "本轮结果", ending, _source(result_path, turn, "turn"),
         data={"status": result["status"], "hours": result.get("elapsed_game_hours"), "final_save_name": final.get("name")})
     for step in result.get("clock_steps", []):
