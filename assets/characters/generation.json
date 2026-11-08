@@ -1,15 +1,17 @@
 {
   "schema": "iron.character-art.v1",
+  "revision": 2,
   "count": 30,
+  "changes": "按用户反馈重做面部及头肩比例；DeepSeek更年轻清秀；全员表情克制自然，移除夸张挑衅与得意表情。",
   "records": [
     {
       "character_id": "deepseek",
       "emotion": "neutral",
       "path": "assets/characters/deepseek/neutral.png",
-      "prompt": "Use case: stylized-concept. Asset: one reusable transparent PNG expression portrait for a strategy-game video character overlay. Reference image is the character identity and drawing-style reference, not a layout template. Draw exactly ONE DeepSeek girl, front facing, centered square head-and-shoulders upper-chest portrait. Gentle attentive small smile, blue eyes open. Preserve the reference's long layered navy-to-blue hair, white frilled maid headband, curved hair tuft, whale-like side ears, blue side bows, navy maid dress and white ruffled neckline, dark ribbon with blue gemstone. Fine polished anime lineart and soft cel shading matching reference. Entire headband, hair tuft and side ears fit inside canvas with 5 percent margin, face centered at x50% y40%, shoulders cut at bottom; no hands. True transparent background, no white fill, no scenery, no lettering, no border, no extra characters, no sheet or panels. This is the neutral base portrait; recognizable adult fantasy character.",
+      "prompt": "Use case: identity-preserve. Redesign ONE reusable transparent upper-body portrait of the blue-haired whale maid DeepSeek girl in the supplied ORIGINAL three-view reference. The user's correction: previous portraits had distorted face/head proportions and looked too mature and smug. Faithfully preserve the ORIGINAL front-view face shape, restrained eye size and feature spacing, hairstyle, blue eyes, white frilled headband, curved blue hair tuft, whale-like side fins, blue bows, navy and white maid outfit and blue gem ribbon. Make her look a little younger and fresher, a youthful young adult: softer short oval face, gentle cheek contour, naturally short lower face, clear innocent attentive eyes, small friendly closed-mouth smile. No sharp mature jaw or aggressive heavy eyelids. Proportion priority: balanced head/neck/shoulders matching the original design, normal sized eyes rather than oversized irises; do not enlarge the bust or shrink shoulders. Single front-facing waist-up portrait in a square canvas, straight upright head, level eye line, include entire hair tuft/headband/side fins with ample margin. Skull crown-to-chin around 38 percent of canvas height, shoulders around twice skull width; relaxed arms can end outside crop. Clean anime illustration matching original delicate linework and soft colors. Gentle polite demeanor. True transparent alpha background. No panel sheet, text, scenery, props, crooked grin, teeth grin, tongue, smugness, chibi or deformed anatomy.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "7c45a1087f4ba43ee9d806cebd3931e8a5fc3c61d801be1eb7aade8d9f326030",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "e0fc363e1e60b9b3bbf7ba73b9830b59efb1c4df52d3f4196c858208da81511d",
       "size": [
         1254,
         1254
@@ -19,10 +21,10 @@
       "character_id": "deepseek",
       "emotion": "happy",
       "path": "assets/characters/deepseek/happy.png",
-      "prompt": "Use case: identity-preserve. Make ONE transparent reusable expression portrait of the SAME DeepSeek anime girl as the supplied base portrait. Change ONLY facial expression to: Cheerful delighted open smile, slightly crescent eyes. Preserve exact head position, face scale, framing, hairstyle, white maid headband, curved hair tuft, blue bows, whale ears, blue gemstone ribbon, outfit, linework, shading and canvas dimensions of the base. Front-facing head and upper chest centered; no hands, scenery, text, extra characters or panels. Actual transparent alpha background. The second reference is original identity for consistency.",
+      "prompt": "Use case: identity-preserve. Edit the supplied corrected DeepSeek neutral portrait to produce exactly ONE reusable expression image. Change only facial expression: A warm, modest cheerful smile, lips only slightly parted, soft naturally happy eyes. No wide laughing mouth. Keep its youthful fresh face with the SAME facial proportions, normal eyes/iris size, cheek contour, jaw, nose and mouth placement; same face location and scale. Keep exact waist-up crop, head angle upright, anatomy, shoulders, hairstyle, ornaments, clothing, lighting, linework, canvas size and transparent silhouette. This is a gentle, well-mannered character: restrained facial animation only. No sneer, provocative expression, crooked grin, tongue, large teeth grin, glaring, angry puffed cheeks or wide distorted mouth. Do not enlarge head, eyes or bust. Genuine transparent background, no text, props or panels.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "7dfc166a5c8656307135af413fd0b6c5dcce4eb73ea1af0a5fe8697d584a66ec",
+      "reference": "corrected_v2_neutral",
+      "sha256": "b9708b22a380877f20eed16a3b1e6f728b2ad064766e91d4387457d563981827",
       "size": [
         1254,
         1254
@@ -32,10 +34,10 @@
       "character_id": "deepseek",
       "emotion": "questioning",
       "path": "assets/characters/deepseek/questioning.png",
-      "prompt": "Use case: identity-preserve. Make ONE transparent reusable expression portrait of the SAME DeepSeek anime girl as the supplied base portrait. Change ONLY facial expression to: Thoughtful puzzled questioning look, one eyebrow slightly raised, small parted lips. Preserve exact head position, face scale, framing, hairstyle, white maid headband, curved hair tuft, blue bows, whale ears, blue gemstone ribbon, outfit, linework, shading and canvas dimensions of the base. Front-facing head and upper chest centered; no hands, scenery, text, extra characters or panels. Actual transparent alpha background. The second reference is original identity for consistency.",
+      "prompt": "Use case: identity-preserve. Edit the supplied corrected DeepSeek neutral portrait to produce exactly ONE reusable expression image. Change only facial expression: A gentle curious questioning expression, a very slight inner eyebrow lift, small parted lips. No confrontational raised brow. Keep its youthful fresh face with the SAME facial proportions, normal eyes/iris size, cheek contour, jaw, nose and mouth placement; same face location and scale. Keep exact waist-up crop, head angle upright, anatomy, shoulders, hairstyle, ornaments, clothing, lighting, linework, canvas size and transparent silhouette. This is a gentle, well-mannered character: restrained facial animation only. No sneer, provocative expression, crooked grin, tongue, large teeth grin, glaring, angry puffed cheeks or wide distorted mouth. Do not enlarge head, eyes or bust. Genuine transparent background, no text, props or panels.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "fab6a1ad351c0cc50d4897104c23dd1ac0451d0c0c6b64b7a60e5f4237bd7516",
+      "reference": "corrected_v2_neutral",
+      "sha256": "d37c251bcd0c6eff2e63ee23bce6b46fe5ddc2ce901804f8d6e82fe7c6333935",
       "size": [
         1254,
         1254
@@ -43,12 +45,12 @@
     },
     {
       "character_id": "deepseek",
-      "emotion": "smug",
-      "path": "assets/characters/deepseek/smug.png",
-      "prompt": "Use case: identity-preserve. Make ONE transparent reusable expression portrait of the SAME DeepSeek anime girl as the supplied base portrait. Change ONLY facial expression to: Confident playful teasing smirk, subtly half-lidded eyes. Preserve exact head position, face scale, framing, hairstyle, white maid headband, curved hair tuft, blue bows, whale ears, blue gemstone ribbon, outfit, linework, shading and canvas dimensions of the base. Front-facing head and upper chest centered; no hands, scenery, text, extra characters or panels. Actual transparent alpha background. The second reference is original identity for consistency.",
+      "emotion": "confident",
+      "path": "assets/characters/deepseek/confident.png",
+      "prompt": "Use case: identity-preserve. Edit the supplied corrected DeepSeek neutral portrait to produce exactly ONE reusable expression image. Change only facial expression: A reassuring composed small closed-mouth smile, sincere open eyes. Quiet confidence, no sly smirk or narrowed eyes. Keep its youthful fresh face with the SAME facial proportions, normal eyes/iris size, cheek contour, jaw, nose and mouth placement; same face location and scale. Keep exact waist-up crop, head angle upright, anatomy, shoulders, hairstyle, ornaments, clothing, lighting, linework, canvas size and transparent silhouette. This is a gentle, well-mannered character: restrained facial animation only. No sneer, provocative expression, crooked grin, tongue, large teeth grin, glaring, angry puffed cheeks or wide distorted mouth. Do not enlarge head, eyes or bust. Genuine transparent background, no text, props or panels.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "27aeec5fb2bb246386b00b3b211e92584df479823903def3efd4ba166301fdd2",
+      "reference": "corrected_v2_neutral",
+      "sha256": "1405e0683d4b00b3e6606d7f5b2e30ab1efd4f42f126360c9b057d6c0a3559c1",
       "size": [
         1254,
         1254
@@ -58,10 +60,10 @@
       "character_id": "deepseek",
       "emotion": "flustered",
       "path": "assets/characters/deepseek/flustered.png",
-      "prompt": "Use case: identity-preserve. Make ONE transparent reusable expression portrait of the SAME DeepSeek anime girl as the supplied base portrait. Change ONLY facial expression to: Embarrassed frustrated pout, flushed cheeks, furrowed eyebrows; no tears. Preserve exact head position, face scale, framing, hairstyle, white maid headband, curved hair tuft, blue bows, whale ears, blue gemstone ribbon, outfit, linework, shading and canvas dimensions of the base. Front-facing head and upper chest centered; no hands, scenery, text, extra characters or panels. Actual transparent alpha background. The second reference is original identity for consistency.",
+      "prompt": "Use case: identity-preserve. Edit the supplied corrected DeepSeek neutral portrait to produce exactly ONE reusable expression image. Change only facial expression: Slightly shy embarrassment, a faint blush and tiny hesitant smile. Relaxed lips, no angry pout. Keep its youthful fresh face with the SAME facial proportions, normal eyes/iris size, cheek contour, jaw, nose and mouth placement; same face location and scale. Keep exact waist-up crop, head angle upright, anatomy, shoulders, hairstyle, ornaments, clothing, lighting, linework, canvas size and transparent silhouette. This is a gentle, well-mannered character: restrained facial animation only. No sneer, provocative expression, crooked grin, tongue, large teeth grin, glaring, angry puffed cheeks or wide distorted mouth. Do not enlarge head, eyes or bust. Genuine transparent background, no text, props or panels.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "c5549edd4b247b12be3f790164cb10395d9f64cd6b8171926c5235975c7fbe10",
+      "reference": "corrected_v2_neutral",
+      "sha256": "ad7c514ca4b703a9507fde4458364b2ea41921b54404c45c6f22aeb4be574a4c",
       "size": [
         1254,
         1254
@@ -71,10 +73,10 @@
       "character_id": "claude",
       "emotion": "neutral",
       "path": "assets/characters/claude/neutral.png",
-      "prompt": "Use case: stylized-concept. One reusable anime character portrait for video overlays. Supplied three-view image is the character identity/style reference, not layout. Draw exactly ONE claude girl: orange long hair, amber eyes, orange flower hair ornament with black ribbons, cream white orange and black elegant dress neckline; calm gentle smile. Preserve reference face, accessories, hair colors and costume. Front-facing centered square head-and-shoulders, upper chest cut at bottom, same polished fine anime lineart and soft shading as reference. Entire headpiece, animal ears or horns and hair tuft visible with generous margin. Head near upper center, eye line around y45%, shoulders filling lower width, no hands. True transparent alpha background. No text, scenery, borders, panels, sheet, watermark or extra characters. A neutral expression base for a matched expression set.",
+      "prompt": "Use case: identity-preserve. Create ONE corrected reusable transparent waist-up anime portrait of claude. Image 1 is the ORIGINAL character identity and style: copy HER original face shape, natural eye-to-face size, nose/mouth position, neck, shoulder and torso proportions faithfully. Character: long orange hair, amber eyes, orange flower hair ornament with black ribbons, elegant cream white orange and black dress; warm poised gentle lady, preserve slender original face and natural small eyes. Image 2 (blue maid) is ONLY the desired square upper-body framing and gentle rendering style; do not borrow its face, hair, clothing or species. User rejected the previous enlarged-face portraits and arrogant expressions. Normal balanced anatomy, head not oversized, eyes not inflated, shoulders not shrunk, no bust enlargement. Frontal upright head, level eye line, natural relaxed shoulders, crop near waist. Keep entire headpiece/ears/horns and hair tuft inside canvas with enough margin. Expression: neutral, gentle, restrained natural closed-mouth smile, matching this character's original demeanor. Delicate original anime linework and soft shading. NO smirk, haughty raised chin, mocking narrowed eyes, teeth grin, tongue, exaggerated mouth, deformed face, chibi, text, props, panels or other characters. Genuine transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "08444413af6920ce09c191a938a10fef55ddb45de39b725a242dda2c1cac12ea",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "d6c2f6dc4417de73f2d3af7eb0c6a3a41bd8685aec864d22aef75009c5e366fa",
       "size": [
         1254,
         1254
@@ -84,10 +86,10 @@
       "character_id": "claude",
       "emotion": "amused",
       "path": "assets/characters/claude/amused.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied claude neutral base portrait: change ONLY expression to Knowing amused closed-mouth smile, slightly narrowed warm eyes. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected claude waist-up portrait. Change ONLY facial expression to: A gentle fond amused smile, slightly softened eyelids, closed lips. No crooked smirk or teeth. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "60e94a766c449ed33f62cab5bb8c7e73594c8ca318717e4765be588423568531",
+      "reference": "corrected_v2_neutral",
+      "sha256": "a4e4f416c72dbe772e1011e0591d8483fc2fbde81102a1740fa42590d751e0de",
       "size": [
         1254,
         1254
@@ -97,10 +99,10 @@
       "character_id": "claude",
       "emotion": "stern",
       "path": "assets/characters/claude/stern.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied claude neutral base portrait: change ONLY expression to Calm serious disapproval, mildly drawn eyebrows, straight lips. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected claude waist-up portrait. Change ONLY facial expression to: Quietly serious composed expression, straight relaxed lips and attentive eyes, only a slight furrow. Not angry or contemptuous. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "a7544314440c30ad66b5e7a5461ee8ac0409b8c99fd773cce223011a6dcd5375",
+      "reference": "corrected_v2_neutral",
+      "sha256": "e7c46292061341d7d8feb79ff5ab60d8def1fe68e58d2afa5318d19ba0bf93a3",
       "size": [
         1254,
         1254
@@ -110,10 +112,10 @@
       "character_id": "claude",
       "emotion": "concerned",
       "path": "assets/characters/claude/concerned.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied claude neutral base portrait: change ONLY expression to Worried caring expression, raised inner eyebrows, small parted lips. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected claude waist-up portrait. Change ONLY facial expression to: Subtle sympathetic concern, slightly lifted inner brows, softly parted lips. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "48c4efde44ad5943ed9f186adefe4d4c1ba529eb2f86f5a4d1ce0e65a9dd4cfe",
+      "reference": "corrected_v2_neutral",
+      "sha256": "658a2d4369d1f1ed138184d490f2e2bb2bcc962eac396230ac2c210f83d22086",
       "size": [
         1254,
         1254
@@ -123,10 +125,10 @@
       "character_id": "claude",
       "emotion": "surprised",
       "path": "assets/characters/claude/surprised.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied claude neutral base portrait: change ONLY expression to Restrained surprised expression, widened eyes and small open mouth. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected claude waist-up portrait. Change ONLY facial expression to: Restrained surprise, a small increase in eye openness and a tiny parted mouth. No huge round eyes. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "604c0c80c8e5f9dae4b35132988a954a220996f21b2e22f377de6cfc35cf5f0d",
+      "reference": "corrected_v2_neutral",
+      "sha256": "371a5992801ecde7149f0e8799e7cf86c3661cd82d2c50603afccd67b3c83dcd",
       "size": [
         1254,
         1254
@@ -136,10 +138,10 @@
       "character_id": "qwen",
       "emotion": "neutral",
       "path": "assets/characters/qwen/neutral.png",
-      "prompt": "Use case: stylized-concept. One reusable anime character portrait for video overlays. Supplied three-view image is the character identity/style reference, not layout. Draw exactly ONE qwen girl: periwinkle lavender long hair, front side braid, violet eyes, small tilted navy hat, blue white gold Chinese-style gown neckline and tassel jewelry; graceful soft smile. Preserve reference face, accessories, hair colors and costume. Front-facing centered square head-and-shoulders, upper chest cut at bottom, same polished fine anime lineart and soft shading as reference. Entire headpiece, animal ears or horns and hair tuft visible with generous margin. Head near upper center, eye line around y45%, shoulders filling lower width, no hands. True transparent alpha background. No text, scenery, borders, panels, sheet, watermark or extra characters. A neutral expression base for a matched expression set.",
+      "prompt": "Use case: identity-preserve. Create ONE corrected reusable transparent waist-up anime portrait of qwen. Image 1 is the ORIGINAL character identity and style: copy HER original face shape, natural eye-to-face size, nose/mouth position, neck, shoulder and torso proportions faithfully. Character: periwinkle lavender long hair, front side braid, violet eyes, small tilted navy hat, blue white gold Chinese-style gown and tassel jewelry; refined graceful reserved young lady, preserve original delicate oval face. Image 2 (blue maid) is ONLY the desired square upper-body framing and gentle rendering style; do not borrow its face, hair, clothing or species. User rejected the previous enlarged-face portraits and arrogant expressions. Normal balanced anatomy, head not oversized, eyes not inflated, shoulders not shrunk, no bust enlargement. Frontal upright head, level eye line, natural relaxed shoulders, crop near waist. Keep entire headpiece/ears/horns and hair tuft inside canvas with enough margin. Expression: neutral, gentle, restrained natural closed-mouth smile, matching this character's original demeanor. Delicate original anime linework and soft shading. NO smirk, haughty raised chin, mocking narrowed eyes, teeth grin, tongue, exaggerated mouth, deformed face, chibi, text, props, panels or other characters. Genuine transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "ea04d78ccfb42779449266e975ba97e117e3255de466a0567ab9a49ca2e0aaa6",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "8f5ad583dbbab6f1ba52c17df2e5324f23146795172b4190289f1e7fa4a8a653",
       "size": [
         1254,
         1254
@@ -149,10 +151,10 @@
       "character_id": "qwen",
       "emotion": "confident",
       "path": "assets/characters/qwen/confident.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied qwen neutral base portrait: change ONLY expression to Poised quietly confident smile, chin subtly lifted. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected qwen waist-up portrait. Change ONLY facial expression to: A poised gentle closed-mouth smile with level chin and steady kind eyes. Not haughty. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "564b2177307c75cb4a2edc32f1a976b7762e443a8fcaf8e8dc580afb8dd820c1",
+      "reference": "corrected_v2_neutral",
+      "sha256": "95c6b2a3eca45ff573b782db3de4acb271c125d0bd9c0480e5761cbb5d7e8a20",
       "size": [
         1254,
         1254
@@ -162,10 +164,10 @@
       "character_id": "qwen",
       "emotion": "curious",
       "path": "assets/characters/qwen/curious.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied qwen neutral base portrait: change ONLY expression to Curious questioning gaze, one eyebrow raised, small parted lips. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected qwen waist-up portrait. Change ONLY facial expression to: Soft thoughtful curiosity, a subtle eyebrow lift and very slightly parted lips. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "521f08a4dedc44717a263c8676f47fad38a684ab539a6acf4e7d0f1af0be58a4",
+      "reference": "corrected_v2_neutral",
+      "sha256": "4e429c93b2ad95ae706a1c01f6644d07f447a542e70fb08e2bc1a742ef7bf309",
       "size": [
         1254,
         1254
@@ -175,10 +177,10 @@
       "character_id": "qwen",
       "emotion": "exasperated",
       "path": "assets/characters/qwen/exasperated.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied qwen neutral base portrait: change ONLY expression to Quietly exasperated look, half-lidded eyes and slight pout. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected qwen waist-up portrait. Change ONLY facial expression to: Mild restrained puzzlement mixed with a little concern, small closed lips; no rolling eyes or mocking pout. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "2c7a0c808768400f7596446fb06daa636d839b287ce344e3565fe3f31bec96e1",
+      "reference": "corrected_v2_neutral",
+      "sha256": "9c65a851d10d813bd7f72a2c0373ef340883b637e5125d4d674076326acb4613",
       "size": [
         1254,
         1254
@@ -188,10 +190,10 @@
       "character_id": "qwen",
       "emotion": "delighted",
       "path": "assets/characters/qwen/delighted.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied qwen neutral base portrait: change ONLY expression to Genuinely delighted bright open smile and happy eyes. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected qwen waist-up portrait. Change ONLY facial expression to: A modest delighted smile, faint cheek warmth, lips gently parted, graceful relaxed eyes. Not loud laughter. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "7c8a01f97ac14466979b077e292364f6c716d0133e6fbf639b40a489b15b91f6",
+      "reference": "corrected_v2_neutral",
+      "sha256": "5c445651f3b6ef8a40a3d1f566587bce21d148b6ef7b2e2e8f53bba3102f86dd",
       "size": [
         1254,
         1254
@@ -201,10 +203,10 @@
       "character_id": "glm",
       "emotion": "neutral",
       "path": "assets/characters/glm/neutral.png",
-      "prompt": "Use case: stylized-concept. One reusable anime character portrait for video overlays. Supplied three-view image is the character identity/style reference, not layout. Draw exactly ONE glm girl: black long hair, black furry animal ears, white maid frill with black sleeping eye mask on top, Z accessories and silver gray eyes, gothic black and white maid neckline; sleepy gentle neutral gaze. Preserve reference face, accessories, hair colors and costume. Front-facing centered square head-and-shoulders, upper chest cut at bottom, same polished fine anime lineart and soft shading as reference. Entire headpiece, animal ears or horns and hair tuft visible with generous margin. Head near upper center, eye line around y45%, shoulders filling lower width, no hands. True transparent alpha background. No text, scenery, borders, panels, sheet, watermark or extra characters. A neutral expression base for a matched expression set.",
+      "prompt": "Use case: precise-object-edit. Image1 is the edit target: the GLM black-haired cat-eared maid waist-up portrait. Image2 is the original authoritative character design. Correct ONE localized error only: remove the tall vertical white fabric/chef-hat-like block sticking up from the middle top of the headband and touching the upper canvas border. This character has NO tall hat. Restore the modest LOW frilled white maid headband and black sleeping mask resting on it, as in image2, with transparent empty margin above. Keep black furry ears, mask eyelash symbols, Z accessory, entire face and gentle expression, face/head/shoulder/body proportions, hair and costume, exact pose, image size and crop unchanged. The area where the unwanted vertical white fabric is removed must become genuinely transparent alpha, not white fill. No added ornaments, text, scenery or other edits.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "fb5d0a19856f80efd72f801fea1cebaa28240ee2366ca050ff59a00a7dcb333b",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "febd960b0a0c946b32e163a892a436d70bac22f616b11e340b83c01473f61cef",
       "size": [
         1254,
         1254
@@ -214,10 +216,10 @@
       "character_id": "glm",
       "emotion": "deadpan",
       "path": "assets/characters/glm/deadpan.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied glm neutral base portrait: change ONLY expression to Dry deadpan unimpressed expression, very half-lidded eyes, flat tiny mouth. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. ONE expression variant of this corrected GLM portrait. Change only expression: A quiet drowsy neutral expression, relaxed eyelids and small natural closed mouth, no disdain. Keep the exact same delicate original face proportions and normal sized eyes, no growth of head or irises. Maintain head position, pose, waist-up framing, black ears, low maid frill with sleeping mask, Z accessories, hair, clothing, anatomy, linework, shading, dimensions and transparent background. Reserved soft natural emotion. No tall hat, extra headpiece, smugness, sneer, teeth grin, angry glare, exaggerated pout, tongue, text or props.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "dc0a925abbe7e0e44ce54eb71ca306ed61965d70b54192339f95b0498be170d3",
+      "reference": "corrected_v2_neutral",
+      "sha256": "a3ad059a0e587251127879cd06cbd75d5794c585a4077990a4ac734a99233138",
       "size": [
         1254,
         1254
@@ -225,12 +227,12 @@
     },
     {
       "character_id": "glm",
-      "emotion": "smug",
-      "path": "assets/characters/glm/smug.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied glm neutral base portrait: change ONLY expression to Playfully smug restrained little smirk with sideways-looking eyes. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "emotion": "amused",
+      "path": "assets/characters/glm/amused.png",
+      "prompt": "Use case: identity-preserve. ONE expression variant of this corrected GLM portrait. Change only expression: A tiny warm amused closed-mouth smile, softly attentive eyes, reserved and gentle. No smug grin. Keep the exact same delicate original face proportions and normal sized eyes, no growth of head or irises. Maintain head position, pose, waist-up framing, black ears, low maid frill with sleeping mask, Z accessories, hair, clothing, anatomy, linework, shading, dimensions and transparent background. Reserved soft natural emotion. No tall hat, extra headpiece, smugness, sneer, teeth grin, angry glare, exaggerated pout, tongue, text or props.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "4e542a50e38a718b78e15cdb17a1b8a16c6fd06960aeccc585ef22c6f555a659",
+      "reference": "corrected_v2_neutral",
+      "sha256": "c05638d820fe077d247b8967bc16bd334d3a353c35fd34092cfd4aa9ecbb6db5",
       "size": [
         1254,
         1254
@@ -240,10 +242,10 @@
       "character_id": "glm",
       "emotion": "annoyed",
       "path": "assets/characters/glm/annoyed.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied glm neutral base portrait: change ONLY expression to Alert annoyed expression, brows drawn down and small irritated pout. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. ONE expression variant of this corrected GLM portrait. Change only expression: Very mild concern or displeasure, only a slight inner eyebrow furrow and relaxed straight lips. No glaring. Keep the exact same delicate original face proportions and normal sized eyes, no growth of head or irises. Maintain head position, pose, waist-up framing, black ears, low maid frill with sleeping mask, Z accessories, hair, clothing, anatomy, linework, shading, dimensions and transparent background. Reserved soft natural emotion. No tall hat, extra headpiece, smugness, sneer, teeth grin, angry glare, exaggerated pout, tongue, text or props.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "e1f54d187c8c9f3cad5a5d3fada9b3fe7337a2d5824d02be75fb3b8c3ccc2807",
+      "reference": "corrected_v2_neutral",
+      "sha256": "eee7963f7d60d5e0bcbcd113168642eeeeaec2146ff508b03c30500f4474ab9d",
       "size": [
         1254,
         1254
@@ -253,10 +255,10 @@
       "character_id": "glm",
       "emotion": "shy",
       "path": "assets/characters/glm/shy.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit the supplied glm neutral base portrait: change ONLY expression to Shy embarrassed blush, hesitant tiny smile, eyes looking slightly aside. Keep exactly the same character, head position, scale, front-facing pose, crop, hair, all ornaments, outfit, linework, shading, canvas dimensions and alpha silhouette. Keep all hair ornaments/ears inside frame. Actual transparent alpha background, no scenery, hands, text, panels or extra characters.",
+      "prompt": "Use case: identity-preserve. ONE expression variant of this corrected GLM portrait. Change only expression: A faint shy blush, timid tiny closed-mouth smile, eyes look slightly aside while head stays fixed. Keep the exact same delicate original face proportions and normal sized eyes, no growth of head or irises. Maintain head position, pose, waist-up framing, black ears, low maid frill with sleeping mask, Z accessories, hair, clothing, anatomy, linework, shading, dimensions and transparent background. Reserved soft natural emotion. No tall hat, extra headpiece, smugness, sneer, teeth grin, angry glare, exaggerated pout, tongue, text or props.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "9665d98cb0cad11e1c13b738b0ee0a4d46699f5df93c072412f962a9b109bfd9",
+      "reference": "corrected_v2_neutral",
+      "sha256": "0003219e1f4d13edf316a8e858066ef0994e5bd2c277053498c694b28df408ee",
       "size": [
         1254,
         1254
@@ -266,10 +268,10 @@
       "character_id": "gemini",
       "emotion": "neutral",
       "path": "assets/characters/gemini/neutral.png",
-      "prompt": "Use case: stylized-concept. One reusable anime character portrait for video overlays. Supplied three-view image is the character identity/style reference, not layout. Draw exactly ONE gemini girl: purple blue to pink gradient long hair, purple cat ears, pink and gold heterochromatic eyes exactly as reference, large star hair ornament, dark purple white gold fantasy neckline; lively cheerful small smile. Preserve reference face, accessories, hair colors and costume. Front-facing centered square head-and-shoulders, upper chest cut at bottom, same polished fine anime lineart and soft shading as reference. Entire headpiece, animal ears or horns and hair tuft visible with generous margin. Head near upper center, eye line around y45%, shoulders filling lower width, no hands. True transparent alpha background. No text, scenery, borders, panels, sheet, watermark or extra characters. A neutral expression base for a matched expression set.",
+      "prompt": "Use case: identity-preserve. Create ONE corrected reusable transparent waist-up anime portrait of gemini. Image 1 is the ORIGINAL character identity and style: copy HER original face shape, natural eye-to-face size, nose/mouth position, neck, shoulder and torso proportions faithfully. Character: long purple-blue to pink gradient hair, purple cat ears, pink and gold heterochromatic eyes exactly as reference, large star hair ornaments, dark purple white gold fantasy outfit; lively but well-mannered sweet young lady, preserve original facial proportions. Image 2 (blue maid) is ONLY the desired square upper-body framing and gentle rendering style; do not borrow its face, hair, clothing or species. User rejected the previous enlarged-face portraits and arrogant expressions. Normal balanced anatomy, head not oversized, eyes not inflated, shoulders not shrunk, no bust enlargement. Frontal upright head, level eye line, natural relaxed shoulders, crop near waist. Keep entire headpiece/ears/horns and hair tuft inside canvas with enough margin. Expression: neutral, gentle, restrained natural closed-mouth smile, matching this character's original demeanor. Delicate original anime linework and soft shading. NO smirk, haughty raised chin, mocking narrowed eyes, teeth grin, tongue, exaggerated mouth, deformed face, chibi, text, props, panels or other characters. Genuine transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "1c6fb599cbc4be4e081ac0ef0ace9ac314ebd903e835ad918692eccb1c08e37e",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "016538bc54adf81c7161d821db05dec766ba26353ba42d0db65a78fea126b0dc",
       "size": [
         1254,
         1254
@@ -279,10 +281,10 @@
       "character_id": "gemini",
       "emotion": "excited",
       "path": "assets/characters/gemini/excited.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gemini neutral base portrait: change ONLY expression to Excited bright open-mouth smile, sparkling lively eyes. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gemini waist-up portrait. Change ONLY facial expression to: A bright but modest cheerful smile, softly raised cheeks, small gently parted lips. No star-shaped eyes or gaping mouth. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "b4090f14f6147be7bbd5d67edadea42ec10b5c86f30b383ce81c18d6e6aa2bec",
+      "reference": "corrected_v2_neutral",
+      "sha256": "71d306fb486f9a131e2afce9314aad56ad353d043bc73d52685647d891bb9923",
       "size": [
         1254,
         1254
@@ -290,12 +292,12 @@
     },
     {
       "character_id": "gemini",
-      "emotion": "mischievous",
-      "path": "assets/characters/gemini/mischievous.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gemini neutral base portrait: change ONLY expression to Mischievous cheeky smirk, half-lidded confident teasing eyes. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "emotion": "playful",
+      "path": "assets/characters/gemini/playful.png",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gemini waist-up portrait. Change ONLY facial expression to: A sweet playful small smile, bright friendly eyes, just a hint of coy amusement. No tongue, teeth grin or provocative smirk. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "26b2f0c4e5e06b70df654795afe5c8dd6453380d17ddbc73ec2923907edb8082",
+      "reference": "corrected_v2_neutral",
+      "sha256": "f1f4c3d4357c65b961dbc6533532aa70a9a864206fd79d233deef32b95a107c9",
       "size": [
         1254,
         1254
@@ -305,10 +307,10 @@
       "character_id": "gemini",
       "emotion": "surprised",
       "path": "assets/characters/gemini/surprised.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gemini neutral base portrait: change ONLY expression to Dramatically surprised wide heterochromatic eyes, round open mouth. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gemini waist-up portrait. Change ONLY facial expression to: A gentle surprised expression, naturally widened eyes and small parted lips; not a comic shocked face. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "660be3465dd716e399e2782f90006fbbae36ebfdf043a90be60391483e370861",
+      "reference": "corrected_v2_neutral",
+      "sha256": "cc753cd88517962750529652a5f636abfb16d3d57542a17456468183f46fa98a",
       "size": [
         1254,
         1254
@@ -318,10 +320,10 @@
       "character_id": "gemini",
       "emotion": "flustered",
       "path": "assets/characters/gemini/flustered.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gemini neutral base portrait: change ONLY expression to Flustered embarrassed pout, blushing cheeks, furrowed brows. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gemini waist-up portrait. Change ONLY facial expression to: A faint embarrassed blush and shy small smile, relaxed eyebrows. No angry puffed cheeks or aggressive pout. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "97307ad68aa4a6489f1e09fba819962dd5d235af529ba6d38774fb7c3f5253d7",
+      "reference": "corrected_v2_neutral",
+      "sha256": "cf637244637e50c514aa47d264bb924ae8074f0d2b06080138ac04e8ff036570",
       "size": [
         1254,
         1254
@@ -331,10 +333,10 @@
       "character_id": "gpt",
       "emotion": "neutral",
       "path": "assets/characters/gpt/neutral.png",
-      "prompt": "Use case: stylized-concept. One reusable anime character portrait for video overlays. Supplied three-view image is the character identity/style reference, not layout. Draw exactly ONE gpt girl: white silver long hair, lavender eyes, two white curved horns and pointed elf ears, knot hair ornament, ornate white silver high-neck dress neckline; composed dignified small smile. Preserve reference face, accessories, hair colors and costume. Front-facing centered square head-and-shoulders, upper chest cut at bottom, same polished fine anime lineart and soft shading as reference. Entire headpiece, animal ears or horns and hair tuft visible with generous margin. Head near upper center, eye line around y45%, shoulders filling lower width, no hands. True transparent alpha background. No text, scenery, borders, panels, sheet, watermark or extra characters. A neutral expression base for a matched expression set.",
+      "prompt": "Use case: identity-preserve. Create ONE corrected reusable transparent waist-up anime portrait of gpt. Image 1 is the ORIGINAL character identity and style: copy HER original face shape, natural eye-to-face size, nose/mouth position, neck, shoulder and torso proportions faithfully. Character: long white silver hair, lavender eyes, two white curved horns, pointed elf ears, knot ornament, ornate white silver gown; dignified calm gentle elegant lady, preserve original narrow delicate face and eye proportions. Image 2 (blue maid) is ONLY the desired square upper-body framing and gentle rendering style; do not borrow its face, hair, clothing or species. User rejected the previous enlarged-face portraits and arrogant expressions. Normal balanced anatomy, head not oversized, eyes not inflated, shoulders not shrunk, no bust enlargement. Frontal upright head, level eye line, natural relaxed shoulders, crop near waist. Keep entire headpiece/ears/horns and hair tuft inside canvas with enough margin. Expression: neutral, gentle, restrained natural closed-mouth smile, matching this character's original demeanor. Delicate original anime linework and soft shading. NO smirk, haughty raised chin, mocking narrowed eyes, teeth grin, tongue, exaggerated mouth, deformed face, chibi, text, props, panels or other characters. Genuine transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "user_three_view",
-      "sha256": "ccf7b1023a3842027b363169a5664b863aa425088fe4133b11040ed25622db62",
+      "reference": "original_three_view_corrected_proportions",
+      "sha256": "b7cd4975f551bd86dd6ebde7b8c85a85bf4fb2ea4a2cf983e2a1cf09c4e6745a",
       "size": [
         1254,
         1254
@@ -344,10 +346,10 @@
       "character_id": "gpt",
       "emotion": "confident",
       "path": "assets/characters/gpt/confident.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gpt neutral base portrait: change ONLY expression to Cool confident restrained asymmetric smirk, steady dignified eyes. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gpt waist-up portrait. Change ONLY facial expression to: A composed reassuring very small symmetric closed-mouth smile, level chin and relaxed attentive eyes. No arrogance. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "f67feacbaa7de0adfa21fbd23941d60f214e51881454b323ba1de09a60842519",
+      "reference": "corrected_v2_neutral",
+      "sha256": "bf9d49d311623f4d16fd3df5babc34416ca4ac0c29aaf49f73f82ed9224ad15c",
       "size": [
         1254,
         1254
@@ -357,10 +359,10 @@
       "character_id": "gpt",
       "emotion": "skeptical",
       "path": "assets/characters/gpt/skeptical.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gpt neutral base portrait: change ONLY expression to Analytical skeptical expression, one raised eyebrow and slightly narrowed eyes. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gpt waist-up portrait. Change ONLY facial expression to: A thoughtful mildly questioning expression, subtle eyebrow lift, natural eyelids and closed lips, no disdain. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "1815318003c9a34a0c63eb10d7cd234836697b0198762c6f6b9338ec4e6572af",
+      "reference": "corrected_v2_neutral",
+      "sha256": "f2a36223219d90347771fc44c2c9dacbc82000057cc72ff54e33b43a5e7eda27",
       "size": [
         1254,
         1254
@@ -370,10 +372,10 @@
       "character_id": "gpt",
       "emotion": "stern",
       "path": "assets/characters/gpt/stern.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gpt neutral base portrait: change ONLY expression to Stern annoyed focused gaze, eyebrows drawn together, straight closed lips. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gpt waist-up portrait. Change ONLY facial expression to: Calm serious attentive expression, only a slight brow furrow and neutral lips. No sharp intimidating glare. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "553354f8bad7a6eeb9efde9adabbdb82ed94416f065f4c5dc70a385c44f20089",
+      "reference": "corrected_v2_neutral",
+      "sha256": "2383d2c630c42bb0714eaa8cf7914524a0f81f34d25b0e2e16b6cd87231df710",
       "size": [
         1254,
         1254
@@ -383,14 +385,15 @@
       "character_id": "gpt",
       "emotion": "flustered",
       "path": "assets/characters/gpt/flustered.png",
-      "prompt": "Use case: identity-preserve. ONE reusable transparent anime portrait. Edit supplied gpt neutral base portrait: change ONLY expression to Embarrassed crack in dignified composure, visible soft blush, a hesitant small pout, glance slightly away. Preserve exactly the same character, head location, face scale, front-facing pose, crop, hairstyle, color palette, complete accessories, horns or cat ears, costume, fine linework, soft shading and canvas dimensions. Preserve heterochromia if present. Keep head ornaments visible inside frame. Genuine transparent alpha background. No text, scenery, hands, panels, extra characters or objects.",
+      "prompt": "Use case: identity-preserve. Make ONE expression variant of the supplied corrected gpt waist-up portrait. Change ONLY facial expression to: A subtle shy blush and tiny hesitant smile, gentle eyes, dignified composure. No pout or exaggerated grimace. Preserve exactly the same face shape, eye size and spacing, iris proportions, nose, chin length, neck and shoulders. Keep exact head pose, face position/scale, waist-up framing, character anatomy, hairstyle, ornaments, costume, linework, shading, image dimensions and transparency. This character is an elegant well-mannered lady; show a recognizable but restrained micro-expression. No haughty chin tilt, mocking narrowed eyes, crooked smirk, tongue, large teeth grin, oversized irises, gaping mouth, aggressive glare or puffed angry cheeks. Do not change proportions or add props/text/panels. Actual transparent alpha background.",
       "tool": "builtin_imagegen",
-      "reference": "same_character_neutral_portrait",
-      "sha256": "65093e734d2095fb86bf20c93957a23b43a2e7678384863cebffb8900b91e468",
+      "reference": "corrected_v2_neutral",
+      "sha256": "a2c6b8f79a63998200c34f3879a8b94be63663d2ee25312a135c6e6af89d3c73",
       "size": [
         1254,
         1254
       ]
     }
-  ]
+  ],
+  "megabytes": 53.25
 }

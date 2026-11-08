@@ -8,7 +8,7 @@
         "neutral": "assets/characters/deepseek/neutral.png",
         "happy": "assets/characters/deepseek/happy.png",
         "questioning": "assets/characters/deepseek/questioning.png",
-        "smug": "assets/characters/deepseek/smug.png",
+        "confident": "assets/characters/deepseek/confident.png",
         "flustered": "assets/characters/deepseek/flustered.png"
       }
     },
@@ -40,7 +40,7 @@
       "portraits": {
         "neutral": "assets/characters/glm/neutral.png",
         "deadpan": "assets/characters/glm/deadpan.png",
-        "smug": "assets/characters/glm/smug.png",
+        "amused": "assets/characters/glm/amused.png",
         "annoyed": "assets/characters/glm/annoyed.png",
         "shy": "assets/characters/glm/shy.png"
       }
@@ -51,7 +51,7 @@
       "portraits": {
         "neutral": "assets/characters/gemini/neutral.png",
         "excited": "assets/characters/gemini/excited.png",
-        "mischievous": "assets/characters/gemini/mischievous.png",
+        "playful": "assets/characters/gemini/playful.png",
         "surprised": "assets/characters/gemini/surprised.png",
         "flustered": "assets/characters/gemini/flustered.png"
       }
