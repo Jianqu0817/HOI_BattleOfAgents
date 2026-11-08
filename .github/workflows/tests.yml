@@ -56,9 +56,12 @@ jobs:
           ./native/iron_bridge/build-control.ps1
           ./native/iron_bridge/build-diplomacy.ps1
           ./native/iron_bridge/build-air-navy.ps1
+          ./native/iron_bridge/build-events.ps1
+          ./native/iron_bridge/build-events-close.ps1
       - name: Exercise native API in owned synthetic processes
         run: |
           python tools/test_native_rpc.py
           python tools/test_native_registration.py
           python tools/test_native_clock.py
           python tools/test_native_control.py
+
