@@ -47,6 +47,11 @@ def compact_history(trial, turn, tags):
     return histories
 
 
+def require_no_pending_choice(world):
+    if world.get("pending_events", {}).get("pending"):
+        raise RuntimeError("registered pending event needs a qualified normal choice; stop before model calls and game orders")
+
+
 def adapt_result(native, execution, trial, observed, after):
     """Preserve sealed requests verbatim while attaching native effect evidence."""
     requests = {tag: read(trial / "requests" / (tag + ".json")) for tag in observed}
@@ -156,6 +161,7 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                 entry = {"index": index, "status": "prepared", "started_at": now(), "trial": str(trial), "turn": str(turn)}
                 manifest["turns"].append(entry)
             turn_start = time.monotonic()
+            require_no_pending_choice(baseline["state"])
             selection_path = trial / "clock_selection.json"
             if selection_path.exists():
                 selection = read(selection_path)

@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from model_trial import call_country, compact_native_context, digest, validate_trial_request, native_brief
-from native_campaign import verify_decisions
+from native_campaign import verify_decisions, require_no_pending_choice
 from native_observation import IDENTITY
 from showrunner import settings
 from test_native_observation import observe
@@ -15,6 +15,12 @@ from test_showrunner import CONFIG
 
 
 class NativeCampaignTests(unittest.TestCase):
+    def test_known_unresolved_event_stops_before_paid_planning(self):
+        require_no_pending_choice({"pending_events": {"availability": "partial", "pending": None}})
+        require_no_pending_choice({"pending_events": {"availability": "partial", "pending": []}})
+        with self.assertRaisesRegex(RuntimeError, "before model calls"):
+            require_no_pending_choice({"pending_events": {"availability": "partial", "pending": [{"country": "AUS"}]}})
+
     def test_context_compaction_keeps_speech_conditions_and_current_action_menu(self):
         promise = {'country':'AUS','to':'GER','text':'逐字承诺','due_turn':3,'condition':'条件','visibility':'private','status':'unverified','source':{'file':'large/provenance/path'}}
         speech = {'country':'GER','to':'AUS','message':'完整原话不截断','commitments':[promise]}
