@@ -13,6 +13,28 @@ def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def public_host_lines(trial, observation, public, model, show):
+    messages = public_commentary_messages(observation, public, show=show)
+    record = recorded_complete(trial, "public_host", {**model, "max_tokens": 700}, messages,
+                               "public_host", require_settings=True)
+    payload = json.loads(messages[1]["content"])
+    direct = payload.get("public_diplomacy", []) + payload.get("public_board", [])
+    for history in payload.get("public_history", []):
+        direct += history.get("public_diplomacy", [])
+    sources = {row["id"] for row in direct if isinstance(row.get("id"), str)}
+    value, dropped = project_public_commentary(record["response"], sources)
+    if dropped:
+        record["host_projection"] = {"method": "sourced_public_commentary.v1", "dropped": dropped}
+        write_json(trial / "model_calls" / "public_host.json", record)
+    check_public_commentary(value, sources)
+    lines = []
+    for index, row in enumerate(value["commentary"]):
+        identity = hashlib.sha256(json.dumps(row, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        lines.append({"id": "host-" + identity, "visibility": "public", "source_kind": "host_commentary",
+                               "message": row["text"], "refs": [row["ref"]], "index": index})
+    return lines
+
+
 def post_seal(trial, observed, model, show, config, *, phase="all"):
     if phase not in ("all", "live", "audience"):
         raise ValueError("unknown performance phase")
@@ -29,23 +51,10 @@ def post_seal(trial, observed, model, show, config, *, phase="all"):
     if phase == "live":
         result["interviews"] = previous.get("interviews", [])
     if config.get("public_host", True) and phase != "audience":
-        messages = public_commentary_messages(observed[tags[0]], public, show=show)
-        record = recorded_complete(trial, "public_host", {**model, "max_tokens": 700}, messages,
-                                   "public_host", require_settings=True)
-        payload = json.loads(messages[1]["content"])
-        direct = payload.get("public_diplomacy", []) + payload.get("public_board", [])
-        for history in payload.get("public_history", []):
-            direct += history.get("public_diplomacy", [])
-        sources = {row["id"] for row in direct if isinstance(row.get("id"), str)}
-        value, dropped = project_public_commentary(record["response"], sources)
-        if dropped:
-            record["host_projection"] = {"method": "sourced_public_commentary.v1", "dropped": dropped}
-            write_json(trial / "model_calls" / "public_host.json", record)
-        check_public_commentary(value, sources)
-        for index, row in enumerate(value["commentary"]):
-            identity = hashlib.sha256(json.dumps(row, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-            result["host"].append({"id": "host-" + identity, "visibility": "public", "source_kind": "host_commentary",
-                                   "message": row["text"], "refs": [row["ref"]], "index": index})
+        if show.get("table_host"):
+            result["host"] = read(trial / "table_host.json")
+        else:
+            result["host"] = public_host_lines(trial, observed[tags[0]], public, model, show)
     count = config.get("interviews_per_turn", 1)
     if type(count) is not int or not 0 <= count <= len(tags):
         raise ValueError("interviews_per_turn exceeds participants")

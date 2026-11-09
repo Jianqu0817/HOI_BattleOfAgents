@@ -30,3 +30,11 @@
 接口阻碍已解决，按用户新指令启动。需要重新打开游戏、载入指定存档、加载对应原生桥并确认五国AI关闭；新进程不能重用旧PID或旧请求身份。收起无用游戏面板、最小化OBS和观察浏览器，使用game_capture；有待选择的事件保留信息，不随意关闭。
 
 操作说明与入口见 `docs/OBSERVER.md`、`docs/NATIVE_CAMPAIGN.md`。语音仍留待之后服务器生成，不制作剪辑成片。
+
+## 最终阶段断点（用户暂停）
+
+实际在第8回合结束后停止，未创建turn_009。游戏PID20816保持暂停、remaining_hours=0，date_raw=60765477（存档口径1936.9.12.22）。录制进程已退出，OBS录像已停止，观察席仍可打开。原20回合执行计划被用户中途暂停，不得自行继续。manifest保留50回合冻结配置和两条预算切换记录，状态ready_for_next_turn，user_pause明确resume_from_turn=9。
+
+最终审计5719通过、0失败、48未知，341单测通过；40份密封决定、43动作（37下令、4任务状态完整、2移动效果未知）。视频6段约38分27秒；存档及其SHA已备份到本局checkpoint_008。缺省/占位API标识未补造，后生成的JSON失败回执会持久化。
+
+公开技术总结见docs/VALIDATION_PAUSED8_20261109.md；本地详细复盘runs/campaigns/native_recording_50_20261109/REVIEW_PAUSED8.md，量化指标runtime_metrics.json，停止证据boundary_stop_receipt.json及post_stop_status.json。不要把同一进程的恢复命令当作跨重启恢复能力；后者仍需对账/会话重绑定。游戏、模型、录像均不在暂停后继续运行，未生成云端导演采访/TTS/成片。

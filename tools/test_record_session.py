@@ -11,6 +11,10 @@ class RecordingSessionTests(unittest.TestCase):
     def test_recording_wraps_turns_and_stops_on_campaign_failure(self):
         for fail in (False, True):
             with self.subTest(fail=fail), tempfile.TemporaryDirectory() as folder:
+                directory = Path(folder) / "runs/campaigns/match"
+                directory.mkdir(parents=True)
+                previous = {"active": False, "ended_at": "2026-11-09T11:51:58+08:00", "output_path": "first.mp4"}
+                (directory / "recording.json").write_text(json.dumps(previous), encoding="utf-8")
                 calls = []
                 class Client:
                     def call(self, operation, data=None):
@@ -41,6 +45,8 @@ class RecordingSessionTests(unittest.TestCase):
                 self.assertFalse(saved["active"])
                 self.assertEqual(saved["output_path"], "recorded.mkv")
                 self.assertEqual(saved.get("error"), "MODEL_FAILED" if fail else None)
+                archive, = directory.glob("recording.segment.*.json")
+                self.assertEqual(json.loads(archive.read_text(encoding="utf-8")), previous)
 
     def test_existing_recording_is_neither_started_nor_stopped(self):
         with tempfile.TemporaryDirectory() as folder:

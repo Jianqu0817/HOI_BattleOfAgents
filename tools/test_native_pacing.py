@@ -1,9 +1,13 @@
 import unittest
 
-from native_pacing import select_step_hours, validate_policy
+from native_pacing import select_step_hours, validate_policy, war_review_options
 
 
 class NativePacingTests(unittest.TestCase):
+    def test_final_review_cannot_pass_the_scenario_deadline(self):
+        selection = select_step_hours(at_war=True, policy={"war_hours": 72}, remaining_hours=18)
+        self.assertEqual(war_review_options(selection, 24), [18])
+        self.assertEqual(selection["step_hours"], 18)
     def test_peace_war_and_public_decision_share_one_explicit_clock(self):
         self.assertEqual(select_step_hours(at_war=False)["step_hours"], 720)
         self.assertEqual(select_step_hours(at_war=True)["step_hours"], 24)

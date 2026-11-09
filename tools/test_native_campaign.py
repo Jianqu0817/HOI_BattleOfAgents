@@ -6,15 +6,46 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from model_trial import call_country, compact_native_context, digest, validate_trial_request, native_brief
+from model_trial import call_country, compact_native_context, digest, fit_player_prompt, validate_trial_request, native_brief
 from native_campaign import verify_decisions, require_no_pending_choice
 from native_observation import IDENTITY
-from showrunner import settings
+from showrunner import player_prompt_limits, settings
 from test_native_observation import observe
 from test_showrunner import CONFIG
 
 
 class NativeCampaignTests(unittest.TestCase):
+    def test_model_budget_starts_trimming_before_rejecting_required_input(self):
+        show = {"player_prompt_bytes": 5000, "player_prompt_limits": {"qwen": {"trim_bytes": 600, "max_bytes": 1500}}}
+        payload = {"own_observation": {"own_memory": {"records": [{"turn_id": 1, "text": "旧" * 60}]}},
+                   "own_private_diplomacy": "信" * 250}
+        messages = [{"role": "user", "content": "规则"}, {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+        self.assertEqual(fit_player_prompt(copy.deepcopy(messages), *player_prompt_limits(show, "another")), messages)
+        fitted = fit_player_prompt(copy.deepcopy(messages), *player_prompt_limits(show, "qwen"))
+        body = json.loads(fitted[1]["content"])
+        self.assertEqual(body["own_observation"]["own_memory"]["records"], [])
+        self.assertEqual(body["own_private_diplomacy"], payload["own_private_diplomacy"])
+        self.assertGreater(len(fitted[1]["content"].encode("utf-8")), 600)
+        payload["own_private_diplomacy"] *= 3
+        messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
+        with self.assertRaisesRegex(ValueError, "exceeds 1500"):
+            fit_player_prompt(messages, *player_prompt_limits(show, "qwen"))
+
+    def test_tight_budget_keeps_current_orders_mail_and_commitments(self):
+        memory = {"records": [{"turn_id": 1, "private_letters": ["旧信" * 900]}],
+                  "retained_turn_count": 1, "retained_letter_count": 1}
+        payload = {"own_observation": {"identity": {"country": "AUS"}, "action_options": ["合法动作"], "own_memory": memory},
+                   "own_private_diplomacy": ["必须答复的私信"], "own_commitment_memory": ["明天到期"]}
+        messages = [{"role": "system", "content": "规则"},
+                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+        result = json.loads(fit_player_prompt(messages, 500)[1]["content"])
+        self.assertEqual(result["own_observation"]["own_memory"]["retained_letter_count"], 0)
+        self.assertEqual(result["own_observation"]["action_options"], ["合法动作"])
+        self.assertEqual(result["own_private_diplomacy"], payload["own_private_diplomacy"])
+        self.assertEqual(result["own_commitment_memory"], payload["own_commitment_memory"])
+        with self.assertRaisesRegex(ValueError, "exceeds"):
+            fit_player_prompt(messages, 20)
+
     def test_known_unresolved_event_stops_before_paid_planning(self):
         require_no_pending_choice({"pending_events": {"availability": "partial", "pending": None}})
         require_no_pending_choice({"pending_events": {"availability": "partial", "pending": []}})

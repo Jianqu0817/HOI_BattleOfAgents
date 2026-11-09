@@ -78,6 +78,16 @@ def audit_receipt(audit, value, label, date, tags=None):
 
 def audit_model(audit, record, expected, label):
     metadata = record.get("metadata", {})
+    if "content_normalization" in metadata:
+        from model_client import parse_json_content
+        receipt = metadata["content_normalization"]
+        try:
+            parsed, expected_receipt = parse_json_content(receipt["raw_content"])
+            valid = expected_receipt == receipt and parsed == record.get("response")
+        except (ValueError, KeyError, TypeError):
+            valid = False
+        check = "whole_json_fence_receipt" if isinstance(receipt, dict) and receipt.get("method") == "whole_json_fence.v1" else "json_content_normalization_receipt"
+        audit.add(label + ":" + check, valid)
     audit.add(label + ":requested_model", metadata.get("requested_model") == expected["model"])
     audit.add(label + ":returned_model", True if metadata.get("returned_model") == expected["model"] else None,
               detail=None if metadata.get("returned_model") == expected["model"] else "Provider model identifier is absent or differs; alias equivalence is not proven")

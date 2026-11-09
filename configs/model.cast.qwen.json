@@ -6,8 +6,8 @@
   "max_tokens": 4096,
   "timeout_seconds": 90,
   "request_parameters": {
-    "reasoning_effort": "xhigh",
-    "max_tokens": 4096
+    "reasoning_effort": "medium",
+    "max_tokens": 8192
   },
   "json_mode": true
 }

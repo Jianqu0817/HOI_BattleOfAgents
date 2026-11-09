@@ -6,6 +6,10 @@ import unittest
 from unittest.mock import patch
 
 from performance import post_seal
+from model_trial import decide
+from m0_probe import write_json
+from verify_campaign import Audit
+from verify_native_campaign import audit_performance
 from showrunner import settings
 from story_channels import assign_public_message_ids
 from test_native_observation import observe
@@ -13,6 +17,48 @@ from test_showrunner import CONFIG
 
 
 class PerformanceTests(unittest.TestCase):
+    def test_table_host_uses_round_one_and_players_can_answer_before_sealing(self):
+        tags = ["AUS", "GER", "FRA"]
+        observations = {tag: observe(tag) for tag in tags}
+        show = settings({"table_host": True, "strict_public_context": True, "performance": True,
+                         "intents": False, "profiles": {tag: {"scenario_goal": "SECRET_" + tag} for tag in tags}}, tags)
+        config = {"countries": tags, "show": show, "performance": {"enabled": True, "interviews_per_turn": 0}}
+        calls = {}
+
+        def fake(directory, label, model, messages, phase, country=None, require_settings=False):
+            payload = json.loads(messages[1]["content"])
+            if phase == "public_host":
+                self.assertNotIn("SECRET_", str(payload))
+                self.assertEqual([r["round"] for r in payload["public_diplomacy"]], [1] * len(tags))
+                value = {"commentary": [{"ref": payload["public_diplomacy"][0]["id"], "text": "这话有人敢认吗？"}]}
+            elif phase == "referee":
+                value = {"reviews": [{"country": row["country"], "approved": True, "request_sha256": row["request_sha256"]}
+                                     for row in payload["countries"]]}
+            else:
+                self.assertEqual(payload["own_profile"]["scenario_goal"], "SECRET_" + country)
+                self.assertFalse(any("SECRET_" + other in str(payload) for other in tags if other != country))
+                if phase == "decision":
+                    self.assertEqual(payload["table_host_messages"][0]["message"], "这话有人敢认吗？")
+                    value = {"identity": payload["own_observation"]["identity"], "actions": [], "reason": "保持部署"}
+                else:
+                    if label.startswith("diplomacy_2_"):
+                        self.assertEqual(payload["public_host_messages"][0]["message"], "这话有人敢认吗？")
+                    value = {"country": country, "message": "听见了。"}
+            calls[label] = {"messages": messages, "response": value}
+            return calls[label]
+
+        with tempfile.TemporaryDirectory() as folder:
+            trial = Path(folder)
+            for tag in tags:
+                write_json(trial / "observations" / (tag + ".json"), observations[tag])
+            with patch("model_trial.recorded_complete", side_effect=fake), patch("performance.recorded_complete", side_effect=fake) as host:
+                decide(trial, CONFIG, tags, communication_rounds=2, show_config=show)
+                post_seal(trial, observations, CONFIG, show, config["performance"], phase="live")
+                self.assertEqual(host.call_count, 1)
+            audit = Audit(trial)
+            audit_performance(audit, trial, config, observations, calls, "turn")
+            self.assertFalse([row for row in audit.checks if row["status"] == "failed"])
+
     def test_live_host_then_deferred_interview_preserves_public_record(self):
         tags = ["AUS", "GER", "FRA"]
         observed = {tag: {**observe(), "country": tag} for tag in tags}

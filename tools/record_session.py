@@ -12,7 +12,7 @@ from threading import Event, Thread
 import time
 import uuid
 
-from campaign import load_config, name_ok, ROOT
+from campaign import load_config, name_ok, ROOT, validate_switch_spec
 from m0_probe import write_json
 from native_campaign import run_campaign
 
@@ -69,7 +69,11 @@ def preview_loop(path, directory, scene, stop):
             client.close()
 
 
-def record(name, config_path, pid, save_dir, obs_config, *, resume=False, through_turn=50):
+def record(name, config_path, pid, save_dir, obs_config, *, resume=False, through_turn=50, switch_model=None):
+    if switch_model is not None:
+        if not resume:
+            raise ValueError("Recording model switches require --resume")
+        validate_switch_spec(switch_model)
     directory = ROOT / "runs/campaigns" / name_ok(name)
     directory.mkdir(parents=True, exist_ok=True)
     client, stop = OBS(obs_config), Event()
@@ -87,6 +91,12 @@ def record(name, config_path, pid, save_dir, obs_config, *, resume=False, throug
         video = client.call("GetVideoSettings")
         if any(video[key] != value for key, value in {"baseWidth": 1280, "baseHeight": 720, "outputWidth": 1280, "outputHeight": 720}.items()):
             raise RuntimeError("OBS dimensions differ from the verified 1280x720 game capture")
+        previous_path = directory / "recording.json"
+        if previous_path.is_file():
+            previous = json.loads(previous_path.read_text(encoding="utf-8"))
+            if previous.get("ended_at") and previous.get("output_path") and not previous.get("active"):
+                stamp = datetime.fromisoformat(previous["ended_at"]).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+                write_json(directory / ("recording.segment." + stamp + ".json"), previous)
         output = ROOT / "recordings" / name
         output.mkdir(parents=True, exist_ok=True)
         client.call("SetRecordDirectory", {"recordDirectory": str(output)})
@@ -106,7 +116,7 @@ def record(name, config_path, pid, save_dir, obs_config, *, resume=False, throug
                 raise RuntimeError("Recording stopped or paused; no new campaign turn was started")
 
         result = run_campaign(name, config_path, pid, save_dir, resume=resume, through_turn=through_turn,
-                              before_turn=require_recording)
+                              before_turn=require_recording, switch_model=switch_model)
         state["status"] = "本轮录制完成" if result["status"] == "completed" else "阶段录制完成"
         return result
     except Exception as error:
@@ -122,7 +132,7 @@ def record(name, config_path, pid, save_dir, obs_config, *, resume=False, throug
                 state.update(active=False, output_path=response.get("outputPath"), ended_at=now(),
                              elapsed_seconds=round(time.monotonic() - start, 3))
         finally:
-            write_json(directory / "recording.json", state)
+            write_json(directory / ("recording.json" if started else "recording_start_error.json"), state)
             client.close()
 
 
@@ -134,6 +144,8 @@ def main():
     parser.add_argument("--save-dir", required=True, type=Path)
     parser.add_argument("--obs-config", required=True, type=Path)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--switch-country-model", nargs=2, metavar=("COUNTRY", "CONFIG"),
+                        help="On resume, apply a model configuration to this country only")
     parser.add_argument("--turns", type=int, default=50)
     parser.add_argument("--key-file", type=Path, help="Existing ignored key file; loaded into process environment only")
     args = parser.parse_args()
@@ -145,7 +157,12 @@ def main():
         else:
             config = load_config(args.config)
         os.environ[config["model"]["api_key_env"]] = args.key_file.read_text(encoding="utf-8").strip()
-    record(args.name, args.config, args.pid, args.save_dir, args.obs_config, resume=args.resume, through_turn=args.turns)
+    switch = None
+    if args.switch_country_model:
+        country, filename = args.switch_country_model
+        switch = {**json.loads((ROOT / filename).read_text(encoding="utf-8-sig")), "country": country}
+    record(args.name, args.config, args.pid, args.save_dir, args.obs_config, resume=args.resume,
+           through_turn=args.turns, switch_model=switch)
 
 
 if __name__ == "__main__":

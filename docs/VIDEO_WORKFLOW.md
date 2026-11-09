@@ -1,5 +1,45 @@
 # 从 AI 对局到视频成片
 
+## 《蒂罗尔的两面旗》制作入口
+
+工具位于 [tools/tyrol](../tools/tyrol/)。从仓库根目录运行。五国七日场的开局与续录命令见[原生对局说明](NATIVE_CAMPAIGN.md)。剪辑时先给智谱娘一个面向新观众的开场，随后让观众听到桌上挑问和玩家回应，再揭相关目标。公开总结大会只引用公开发言、主持词和已核实的地图结果。
+
+**前两天的节奏试片**以人声长度决定镜头时长。使用六个千问系统音色，保留句内换气，接话之间留约 0.65–1.1 秒，事件转换另留读图时间。智谱娘交代开局、日末局势和次日的新问题。先审这两天的节奏，再决定是否继续。
+
+```powershell
+python -m pip install requests
+python tools/tyrol/qwen_day12/voices.py
+python tools/tyrol/qwen_day12/edit.py
+```
+
+第一条制作命令调用 `qwen-audio-3.1-tts-flash`。可通过 `DASHSCOPE_API_KEY` 或终端隐藏输入提供密钥。台本和公开引文随代码提供。逐句 WAV 与请求摘要保存在 `runs/tyrol_official_20261109/qwen_day12/takes/`，相同台词、音色和参数可以复用。第二条命令离线合成 25 fps 的 MP4、SRT 和逐句停顿表，输出到 `exports/tyrol_two_flags_20261109/前两日节奏试片/`。画面使用本场第一段 OBS 原片、仓库内的角色立绘和游戏省份图。Windows 剪辑机使用微软雅黑，`HOI4_DIR` 指向游戏安装目录。FFmpeg 和 ffprobe 可从 PATH 查找，也可用 `FFMPEG`、`FFPROBE` 指定程序。
+
+**整期剪辑与总结大会**基于本场已归档的七回合记录、OBS 原片、终局净地图和已审台词。按制作顺序使用以下入口。
+
+| 阶段 | 入口与产物 |
+| --- | --- |
+| 七日解说和选段 | `tools/tyrol/final_commentary.py` 生成有来源的赛后解说；`cut.py` 依据 `selections.json` 剪交锋片段并记录原片时间码；`index.py` 生成本地放映页。 |
+| 公开总结大会 | 顺序运行 `tools/tyrol/closing/` 下的 `meeting.py`、`export.py`、`publish.py`。六位角色从公开引文起步，接上刚刚说过的话；完整的公开台词与出处保存在 [素材库](../assets/corpus/tyrol_two_flags_20261109/公开总结大会/)。 |
+| 七日静音母版 | `tools/tyrol/fullcut/intro.py` 准备智谱娘的片头；`build.py` 按审定台本拼接正片和大会；`pack.py` 导出 54 句台词、分角色清单、字幕和帧时间码。还原同一粗剪须使用归档的主持与赛后解说原文，剪辑脚本会核对引文。 |
+
+**已锁画面的 GPT-SoVITS 配音**使用另一套入口。先放好本地六套声线、参考音频、各角色资产清单，以及上一步导出的静音母版和台词清单。运行以下命令生成服务器包。
+
+```powershell
+python tools/tyrol/dub/pack_bundle.py --output exports/tyrol-dub.zip
+```
+
+服务器需要 FFmpeg、ffprobe 和能读取同一解压路径的 GPT-SoVITS api_v2。若制作机已有本场验证过的独立 `engine/` 目录，可向打包命令追加 `--engine <目录>`，按 `engine.sha256` 收入指定版本的运行文件。独立运行方式使用已安装 CUDA PyTorch 和 torchaudio 的 Linux 服务器。
+
+```bash
+cd tyrol-dub
+bash run.sh check
+bash run.sh
+# 替换 output/wav/ 中的个别台词后，按原时间码重新合片
+bash run.sh mix
+```
+
+成片、人声干轨和每句的变速记录在 `output/`。固定时间窗可能让对白显得急促，`timing.csv` 标出超过 1.25 倍的句子供复听。需要重做节奏时，用上面的前两天试片流程重新定镜头长度。
+
 当前视频工作流以原生五国对局 GER/FRA/ITA/AUS/SWI 为基础。已完成29/50回合；离线审计为22,349通过、0失败、4 unknown。对局未到50回合冻结终点，第30回合尚未提交，不能称为50回合完成。证据包与范围见[2026-11-09制作验收](PRODUCTION_REVIEW_20261109.md)。
 
 流程可展示事前意图、公开与私信表态、密封命令及执行结果、回合后的实际状态；旧运行缺少意图摘要时，只展示实际留存的提交理由。私密意图是结果发生前提交的简短决策摘要，不是隐藏思维链。宣战和海空军任务设置已有独立验收，但任务设置不代表战果。事件验证限于 `news.66`：第9回合安全暂停、选择并确认 resolved 后关窗，再恢复剩余12小时；其他通用事件或弹窗未验证。

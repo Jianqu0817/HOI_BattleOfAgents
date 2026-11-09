@@ -5,6 +5,15 @@ DEFAULT_POLICY = {"peace_hours": 720, "war_hours": 24, "critical_hours": 6,
                   "maximum_hours": 720, "chunk_hours": 6}
 
 
+def war_review_options(selection, default_hours):
+    if default_hours is None or selection["reason"] != "war":
+        return []
+    maximum = selection["step_hours"]
+    if type(default_hours) is not int or not 1 <= default_hours <= selection["policy"]["war_hours"]:
+        raise ValueError("default_war_review_hours must be within the war budget")
+    return sorted(set(range(default_hours, maximum + 1, default_hours)) | {maximum})
+
+
 def validate_policy(policy):
     if not isinstance(policy, dict) or set(policy) - set(DEFAULT_POLICY):
         raise ValueError("unknown clock policy fields")
@@ -18,7 +27,7 @@ def validate_policy(policy):
     return value
 
 
-def select_step_hours(*, at_war, public_events=(), policy=None):
+def select_step_hours(*, at_war, public_events=(), policy=None, remaining_hours=None):
     """Choose before planning/sealing; no country gets an independent clock.
 
     Public events are observed facts, not forecasts. A pending decision, critical
@@ -33,5 +42,9 @@ def select_step_hours(*, at_war, public_events=(), policy=None):
                    for event in public_events)
     reason = "critical_event" if critical else "war" if at_war else "peace"
     hours = policy["critical_hours" if critical else "war_hours" if at_war else "peace_hours"]
+    if remaining_hours is not None:
+        if type(remaining_hours) is not int or remaining_hours <= 0:
+            raise ValueError("Scenario clock has no remaining hours")
+        hours = min(hours, remaining_hours)
     return {"step_hours": hours, "reason": reason, "shared_clock": True,
             "policy": policy}

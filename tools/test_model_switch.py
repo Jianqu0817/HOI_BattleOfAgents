@@ -28,6 +28,45 @@ def show_config():
 
 
 class SwitchSpecTests(unittest.TestCase):
+    def test_officials_budget_preserves_all_player_models(self):
+        config = show_config()
+        config["show"]["models"] = {tag: {**OLD, "request_parameters": {"max_tokens": 4096}} for tag in config["countries"]}
+        before = model_slot_fingerprints(config)
+        applied = apply_model_switch(config, {"target": "officials", "base_url": OLD["base_url"], "model": OLD["model"],
+                                            "request_parameters": {"thinking_budget": 1024}})
+        after = model_slot_fingerprints(applied)
+        self.assertEqual(before["player_models"], after["player_models"])
+        self.assertEqual(after["referee_model"]["request_parameters"], {"thinking_budget": 1024})
+        self.assertEqual(applied["model"]["request_parameters"], {"thinking_budget": 1024})
+
+    def test_country_budget_switch_preserves_other_players_and_judges(self):
+        config = show_config()
+        before = model_slot_fingerprints(config)
+        spec = {"country": "SWI", "base_url": OLD["base_url"], "model": OLD["model"],
+                "request_parameters": {"reasoning_effort": "xhigh", "max_tokens": 8192}}
+        applied = apply_model_switch(config, spec)
+        after = model_slot_fingerprints(applied)
+        for tag in config["countries"]:
+            if tag != "SWI":
+                self.assertEqual(before["player_models"][tag], after["player_models"][tag])
+        self.assertEqual(before["referee_model"], after["referee_model"])
+        self.assertEqual(before["commentary_model"], after["commentary_model"])
+        self.assertEqual(after["player_models"]["SWI"]["request_parameters"]["max_tokens"], 8192)
+        self.assertEqual(config["show"]["models"], {})
+        with self.assertRaises(ValueError):
+            apply_model_switch(config, {**spec, "country": "USA"})
+
+    def test_targeted_switches_chain_without_resetting_previous_country(self):
+        from native_campaign import apply_campaign_switch
+        manifest = {"config": show_config(), "turns": [{"index": 3, "status": "deciding"}]}
+        first = {**SPEC, "country": "SWI", "request_parameters": {"max_tokens": 8192}}
+        second = {**SPEC, "country": "FRA", "request_parameters": {"max_tokens": 6000}}
+        apply_campaign_switch(manifest, first, reason="budget", source="test")
+        config, record = apply_campaign_switch(manifest, second, reason="other budget", source="test")
+        self.assertEqual(config["show"]["models"]["SWI"]["request_parameters"]["max_tokens"], 8192)
+        self.assertEqual(config["show"]["models"]["FRA"]["request_parameters"]["max_tokens"], 6000)
+        self.assertEqual(record["from"], manifest["model_switches"][0]["to"])
+
     def test_apply_switch_replaces_every_slot_without_touching_the_frozen_config(self):
         config = show_config()
         applied = apply_model_switch(config, SPEC)
@@ -105,6 +144,22 @@ def switch_identity_of(fingerprint):
 
 class CachedCallReuseTests(unittest.TestCase):
     MESSAGES = [{"role": "system", "content": "sys"}, {"role": "user", "content": "prompt"}]
+
+    def test_wrapped_failed_reply_is_recovered_only_for_the_same_input_and_model(self):
+        archived = self.directory / "failed_model_calls" / "intent_ITA.original.json"
+        archived.parent.mkdir()
+        raw = '{"country":"I\nTA","go\nal":"守\n约"}'
+        archived.write_text(json.dumps({"phase": "intent", "country": "ITA", "messages": self.MESSAGES,
+            "request_config": model_settings(self.new_model), "raw_content": raw,
+            "metadata": {"finish_reason": "stop", "ended_at": "2026-11-09T00:00:00+00:00",
+                         "response_id": "original"}}), encoding="utf-8")
+        with mock.patch("model_trial.complete", side_effect=AssertionError("network")):
+            with self.assertRaisesRegex(AssertionError, "network"):
+                recorded_complete(self.directory, "intent_ITA", self.old_model, self.MESSAGES, "intent", "ITA")
+            record = recorded_complete(self.directory, "intent_ITA", self.new_model, self.MESSAGES, "intent", "ITA")
+        self.assertEqual(record["response"], {"country": "ITA", "goal": "守约"})
+        self.assertEqual(record["metadata"]["response_id"], "original")
+        self.assertEqual(record["metadata"]["content_normalization"]["raw_content"], raw)
 
     def setUp(self):
         self.directory = Path(tempfile.mkdtemp())

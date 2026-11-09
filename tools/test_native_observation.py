@@ -29,6 +29,29 @@ def request(observed, actions=None):
 
 
 class NativeObservationTests(unittest.TestCase):
+    def test_more_move_choices_do_not_expand_sealed_action_allowance(self):
+        data = snapshot()
+        data["divisions"]["units"] = [{"unit_id": i, "province": 10, "path": []} for i in range(12)]
+        extended = observe(snapshots=data, state=STATE, map_context=MAP, move_limit=8)
+        moves = extended["action_options"]["division.move"]
+        self.assertEqual(len({a["args"]["unit_id"] for a in moves}), 8)
+        self.assertEqual(len(observe(snapshots=data, state=STATE, map_context=MAP)["action_options"]["division.move"]), 2)
+        from model_trial import validate_trial_request
+        with self.assertRaisesRegex(ValueError, "action limit"):
+            validate_trial_request(request(extended, moves[:3]), extended, 2)
+
+    def test_reconsultation_uses_earliest_sealed_request_and_daily_default(self):
+        obs = {tag: observe(tag, review_options=[24, 48, 72]) for tag in ("GER", "FRA", "AUS")}
+        req = {tag: {**request(value), "review_after_hours": 72} for tag, value in obs.items()}
+        self.assertEqual(to_native_plan(req, obs, step_hours=72)["step_hours"], 72)
+        req["FRA"]["review_after_hours"] = 48
+        self.assertEqual(to_native_plan(req, obs, step_hours=72)["step_hours"], 48)
+        del req["GER"]["review_after_hours"]
+        self.assertEqual(to_native_plan(req, obs, step_hours=72)["step_hours"], 24)
+        req["FRA"]["review_after_hours"] = 96
+        with self.assertRaisesRegex(ValueError, "published choices"):
+            to_native_plan(req, obs, step_hours=72)
+
     def test_bounded_owned_actions_and_no_raw_handles(self):
         observed = observe(state=STATE, map_context=MAP)
         moves = observed["action_options"]["division.move"]

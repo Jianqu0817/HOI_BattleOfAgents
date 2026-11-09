@@ -62,6 +62,18 @@ def country_model(default, show, tag):
     return {**default, **(show or {}).get("models", {}).get(tag, {})}
 
 
+def player_prompt_limits(show, model):
+    limits = show.get("player_prompt_limits", {}).get(model, {})
+    if not isinstance(limits, dict) or set(limits) - {"max_bytes", "trim_bytes"}:
+        raise ValueError("player_prompt_limits entries accept max_bytes and trim_bytes")
+    maximum = limits.get("max_bytes", show.get("player_prompt_bytes"))
+    trim = limits.get("trim_bytes", maximum)
+    if maximum is not None or trim is not None:
+        if type(maximum) is not int or type(trim) is not int or not 0 < trim <= maximum:
+            raise ValueError("player prompt limits must satisfy 0 < trim_bytes <= max_bytes")
+    return maximum, trim
+
+
 def referee_model(default, show):
     return {**default, **(show or {}).get("referee_model", {})}
 
@@ -194,6 +206,8 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
                                "自然追求本国目标；允许合作、隐瞒和欺骗，但没有必须背叛或制造笑点的要求。")
     payload["match_rules"] = show["common_rules"]
     payload["game_guide"] = show["guide"]
+    if phase in ("diplomacy", "private", "reply") and "dialogue_guide" in show:
+        payload["game_guide"] = show["dialogue_guide"]
     payload["own_profile"] = copy.deepcopy(show["profiles"].get(tag, {}))
     payload["participants"] = tags
     if show.get("public_cast"):
@@ -231,11 +245,16 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
     elif phase in ("diplomacy", "private"):
         if phase == "diplomacy":
             payload["task"] = payload["task"].replace("其他四国", "其他参赛国")
+            if show.get("table_host") and payload.get("public_diplomacy"):
+                payload["task"] += " 大狐狸刚才的插话在public_host_messages中。你可以回嘴、接梗、质疑她的解读，也可以继续谈自己的事。"
             if show.get("quiet_interludes") and payload.get("public_diplomacy") and not observed.get("public_board"):
                 payload["task"] += (" 本轮暂无新增公开局势事件，但这不代表没有战斗。第二轮先接住值得回应的具体提议；"
                                     "若没有新议题，可用一两句自然的闺蜜式闲聊、调侃、关心或回怼接话，展现角色关系，避免重复战报。"
                                     "以公开发言与可观察结果接话，不自动公开私信或密封命令；主动转述本人参与的私信仍只是你的新主张。"
                                     "不读取他国未授权秘密，不编造战果，不为节目效果强行改变策略或宣战。")
+                if show.get("public_callbacks"):
+                    payload["task"] += (" 挑对方刚才一句最有意思的原话接梗：可以顺着她的比喻说下去、"
+                                        "拿自己的旧话自嘲，或把先前的吹嘘还给她。一个包袱说完就收。")
             if show.get("strict_public_context"):
                 payload["task"] += " 不明白时可以质问或要求澄清；只根据公开材料表态。"
             if show.get("performance"):

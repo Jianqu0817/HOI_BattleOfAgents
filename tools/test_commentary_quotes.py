@@ -4,6 +4,17 @@ from episode import normalize_commentary_quotes
 
 
 class CommentaryQuoteTests(unittest.TestCase):
+    def test_inline_analysis_verifies_explicit_ids_and_ranges(self):
+        episode = {"events": [{"id": f"T6-E00{i}", "text": "已记录"} for i in range(1, 4)]}
+        value = {"title": "本轮", "facts": [], "analysis": ["现场有三条记录（T6-E001到T6-E003）。"],
+                 "jokes": [], "highlights": []}
+        fixed, changes = normalize_commentary_quotes(value, episode, explain_only=True)
+        self.assertEqual(fixed["analysis"], [{"text": "现场有三条记录。", "evidence_ids": ["T6-E001","T6-E002","T6-E003"]}])
+        self.assertEqual(changes[0]["kind"], "inline_analysis_citations")
+        episode["events"].pop(1)
+        with self.assertRaisesRegex(ValueError, "evidence"):
+            normalize_commentary_quotes(value, episode, explain_only=True)
+
     def test_terminal_period_repair_is_exact_and_raw_response_is_preserved(self):
         episode = {"events": [{"id": "e1", "text": "我方愿互不越界，并交换说明。"}]}
         value = {"title": "回顾", "facts": [{"evidence_id": "e1", "quote": "我方愿互不越界。"}],

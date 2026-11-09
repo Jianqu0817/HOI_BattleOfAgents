@@ -73,14 +73,18 @@ def snapshot(directory, *, audience=False):
                         public.append({"country": tag, "round": round_id, "message": value["message"]})
         speeches = [{key: value.get(key) for key in ("country", "round", "message")} for value in public]
         performance = read(trial / "performance.json", {})
-        host = [{"message": row.get("message"), "refs": row.get("refs", [])} for row in performance.get("host", [])]
+        lines = performance.get("host") if "host" in performance else read(trial / "table_host.json", [])
+        host = [{"message": row.get("message"), "refs": row.get("refs", [])} for row in lines]
         board = read(directory / "turns" / f"turn_{number:03d}" / "public_events.json", [])
         changes = [public_event(value, number) for value in board if value.get("visibility") == "public"]
         events.extend(changes)
         review = read(trial / "decision_result.json", {})
+        elapsed = entry.get("elapsed_seconds")
+        if entry.get("started_at") and entry.get("completed_at"):
+            elapsed = round((datetime.fromisoformat(entry["completed_at"]) - datetime.fromisoformat(entry["started_at"])).total_seconds(), 3)
         row = {"index": number, "status": entry.get("status"), "date": entry.get("final_date"),
                "started_at": entry.get("started_at"), "completed_at": entry.get("completed_at"),
-               "elapsed_seconds": entry.get("elapsed_seconds"), "model_seconds": entry.get("model_seconds"),
+               "elapsed_seconds": elapsed, "model_seconds": entry.get("model_seconds"),
                "native_seconds": entry.get("native_seconds"), "action_counts": entry.get("action_counts", {}),
                "public": speeches, "host": host, "events": changes,
                "referee_status": review.get("status", "pending"),
@@ -107,12 +111,15 @@ def snapshot(directory, *, audience=False):
         brand, fallback = CAST.get(tag, ("", tag))
         model = config.get("show", {}).get("models", {}).get(tag, config.get("model", {})).get("model")
         for switch in manifest.get("model_switches", []):
-            if switch.get("first_affected_turn", 10**9) <= index:
+            if switch.get("first_affected_turn", 10**9) <= index and switch.get("spec", {}).get("target") != "officials" and switch.get("spec", {}).get("country") in (None, tag):
                 model = switch.get("spec", {}).get("model", model)
         countries.append({"tag": tag, "country": NAMES.get(tag, tag), "name": profile.get("name", fallback),
                           "brand": brand, "model": model})
-    timings = [row["elapsed_seconds"] for row in completed[-5:] if isinstance(row.get("elapsed_seconds"), (int, float))]
+    timings = [row["elapsed_seconds"] for row in rows if row["status"] == "completed"
+               and isinstance(row.get("elapsed_seconds"), (int, float))][-5:]
     return {"name": directory.name, "view": "audience" if audience else "public",
+            "scenario_hours": config.get("scenario", {}).get("hours"),
+            "played_hours": sum(row.get("game_hours") or 0 for row in rows if row["status"] == "completed"),
             "updated_at": datetime.now(timezone.utc).isoformat(), "started_at": manifest.get("started_at"),
             "status": manifest.get("status", "preparing"), "error": manifest.get("error"),
             "completed": len(completed), "limit": config.get("turn_limit", 50), "current": index,

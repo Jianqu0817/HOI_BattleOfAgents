@@ -82,7 +82,8 @@ def public_context(messages, observed):
     selected = {key: copy.deepcopy(payload[key]) for key in
                 ("task", "match_rules", "game_guide", "own_profile", "participants", "turn_hours") if key in payload}
     if "own_profile" in selected:
-        selected["own_profile"] = {key: value for key, value in selected["own_profile"].items() if key in ("name", "persona")}
+        selected["own_profile"] = {key: value for key, value in selected["own_profile"].items()
+                                   if key in ("name", "persona", "scenario_goal")}
     if payload.get("public_cast"):
         from showrunner import public_cast
         selected["public_cast"] = public_cast(payload)
@@ -229,6 +230,13 @@ def public_commentary_messages(observed, public, question="概括刚才公开发
         payload["public_cast"] = public_cast(show)
         payload["own_profile"] = {key: show.get("host_profile", {})[key] for key in ("name", "persona")
                                   if key in show.get("host_profile", {})}
+    if show and show.get("table_host"):
+        if show.get("public_opening"):
+            payload["match_rules"] = show["public_opening"]
+        question = ("你是智谱娘大狐狸，五国刚说完第一轮，正等你插话。挑一两句桌上原话，"
+                    "抓一个口径差异、吹嘘或暧昧的保证。可以故意拱火：点名问另一个当事人敢不敢认，"
+                    "也可以拿一句旧话逗她。每次围绕一个话头，留个能让人回嘴的空隙。"
+                    "你的推断要让人听出是你在逗或追问；逐字引语只用对方真说过的话。")
     if payload.get("public_host_messages"):
         # Host comments cite direct player/world evidence, never host chains.
         payload.pop("public_host_messages")
@@ -349,7 +357,7 @@ def settle_commitments(entries, public_events, date_raw, turn_id):
     return settled
 
 
-def compress_own_memory(history, country, *, max_turns=12, max_letters=24):
+def compress_own_memory(history, country, *, max_turns=12, max_letters=24, compact=False):
     """Bound older own records deterministically, retaining evidence and scope.
 
     This is a private evidence digest, not a second narrator. No inferred belief,
@@ -364,6 +372,8 @@ def compress_own_memory(history, country, *, max_turns=12, max_letters=24):
         row = {"turn_id": original["turn_id"], "visibility": "player_private", "country": country,
                "source": {"kind": "own_history", "turn_id": original["turn_id"]}}
         for key in ("private_decision", "private_intent", "execution", "commitments", "public_events", "public_diplomacy"):
+            if compact and key in ("commitments", "public_diplomacy"):
+                continue  # Recent speech and the active commitment ledger are supplied separately.
             if key in original:
                 row[key] = copy.deepcopy(original[key])
         if original.get("referee_feedback"):

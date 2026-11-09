@@ -33,6 +33,8 @@ def resolve(path):
 
 def load_config(path):
     config = read(resolve(path))
+    if "base_config" in config:
+        config = {**read(resolve(config.pop("base_config"))), **config}
     tags = countries_from(config)
     for key, low, high in (("step_hours", 1, 360), ("turn_limit", 1, 100), ("action_limit", 1, 6), ("communication_rounds", 1, 3)):
         if type(config.get(key)) is not int or not low <= config[key] <= high:
@@ -43,6 +45,15 @@ def load_config(path):
     for key in ("common_rules", "guide"):
         if show.get(key + "_file"):
             show[key] = resolve(show[key + "_file"]).read_text(encoding="utf-8-sig")
+    if "player_prompt_limits" in show and ("player_prompt_bytes" not in show or not isinstance(show["player_prompt_limits"], dict)):
+        raise ValueError("player_prompt_limits requires a model mapping and a default player_prompt_bytes")
+    if "player_prompt_bytes" in show:
+        if type(show["player_prompt_bytes"]) is not int or show["player_prompt_bytes"] <= 0:
+            raise ValueError("player_prompt_bytes must be a positive integer")
+        from showrunner import player_prompt_limits
+        for model in show.get("player_prompt_limits", {}):
+            player_prompt_limits(show, model)
+        show["dialogue_guide"] = show.get("guide", "")
     if show.get("knowledge_file"):
         show["guide"] = show.get("guide", "") + "\n\n" + resolve(show["knowledge_file"]).read_text(encoding="utf-8-sig")
     show.setdefault("profiles", {})
@@ -59,6 +70,18 @@ def load_config(path):
     config["commentary_model"] = {**config["model"], **read(resolve(config["commentary_model_config"]))} if config.get("commentary_model_config") else config["model"]
     config["scoring"] = validate_rules(config.get("scoring"))
     rules = rules_text(config["scoring"], config["turn_limit"], config["step_hours"])
+    if scenario := config.get("scenario"):
+        if (set(scenario["goals"]) != set(tags) or type(scenario["hours"]) is not int or scenario["hours"] <= 0
+                or "clock_policy" not in config):
+            raise ValueError("A timed scenario requires a private goal per player, positive game hours and a clock policy")
+        for tag in tags:
+            show["profiles"].setdefault(tag, {})["scenario_goal"] = scenario["goals"][tag]
+        rules = f"\n本场展演《{scenario['title']}》持续{scenario['hours']}游戏小时。开场公共消息：{scenario['opening']}"
+        show["public_opening"] = scenario["opening"]
+    if show.get("table_host") and (not show.get("strict_public_context") or config["communication_rounds"] != 2
+                                    or not config.get("performance", {}).get("enabled")
+                                    or not config["performance"].get("public_host", True)):
+        raise ValueError("Table host requires a public performance and two public rounds")
     if "clock_policy" in config:
         rules = rules.replace(f"每回合{config['step_hours']}游戏小时", "每回合使用当轮公布的共同时间预算，重要事件可提前暂停")
     show["common_rules"] = show.get("common_rules", "") + rules
@@ -81,7 +104,7 @@ def validate_switch_spec(spec):
     """A recorded provider switch may only change identity and transport fields; never messages or secrets."""
     if not isinstance(spec, dict) or not spec:
         raise ValueError("model switch spec must be a non-empty object")
-    unknown = set(spec) - set(SWITCH_FIELDS)
+    unknown = set(spec) - set(SWITCH_FIELDS) - {"country", "target"}
     if unknown:
         raise ValueError("model switch spec may only contain: " + ", ".join(sorted(SWITCH_FIELDS)))
     for key in ("base_url", "model"):
@@ -89,13 +112,31 @@ def validate_switch_spec(spec):
             raise ValueError("model switch spec requires a non-empty " + key)
     if "api_key_env" in spec and (not isinstance(spec["api_key_env"], str) or not spec["api_key_env"].strip()):
         raise ValueError("model switch api_key_env must be a non-empty string")
+    if "country" in spec and (not isinstance(spec["country"], str) or not re.fullmatch(r"[A-Z]{3}", spec["country"])):
+        raise ValueError("model switch country must be a three-letter country tag")
+    if spec.get("target", "all") not in ("all", "officials") or ("country" in spec and "target" in spec):
+        raise ValueError("model switch target must be all or officials, without a country selector")
     return copy.deepcopy(spec)
 
 
 def apply_model_switch(config, spec):
-    """Return a new config with the switch applied to every model slot; the frozen manifest config is not mutated."""
+    """Apply to one selected country or every model slot, preserving the frozen config."""
     spec = validate_switch_spec(spec)
     result = copy.deepcopy(config)
+    target = spec.pop("target", "all")
+    country = spec.pop("country", None)
+    if country is not None:
+        if country not in result["countries"]:
+            raise ValueError("model switch country is not a participant")
+        show = result.setdefault("show", {})
+        models = show.setdefault("models", {})
+        models[country] = {**result["model"], **models.get(country, {}), **spec}
+        for row in show.get("public_cast", []):
+            if row.get("country") == country:
+                row["execution_model"] = spec["model"]
+        return result
+    if target == "officials" and not set(result["countries"]) <= set(result.get("show", {}).get("models", {})):
+        raise ValueError("officials-only switch requires explicit player model configurations")
     for slot in ("model", "commentary_model"):
         if slot in result:
             result[slot] = {**result[slot], **spec}
@@ -103,6 +144,10 @@ def apply_model_switch(config, spec):
     if isinstance(show, dict):
         if isinstance(show.get("referee_model"), dict):
             show["referee_model"] = {**show["referee_model"], **spec}
+        if target == "officials":
+            if model_slot_fingerprints(config)["player_models"] != model_slot_fingerprints(result)["player_models"]:
+                raise ValueError("officials-only switch would alter inherited player parameters")
+            return result
         for tag, model in (show.get("models") or {}).items():
             if isinstance(model, dict):
                 show["models"][tag] = {**model, **spec}
@@ -145,9 +190,7 @@ def build_switch_record(config, spec, *, reason, source):
     """Build the auditable ledger entry for a resume-time provider switch; secrets stay out by construction."""
     applied = apply_model_switch(config, spec)
     old, new = model_slot_fingerprints(config), model_slot_fingerprints(applied)
-    old_players = list(old["player_models"].values())
-    if not new["player_models"] or all(switch_identity(value) == switch_identity(old_players[0])
-                                       for value in new["player_models"].values()):
+    if not new["player_models"] or switch_fingerprint_list(old) == switch_fingerprint_list(new):
         raise ValueError("model switch must change provider identity or request parameters")
     return {"schema": "iron.model-switch.v1", "spec": spec, "reason": reason, "source": source,
             "from": old, "to": new,
@@ -325,7 +368,10 @@ def turn_show_config(config, directory):
             entries = read(path)
             if len(visible_promises(entries, tag)) != len(entries):
                 raise ValueError("承诺记忆混入未参与的私信: " + tag)
-            show["commitment_memory"][tag] = entries[-30:]
+            if show.get("player_prompt_bytes"):
+                show["commitment_memory"][tag] = [row for row in entries[:-30] if row.get("status") == "not_due"] + entries[-30:]
+            else:
+                show["commitment_memory"][tag] = entries[-30:]
     return show
 
 
@@ -340,7 +386,10 @@ def remember_commitments(config, trial, directory):
         old = read(destination) if destination.exists() else []
         merged = {(item["source_trial"], item["id"]): item for item in old}
         merged.update({(item["source_trial"], item["id"]): item for item in visible_promises(entries, tag)})
-        write_json(destination, list(merged.values())[-100:])
+        ordered = list(merged.values())
+        active = ([row for row in ordered[:-100] if row.get("status") == "not_due"]
+                  if config.get("show", {}).get("player_prompt_bytes") else [])
+        write_json(destination, active + ordered[-100:])
 
 
 def update_standings(config, manifest, directory):

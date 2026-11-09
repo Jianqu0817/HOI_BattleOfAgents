@@ -11,10 +11,16 @@ from showrunner import check_history
 from story_channels import interview_messages, public_context
 from verify_campaign import Audit
 from verify_native_campaign import (audit_annotation, audit_clock, audit_commentary_normalization,
-                                    audit_performance, audit_public_prompt, audit_sealed, projected_history)
+                                    audit_performance, audit_public_prompt, audit_sealed, projected_history, response_ids_status)
 
 
 class NativeCampaignAuditTests(unittest.TestCase):
+    def test_placeholder_ids_remain_unknown_and_real_duplicates_fail(self):
+        self.assertIsNone(response_ids_status(["real-1", "chatcmpl-0", "chatcmpl-0"]))
+        self.assertIsNone(response_ids_status([None, "real-1"]))
+        self.assertFalse(response_ids_status(["real-1", "real-1"]))
+        self.assertTrue(response_ids_status(["real-1", "real-2"]))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

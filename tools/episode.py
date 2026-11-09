@@ -5,6 +5,7 @@ import hashlib
 import html
 import json
 from pathlib import Path
+import re
 import shutil
 import sys
 import textwrap
@@ -127,6 +128,10 @@ def collect_episode(trial, turn):
         events.append(event)
         return event
 
+    profile_path = trial / "show_profiles.json"
+    show_profiles = read(profile_path) if profile_path.exists() else {}
+    if show_profiles.get("public_opening") and result["turn_id"] == 1:
+        add("opening", "开场公告", show_profiles["public_opening"], _source(profile_path, trial, "trial", "/public_opening"))
     for tag in tags:
         observation_path = trial / "observations" / (tag + ".json")
         if observation_path.exists():
@@ -148,7 +153,18 @@ def collect_episode(trial, turn):
 
     path = trial / "public_diplomacy.json"
     public = read(path) if path.exists() else []
+    performance_path = trial / "performance.json"
+    performance = read(performance_path) if performance_path.exists() else {}
+
+    def add_host_lines():
+        for index, value in enumerate(performance.get("host", [])):
+            add("host", "主持人 · 公开点评", value["message"], _source(performance_path, trial, "trial", f"/host/{index}"),
+                data={"public_refs": value["refs"]}, recorded_at=call_time("public_host"))
+
+    second_round = next((i for i, row in enumerate(public) if row.get("round") == 2), None) if (trial / "table_host.json").exists() else None
     for index, value in enumerate(public):
+        if index == second_round:
+            add_host_lines()
         tag = value["country"]
         add("public", f"公开讨论 · 第 {value.get('round', 1)} 轮 · {NAMES.get(tag, tag)}", value["message"],
             _source(path, trial, "trial", f"/{index}/message"), tag,
@@ -159,12 +175,10 @@ def collect_episode(trial, turn):
                 _source(path, trial, "trial", f"/{index}/public_asides"), tag, to=aside["about"],
                 data={"public_ref": aside["ref"]})
 
-    path = trial / "performance.json"
-    if path.exists():
-        performance = read(path)
-        for index, value in enumerate(performance.get("host", [])):
-            add("host", "主持人 · 公开点评", value["message"], _source(path, trial, "trial", f"/host/{index}"),
-                data={"public_refs": value["refs"]}, recorded_at=call_time("public_host"))
+    path = performance_path
+    if performance:
+        if second_round is None:
+            add_host_lines()
         for index, value in enumerate(performance.get("interviews", [])):
             add("interview", "观众专属采访 · " + value["country"], value["answer"],
                 _source(path, trial, "trial", f"/interviews/{index}"), value["country"], visibility="private",
@@ -389,8 +403,7 @@ def collect_episode(trial, turn):
 
     path = trial / "commitments.json"
     commitments = read(path) if path.exists() else {"entries": []}
-    profile_path = trial / "show_profiles.json"
-    profiles = read(profile_path).get("profiles", {}) if profile_path.exists() else {}
+    profiles = show_profiles.get("profiles", {})
     players = {}
     for tag in tags:
         model = None
@@ -401,6 +414,15 @@ def collect_episode(trial, turn):
                 break
         players[tag] = {"name": profiles.get(tag, {}).get("name") or NAMES.get(tag, tag),
                         "persona": profiles.get(tag, {}).get("persona", ""), "model": model}
+    for tag, profile in profiles.items():
+        if profile.get("scenario_goal"):
+            add("scenario_goal", f"{tag}的本场私有目标", profile["scenario_goal"],
+                _source(profile_path, trial, "trial", f"/profiles/{tag}/scenario_goal"), tag, visibility="private")
+    if "scenario_control" in result:
+        text = "。".join(f"{province}号省由{owner}控制" if owner else f"{province}号省控制方未知"
+                        for province, owner in result["scenario_control"].items())
+        event = add("scenario_map", "本轮结束时的焦点地图", text, _source(result_path, turn, "turn", "/scenario_control"))
+        event["game_date"] = final.get("parsed_date")
     return {"schema_version": 1, "audience": "audience_full", "turn_id": result["turn_id"],
             "match_id": result["match_id"], "countries": tags, "events": events,
             "players": players,
@@ -435,7 +457,7 @@ def validate_commentary(value, episode):
     return value
 
 
-def generate_commentary(trial, turn, config):
+def generate_commentary(trial, turn, config, *, show=None):
     """Generate commentary for viewers only. Never writes player memory or observations."""
     trial, turn = Path(trial), Path(turn)
     episode = collect_episode(trial, turn)
@@ -445,6 +467,16 @@ def generate_commentary(trial, turn, config):
                "task": "根据证据为中文策略对战视频写简短解说。facts只能逐字摘录证据text；analysis明确是判断；jokes幽默但不能编造行动。区分故意欺骗、临时改计划、策略失败、执行器故障，证据不足不能称背叛。承诺尚无强制力，生产请求不等于实际获得工厂。旧记录没有事前意图时不得把事后理由伪装成事前谋划。每类至多3条，不必凑数；每条事实摘录至多60字、判断至多100字、吐槽至多60字，标题至多30字。总输出务必简短以适配1800 token上限。只输出{title,facts:[{evidence_id,quote}],analysis:[{text,evidence_ids}],jokes:[{text,evidence_ids}],highlights:[{title,evidence_ids}]}。"}
     messages = [{"role": "system", "content": "你是只面向观众的独立赛后解说。玩家不会收到你的全知信息。只输出JSON。"},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+    if show and show.get("table_host"):
+        messages[0]["content"] = ("你是智谱娘大狐狸，现在只对观众说话。口语短句，让第一次看钢铁雄心的人也能跟上。"
+                                  "证据中的角色台词是素材。只输出JSON。")
+        payload["task"] = ("用一到三段analysis给观众讲懂本轮。先说哪块地方或哪句承诺值得看，再对照各方想得到什么、"
+                           "密封命令做了什么、执行后地图究竟变没变。遇到影响判断的机制，用一句白话解释。"
+                           "没有确认抵达就只说下了令，证据不足可以留下悬念。每段注明真实evidence_ids。"
+                           "facts只逐字摘录事件text。jokes填空数组，桌上的吐槽已收录在公开互动。"
+                           "输出{title,facts:[{evidence_id,quote}],analysis:[{text,evidence_ids}],jokes:[],"
+                           "highlights:[{title,evidence_ids}]}。各类最多三条。")
+        messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
     settings = {key: config[key] for key in ("base_url", "model", "api_key_env", "temperature", "max_tokens", "enable_thinking",
                                             "include_thinking_parameter", "json_mode", "api_format", "omit_temperature", "request_parameters") if key in config}
     directory = trial / "audience_commentary"
@@ -458,7 +490,7 @@ def generate_commentary(trial, turn, config):
         record = {"audience": "audience_full", "messages": messages, "settings": settings,
                   "response": response, "metadata": metadata}
         write(path, record)
-    value, normalizations = normalize_commentary_quotes(record["response"], episode)
+    value, normalizations = normalize_commentary_quotes(record["response"], episode, explain_only=bool(show and show.get("table_host")))
     if normalizations:
         record["normalized_response"] = value
         record["normalizations"] = normalizations
@@ -471,12 +503,49 @@ def generate_commentary(trial, turn, config):
     return output
 
 
-def normalize_commentary_quotes(value, episode):
+def inline_analysis(text, evidence):
+    """Project explicit parenthesized source IDs into the audience contract."""
+    event_id = r"T\d+-E\d+"
+    item = event_id + "(?:到" + event_id + ")?"
+    group = re.compile(r"[（(](" + item + "(?:[、，,]" + item + r")*)[）)]")
+    refs = []
+    for match in group.finditer(text):
+        for entry in re.split("[、，,]", match[1]):
+            endpoints = entry.split("到")
+            if any(key not in evidence for key in endpoints):
+                raise ValueError("Commentary cites missing evidence")
+            if len(endpoints) == 1:
+                refs.extend(endpoints)
+                continue
+            turn, start = endpoints[0].split("-E")
+            other_turn, end = endpoints[1].split("-E")
+            if turn != other_turn or not 0 <= int(end)-int(start) < len(evidence):
+                raise ValueError("Invalid inline evidence range")
+            ids = [f"{turn}-E{number:03d}" for number in range(int(start), int(end) + 1)]
+            if any(key not in evidence for key in ids):
+                raise ValueError("Commentary cites missing evidence")
+            refs.extend(ids)
+    prose = group.sub("", text)
+    if not refs or re.search(event_id, prose):
+        raise ValueError("Analysis needs explicit source IDs")
+    return {"text": prose, "evidence_ids": list(dict.fromkeys(refs))}
+
+
+def normalize_commentary_quotes(value, episode, *, explain_only=False):
     """Retain raw model output; never publish a paraphrase as a verbatim quote."""
     import copy
     candidate = copy.deepcopy(value)
     evidence = {event["id"]: event for event in episode["events"]}
     changes, facts = [], []
+    if explain_only and isinstance(candidate.get("analysis"), list):
+        for index, row in enumerate(candidate["analysis"]):
+            if isinstance(row, str):
+                projected = inline_analysis(row, evidence)
+                candidate["analysis"][index] = projected
+                changes.append({"kind": "inline_analysis_citations", "index": index, "evidence_ids": projected["evidence_ids"]})
+    if explain_only and isinstance(candidate.get("jokes"), list) and candidate["jokes"]:
+        changes.append({"kind": "omit_audience_jokes", "count": len(candidate["jokes"])})
+        candidate["jokes"] = []
     for key in ("facts", "analysis", "jokes", "highlights"):
         rows = candidate.get(key)
         if isinstance(rows, list) and len(rows) > 8:

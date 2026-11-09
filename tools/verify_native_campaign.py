@@ -11,14 +11,14 @@ from pathlib import Path
 
 from campaign import (ROOT, apply_model_switch, config_digest, model_slot_fingerprints, model_usage, name_ok,
                       switch_fingerprint_list, validate_switch_spec)
-from model_trial import compact_native_context, decision_private_context, digest, native_brief, normalize_request, own_history, private_context, validate_trial_request
+from model_trial import compact_native_context, decision_private_context, digest, fit_player_prompt, native_brief, normalize_request, own_history, private_context, validate_trial_request
 from native_capture import BUILD, GAME_SHA256
 from native_observation import _digest as observation_digest, to_native_plan
 from native_turn import NativeTurn
-from native_pacing import select_step_hours, validate_policy
+from native_pacing import select_step_hours, validate_policy, war_review_options
 from story_channels import (check_public_asides, interview_messages, project_interview_answer,
                             public_commentary_messages, public_context, public_source_ids)
-from showrunner import check_history, check_intent, check_replies, ledger, visible_promises
+from showrunner import check_history, check_intent, check_replies, ledger, player_prompt_limits, visible_promises
 from verify_campaign import Audit, audit_episode, audit_model
 
 
@@ -133,7 +133,8 @@ def audit_sealed(audit, trial, observed, decisions, result, prefix, limit):
             continue
         validate_trial_request(sealed, observation, limit)
         review = reviews.get(tag, {})
-        audit.add(label + ":unchanged_model_referee_execution", normalize_request(call["response"]) == sealed == executed == result.get("requests", {}).get(tag)
+        original = normalize_request(call["response"], allow_review=bool(observation.get("review_options_hours")))
+        audit.add(label + ":unchanged_model_referee_execution", original == sealed == executed == result.get("requests", {}).get(tag)
                   and review.get("approved") is True and review.get("request_sha256") == digest(sealed)
                   and decisions.get("request_hashes", {}).get(tag) == digest(sealed))
         requests[tag] = sealed
@@ -259,7 +260,9 @@ def audit_performance(audit, trial, config, observed, calls, prefix):
               and performance.get("writeback") is False)
     if config["performance"].get("public_host", True):
         call = calls.get("public_host", {})
-        expected = public_commentary_messages(observed[tags[0]], public, show=config.get("show"))
+        table = config.get("show", {}).get("table_host")
+        host_input = [row for row in public if row["round"] == 1] if table else public
+        expected = public_commentary_messages(observed[tags[0]], host_input, show=config.get("show"))
         audit.add(prefix + ":public_host_exact_public_sources", call.get("messages") == expected)
         sources = audit_public_prompt(audit, call["messages"], observed[tags[0]], prefix + ":host", host=True)
         from story_channels import check_public_commentary, project_public_commentary
@@ -272,6 +275,8 @@ def audit_performance(audit, trial, config, observed, calls, prefix):
             expected_hosts.append({"id": "host-" + identity, "visibility": "public", "source_kind": "host_commentary",
                                    "message": row["text"], "refs": [row["ref"]], "index": index})
         audit.add(prefix + ":public_host_literal_response", performance.get("host") == expected_hosts)
+        if table:
+            audit.add(prefix + ":host_delivered_at_table", read(trial / "table_host.json") == expected_hosts)
     count = config["performance"].get("interviews_per_turn", 1)
     offset = (observed[tags[0]]["turn_id"] - 1) % len(tags)
     interviews = performance.get("interviews", [])
@@ -293,6 +298,12 @@ def audit_performance(audit, trial, config, observed, calls, prefix):
                   and (call.get("response") == {key: row[key] for key in ("country", "answer")}
                        or (call.get("interview_projection") == {"method": "audience_interview_fields.v1", "removed": removed_answer}
                            and projected_answer == {key: row[key] for key in ("country", "answer")})))
+
+
+def response_ids_status(values):
+    if not all(values) or "chatcmpl-0" in values:
+        return None
+    return len(values) == len(set(values))
 
 
 def audit_players(audit, trial, config, observed, decisions, prefix, switch_steps=(), *, audience_config=None, completed_at=None):
@@ -354,21 +365,41 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
         audit_annotation(audit, record, calls, prefix + ":" + label)
         payload = json.loads(record["messages"][1]["content"])
         own = payload["own_observation"]
+        budget, trim = player_prompt_limits(effective["show"], expected["model"])
+        if budget:
+            audit.add(prefix + ":player_prompt_budget:" + label,
+                      sum(len(m["content"].encode("utf-8")) for m in record["messages"]) <= budget)
         check_history(projected_history(own.get("recent_private_history", [])), tag)
         strict_public = phase == "diplomacy" and config["show"].get("strict_public_context")
         if strict_public:
-            sources = audit_public_prompt(audit, record["messages"], observed[tag], prefix + ":" + label)
+            speaker = observed[tag]
+            if config["show"].get("table_host") and label == "diplomacy_2_" + tag:
+                speaker = {**speaker, "public_host_messages": speaker.get("public_host_messages", []) + read(trial / "table_host.json")}
+            sources = audit_public_prompt(audit, record["messages"], speaker, prefix + ":" + label)
             check_public_asides(response(record), tags, sources)
         else:
             expected_own = copy.deepcopy(native_brief(observed[tag]))
             if config["show"].get("compact_native_context"):
                 expected_own = compact_native_context({"own_observation": expected_own})["own_observation"]
+            if budget:
+                rebuilt = [record["messages"][0], {"role": "user", "content": json.dumps(
+                    {**payload, "own_observation": expected_own}, ensure_ascii=False)}]
+                expected_own = json.loads(fit_player_prompt(rebuilt, budget, trim)[1]["content"])["own_observation"]
             audit.add(prefix + ":own_native_projection:" + label, own == expected_own)
+            table_fields = set()
+            if config["show"].get("table_host") and phase in ("private", "reply", "decision"):
+                table_fields.add("table_host_messages")
+                audit.add(prefix + ":table_speech_in_private_brief:" + label,
+                          payload.get("table_host_messages") == read(trial / "table_host.json"))
             audit.add(prefix + ":no_audience_or_admin_payload:" + label,
-                      set(payload) <= {"task", "own_observation", "public_diplomacy", "own_private_diplomacy", "match_rules", "game_guide", "own_profile", "participants", "turn_hours", "own_score_context", "own_commitment_memory", "commitment_memory_notice", "own_pre_diplomacy_intent", "history_notice"})
+                      set(payload) <= table_fields | {"task", "own_observation", "public_diplomacy", "own_private_diplomacy", "match_rules", "game_guide", "own_profile", "public_cast", "participants", "turn_hours", "own_score_context", "own_commitment_memory", "commitment_memory_notice", "own_pre_diplomacy_intent", "history_notice"})
+            if "public_cast" in payload:
+                from showrunner import public_cast
+                audit.add(prefix + ":authored_public_cast_only:" + label,
+                          payload["public_cast"] == public_cast(effective.get("show", {})))
         profile = config["show"]["profiles"].get(tag, {})
         if strict_public:
-            profile = {key: value for key, value in profile.items() if key in ("name", "persona")}
+            profile = {key: value for key, value in profile.items() if key in ("name", "persona", "scenario_goal")}
         audit.add(prefix + ":own_profile:" + label, payload.get("own_profile") == profile)
         promises = payload.get("own_commitment_memory", [])
         audit.add(prefix + ":own_visible_commitments:" + label, len(visible_promises(promises, tag)) == len(promises))
@@ -399,7 +430,9 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
             audit.add(prefix + ":no_early_inbox:" + label, payload["own_private_diplomacy"] in (None, {"sent": [], "received": []}))
     for tag in tags:
         audit.add(prefix + ":mailbox_routes:" + tag, read(trial / "private_diplomacy" / (tag + ".json")) == decision_private_context(trial, tag, private))
-    audit.add(prefix + ":unique_actual_response_ids", all(response_ids) and len(response_ids) == len(set(response_ids)))
+    audit.add(prefix + ":unique_actual_response_ids", response_ids_status(response_ids),
+              detail="Missing or placeholder provider response IDs cannot independently establish response identity"
+              if response_ids_status(response_ids) is None else None)
     audit.add(prefix + ":intents_precede_all_public_rounds", len(intent_ends) == len(tags) and bool(public_starts) and max(intent_ends) <= min(public_starts))
     audit_performance(audit, trial, config, observed, calls, prefix)
     return calls
@@ -503,9 +536,9 @@ def audit_native_execution(audit, directory, execution, plan, native, compatibil
               and all(native.get(k) == v for k, v in identity.items()) and native.get("initial_country_restored") is not None)
 
 
-def audit_commentary_normalization(audit, call, commentary, base, prefix):
+def audit_commentary_normalization(audit, call, commentary, base, prefix, *, explain_only=False):
     from episode import normalize_commentary_quotes
-    expected, normalizations = normalize_commentary_quotes(call["response"], base)
+    expected, normalizations = normalize_commentary_quotes(call["response"], base, explain_only=explain_only)
     audit.add(prefix + ":commentary_audience_only", commentary.get("audience") == call.get("audience") == "audience_full"
               and commentary.get("content") == expected)
     audit.add(prefix + ":commentary_normalization_recomputed_from_raw",
@@ -514,7 +547,7 @@ def audit_commentary_normalization(audit, call, commentary, base, prefix):
               and commentary.get("normalizations", []) == normalizations)
 
 
-def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=True, audience_deferred=False):
+def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=True, audience_deferred=False, explain_only=False):
     from episode import validate_commentary
     episode = read(output / "episode.json")
     undelivered = [row for path in sorted((trial / "model_calls").glob("reply_*.json"))
@@ -542,7 +575,7 @@ def audit_export_sources(audit, output, trial, turn, prefix, *, strict_evidence=
     commentary = read(trial / "audience_commentary/commentary.json")
     call = read(trial / "audience_commentary/model_call.json")
     base = {**episode, "events": [row for row in episode["events"] if row["kind"] != "commentary"]}
-    audit_commentary_normalization(audit, call, commentary, base, prefix)
+    audit_commentary_normalization(audit, call, commentary, base, prefix, explain_only=explain_only)
     evidence = [{key: event.get(key) for key in ("id", "kind", "country", "to", "title", "text", "game_date")}
                 for event in base["events"]]
     payload = json.loads(call["messages"][1]["content"])
@@ -616,12 +649,20 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
         if expected_turns is not None:
             audit.add("requested_turn_count", turn_limit == expected_turns)
         audit.add("initial_raw_clock", type(manifest.get("initial_date_raw")) is int)
-        complete = manifest.get("status") == "completed" and len(entries) == turn_limit and all(row.get("status") == "completed" for row in entries)
+        scenario = config.get("scenario")
+        deadline = manifest["initial_date_raw"] + scenario["hours"] if scenario else None
+        endpoint = bool(entries) and entries[-1].get("final_date_raw") == deadline if scenario else len(entries) == turn_limit
+        complete = manifest.get("status") == "completed" and endpoint and all(row.get("status") == "completed" for row in entries)
+        if scenario:
+            audit.add("scenario_completion_at_deadline", (manifest.get("status") == "completed") == bool(endpoint))
         audit.add("campaign_committed_completion", True if complete else None)
         audit.add("ordered_turn_indices", [row["index"] for row in entries] == list(range(1, len(entries) + 1)))
         journals = {path.stem: read(path) for path in (directory / "native_requests").glob("*.json")}
         audit.add("unique_native_journal_ids", len(journals) == len({row.get("intent", {}).get("request_id") for row in journals.values()}))
         before = audit_capture(audit, directory / "initial_capture", tags, manifest["initial_date_raw"], identity, "initial_capture")
+        if scenario:
+            from native_campaign import check_scenario_opening, scenario_control
+            check_scenario_opening(scenario, {"state": before["world"]}, before["snapshots"][tags[0]]["date"])
         all_usage, returned_models = Counter(), set()
         for entry in entries:
             index, prefix = entry["index"], "turn_" + str(entry["index"])
@@ -641,11 +682,17 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
                 if "clock_policy" in config:
                     previous_events = [] if index == 1 else read(directory / "turns" / f"turn_{index-1:03d}" / "public_events.json")
                     expected_selection = select_step_hours(at_war=bool(before["world"].get("public_wars")),
-                                                           public_events=previous_events, policy=config["clock_policy"])
+                                                           public_events=previous_events, policy=config["clock_policy"],
+                                                           remaining_hours=deadline-start_raw if scenario else None)
                     audit.add(prefix + ":frozen_adaptive_clock_selection", selection_path.is_file() and selection == expected_selection)
                 after = audit_capture(audit, directory / "captures" / f"after_{index:03d}", tags, start_raw + elapsed, identity, prefix + ":capture")
+                if scenario:
+                    audit.add(prefix + ":scenario_map", result.get("scenario_control") == scenario_control(scenario, after["world"]))
                 observed = {tag: read(trial / "observations" / (tag + ".json")) for tag in tags}
                 for tag, observation in observed.items():
+                    if config["show"].get("default_war_review_hours"):
+                        audit.add(prefix + ":review_options:" + tag, observation.get("review_options_hours", []) ==
+                                  war_review_options(selection, config["show"]["default_war_review_hours"]))
                     own = dict(observation); observation_id = own.pop("observation_id")
                     check_history(observation.get("recent_history", []), tag)
                     audit.add(prefix + ":observation_identity_hash:" + tag, observation_id == observation_digest(own)
@@ -669,7 +716,7 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
                 if "policy" in selection:
                     plan.update(clock_policy=selection["policy"], clock_selection={"reason": selection["reason"], "shared_clock": True})
                 audit.add(prefix + ":unchanged_native_plan", plan == read(execution / "plan.json"))
-                audit_clock(audit, manifest["initial_date_raw"], selection["step_hours"], index, native, after["manifest"], entry, prefix, start_raw=start_raw)
+                audit_clock(audit, manifest["initial_date_raw"], plan["step_hours"], index, native, after["manifest"], entry, prefix, start_raw=start_raw)
                 audit_native_execution(audit, directory, execution, plan, native, result, journals, identity, prefix, skip_save_bytes=skip_save_bytes)
                 audience_config = config
                 for switch in manifest.get("model_switches", []):
@@ -687,7 +734,8 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
                 deferred = config.get("audience_timing") == "postmatch" and not entry.get("audience_completed_at")
                 audit_episode(audit, output, result, prefix + ":episode")
                 audit_export_sources(audit, output, trial, turn, prefix + ":episode",
-                                     strict_evidence=bool(config["show"].get("strict_public_context")), audience_deferred=deferred)
+                                     strict_evidence=bool(config["show"].get("strict_public_context")), audience_deferred=deferred,
+                                     explain_only=bool(config["show"].get("table_host")))
                 audit_production(audit, output, config, root, prefix + ":production")
                 commentary_call = trial / "audience_commentary/model_call.json"
                 if not deferred or commentary_call.exists():
@@ -703,7 +751,7 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
 
             audit.section(prefix + ":record_structure", turn_audit)
         audit.add("campaign_provider_usage_totals", dict(all_usage) == manifest.get("usage"))
-        audit.add("all_sealed_decisions", total_decisions == len(tags) * turn_limit if complete else None)
+        audit.add("all_sealed_decisions", total_decisions == len(tags) * len(entries) if complete else None)
         index_path = directory / "index.html"
         committed_indices = [entry["index"] for entry in entries if entry.get("status") == "completed"]
         audit.add("campaign_index_export", index_path.is_file() and all(
@@ -740,7 +788,7 @@ def verify_native_campaign(name, root=ROOT, write=True, *, skip_save_bytes=False
               "provider_readiness_usage": readiness_usage,
               "all_provider_usage": {key: all_usage.get(key, 0) + readiness_usage.get(key, 0)
                                      for key in ("calls", "prompt_tokens", "completion_tokens", "total_tokens")} if manifest is not None else {},
-              "returned_models": sorted(returned_models) if manifest is not None else [],
+              "returned_models": sorted(model for model in returned_models if model is not None) if manifest is not None else [],
               "elapsed_seconds": manifest.get("elapsed_seconds") if manifest is not None else None,
               "save_bytes_checked": not skip_save_bytes, "checks": audit.checks}
     if write:

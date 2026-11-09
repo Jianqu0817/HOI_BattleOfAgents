@@ -11,8 +11,8 @@ import time
 
 from m0_probe import Probe, ROOT, countries_from, write_json, settled_pause_state, game_hours
 from agent_contract import observation, validate_request, country_fingerprint
-from model_client import complete
-from showrunner import (settings as show_settings, model_settings, country_model, referee_model,
+from model_client import complete, ModelJSONError, parse_json_content
+from showrunner import (settings as show_settings, model_settings, country_model, referee_model, player_prompt_limits,
                         check_intent, check_message, check_replies, extend_prompt, ledger,
                         visible_promises, check_history)
 from story_channels import public_context, public_source_ids, assign_public_message_ids, private_feedback
@@ -28,12 +28,13 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
 
 
-def normalize_request(value):
+def normalize_request(value, *, allow_review=False):
     """Flatten the model's identity envelope without modifying decisions or metadata."""
     if isinstance(value, dict) and "identity" in value:
-        if set(value) != {"identity", "actions", "reason"} or not isinstance(value["identity"], dict) or set(value["identity"]) != set(IDENTITY):
+        optional = {"review_after_hours"} if allow_review else set()
+        if set(value) - optional != {"identity", "actions", "reason"} or not isinstance(value["identity"], dict) or set(value["identity"]) != set(IDENTITY):
             raise ValueError("Identity envelope has conflicting or unexpected fields")
-        return {**value["identity"], "actions": value["actions"], "reason": value["reason"]}
+        return {**value["identity"], **{key: item for key, item in value.items() if key != "identity"}}
     return value
 
 
@@ -182,6 +183,30 @@ def factual_notes(request, observed):
     if any(word in reason for word in ("立即完成", "立刻完成")) and any(action["type"] == "research.start" for action in request["actions"]):
         notes.append("research.start只选择正常研究，不直接完成科技；实际时长由游戏结合成本、超前惩罚和积累研究点计算。")
     return notes
+
+
+def fit_player_prompt(messages, byte_limit, trim_bytes=None):
+    """Drop oldest optional memories before resorting to a pre-call size error."""
+    def size():
+        return sum(len(message["content"].encode("utf-8")) for message in messages)
+
+    threshold = byte_limit if trim_bytes is None else trim_bytes
+    prompt_size = size()
+    if prompt_size <= threshold:
+        return messages
+    payload = json.loads(messages[1]["content"])
+    memory = payload.get("own_observation", {}).get("own_memory", {})
+    while memory.get("records"):
+        memory["records"].pop(0)
+        memory["retained_turn_count"] = len(memory["records"])
+        memory["retained_letter_count"] = sum(len(row.get("private_letters", [])) for row in memory["records"])
+        messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
+        prompt_size = size()
+        if prompt_size <= threshold:
+            return messages
+    if prompt_size <= byte_limit:
+        return messages
+    raise ValueError(f"Player prompt exceeds {byte_limit} UTF-8 bytes after optional memory trimming ({prompt_size} bytes)")
 
 
 def country_messages(observed, phase, public, private=None, public_round=1):
@@ -502,7 +527,33 @@ def recorded_complete(directory, label, config, messages, phase=None, country=No
         if "request_config" not in record and require_settings:
             raise ValueError("Legacy call lacks the provider fingerprint required by this show: " + label)
     else:
-        value, metadata = complete(config, messages)
+        for archived in sorted((directory / "failed_model_calls").glob(label + ".*.json"), reverse=True):
+            failure = read(archived)
+            if (failure.get("messages") != messages or failure.get("request_config") != model_settings(config)
+                    or failure.get("phase") != phase or failure.get("country") != country):
+                continue
+            metadata = failure.get("metadata", {})
+            if metadata.get("finish_reason") != "stop":
+                continue
+            try:
+                value, receipt = parse_json_content(failure["raw_content"])
+            except (ValueError, TypeError, KeyError):
+                continue
+            if receipt:
+                record = {"phase": phase, "country": country, "messages": messages, "response": value,
+                          "metadata": {**metadata, "content_normalization": receipt}, "request_config": model_settings(config),
+                          "recovered_from": archived.name, "recorded_at": metadata["ended_at"]}
+                write_json(path, record)
+                return record
+        try:
+            value, metadata = complete(config, messages)
+        except ModelJSONError as error:
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+            write_json(directory / "failed_model_calls" / (label + "." + stamp + ".json"),
+                       {"phase": phase, "country": country, "messages": messages,
+                        "request_config": model_settings(config), "attempts": getattr(error, "failed_samples", []),
+                        "raw_content": error.raw_content, "metadata": error.metadata, "error": str(error)})
+            raise
         record = {"phase": phase, "country": country, "messages": messages, "response": value,
                   "metadata": metadata, "request_config": model_settings(config),
                   "recorded_at": datetime.now(timezone.utc).isoformat()}
@@ -517,6 +568,8 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     messages = extend_prompt(messages, observed, phase, show_config, tags, intent, private)
     if observed.get("execution_backend") == "native":
         payload = json.loads(messages[1]["content"])
+        if show_config and show_config.get("table_host") and phase in ("private", "reply", "decision"):
+            payload["table_host_messages"] = read(directory / "table_host.json")
         if phase == "decision":
             limit = show_config["action_limit"] if show_config else 1
             payload["task"] = (f"外交结束。为接下来{show_config['step_hours'] if show_config else 360}游戏小时提交密封决定。"
@@ -525,6 +578,13 @@ def call_country(directory, config, observed, phase, public, private=None, publi
                                "不要改写为旧版army.move/air.assign接口。只控制本国，不能新增目标或参数。"
                                "输出{identity:原样复制本国identity,actions:[候选项],reason:简短中文理由}。"
                                "对外发言和承诺不会自动执行；不能看到他国密封决定。理由不超过100字。")
+            if observed.get("review_options_hours"):
+                choices = observed["review_options_hours"]
+                payload["task"] += (f" 可在顶层填review_after_hours，从{choices}中选多久后需要再次决策。"
+                                    f"若部署稳定，可授权已有命令持续到下次复议。省略按{choices[0]}小时，"
+                                    "全场按最早请求或新局势提前暂停。")
+            if show_config and show_config.get("move_candidate_limit"):
+                payload["task"] += " 若上次调动仍在途中或生效未知，先看本国读回；没有新目的可以按兵不动。"
         elif phase in ("diplomacy", "private", "reply"):
             payload["task"] += " 保持简短：每条正文建议60字以内，避免复述整个局势。"
         if show_config and show_config.get("compact_native_context", False):
@@ -534,6 +594,9 @@ def call_country(directory, config, observed, phase, public, private=None, publi
             config = {**config, "max_tokens": min(config["max_tokens"], show_config["phase_max_tokens"][phase])}
     if phase == "diplomacy" and show_config and show_config.get("strict_public_context"):
         messages = public_context(messages, observed)
+    if show_config and show_config.get("player_prompt_bytes"):
+        maximum, trim = player_prompt_limits(show_config, config["model"])
+        messages = fit_player_prompt(messages, maximum, trim)
     sources = public_source_ids(messages, observed) if phase == "diplomacy" and show_config and show_config.get("performance") else None
     label = phase + ("_" + str(public_round) if phase == "diplomacy" and public_round > 1 else "")
     path = directory / "model_calls" / (label + "_" + tag + ".json")
@@ -642,7 +705,7 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     elif phase == "private":
         validate_private(value, tag, tags)
     else:
-        value = normalize_request(value)
+        value = normalize_request(value, allow_review=bool(observed.get("review_options_hours")))
         validate_trial_request(value, observed, show_config["action_limit"] if show_config else 1)
         record["validated_request"] = value
         record["factual_notes"] = factual_notes(value, observed)
@@ -697,8 +760,10 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
                 result["show"][key] = show_config[key]
         result["player_models"] = {tag: model_settings(model) for tag, model in models.items()}
         result["referee_model"] = model_settings(judge)
-        write_json(directory / "show_profiles.json", {"profiles": show_config["profiles"],
-                   "common_rules": show_config["common_rules"], "guide": show_config["guide"]})
+        profiles = {"profiles": show_config["profiles"], "common_rules": show_config["common_rules"], "guide": show_config["guide"]}
+        if show_config.get("public_opening"):
+            profiles["public_opening"] = show_config["public_opening"]
+        write_json(directory / "show_profiles.json", profiles)
     write_json(directory / "decision_result.json", result)
     try:
         intents = {}
@@ -717,9 +782,16 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
         write_json(result_path, result)
         ordered_public = []
         for round_id in range(1, communication_rounds + 1):
+            speakers = observed
+            if round_id == 2 and show_config and show_config.get("table_host"):
+                from performance import public_host_lines
+                table_lines = public_host_lines(directory, observed[tags[0]], ordered_public, config, show_config)
+                write_json(directory / "table_host.json", table_lines)
+                speakers = {tag: {**obs, "public_host_messages": obs.get("public_host_messages", []) + table_lines}
+                            for tag, obs in observed.items()}
             public = {}
             with ThreadPoolExecutor(max_workers=len(tags)) as pool:
-                futures = {pool.submit(call_country, directory, models[tag], observed[tag], "diplomacy", list(ordered_public),
+                futures = {pool.submit(call_country, directory, models[tag], speakers[tag], "diplomacy", list(ordered_public),
                                        None, round_id, tags, show_config, intents.get(tag)): tag for tag in tags}
                 for future in as_completed(futures):
                     tag = futures[future]

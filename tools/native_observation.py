@@ -31,13 +31,15 @@ def _rows(snapshots, key, country, field="units"):
 
 
 def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
-                      map_context=None, history=None):
+                      map_context=None, history=None, move_limit=2, review_options=()):
     """Build bounded candidates without reading or changing the running game.
 
     `snapshots` contains control, divisions, air, navy, optional goals/diplomacy.
     Parsed ownership is usable only with an explicitly matching state_date_raw.
     All returned candidate actions are exact {id,type,args} choices, not schemas.
     """
+    if type(move_limit) is not int or not 1 <= move_limit <= 24:
+        raise ValueError("move candidate limit must be 1..24")
     if not isinstance(tag, str) or not re.fullmatch(r"[A-Z]{3}", tag):
         raise ValueError("Invalid country")
     control = snapshots.get("control", snapshots.get("status", {}))
@@ -58,7 +60,7 @@ def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
     menu = {kind: [] for kind in FIELDS}
 
     def offer(kind, **args):
-        if len(menu[kind]) < 2:
+        if len(menu[kind]) < (move_limit if kind == "division.move" else 2):
             suffix = kind.replace(".", "_")
             menu[kind].append({"id": f"{turn_id}-{tag}-{suffix}-{len(menu[kind]) + 1}",
                                "type": kind, "args": args})
@@ -81,7 +83,11 @@ def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
     if fresh_state and context.get("graph") and context.get("map"):
         from army_actions import _controller, _passable
         allowed = {tag} | {war["enemy"] for war in wars}
-        for unit in sorted(divisions, key=lambda row: row["unit_id"]):
+        units = sorted(divisions, key=lambda row: row["unit_id"])
+        if move_limit > 2 and units:
+            start = (turn_id - 1) * move_limit % len(units)
+            units = units[start:] + units[:start]
+        for unit in units:
             origin = unit["province"]
             if unit.get("path") or not _passable(origin, context):
                 continue
@@ -91,7 +97,7 @@ def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
                 if target != origin and _passable(target, context) and _controller(state, target, context["map"]) in allowed:
                     offer("division.move", unit_id=unit["unit_id"], source=origin, target=target)
                     break
-            if len(menu["division.move"]) >= 2:
+            if len(menu["division.move"]) >= move_limit:
                 break
     # Region reachability has not been proven for arbitrary target regions. Keep
     # existing assignments and offer only supported mission changes on them.
@@ -134,6 +140,8 @@ def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
                         "regions": "Arbitrary region reachability is not verified",
                         "ownership": None if fresh_state else "No same-date parsed ownership snapshot"},
     }
+    if review_options:
+        data["review_options_hours"] = list(review_options)
     data["state_fingerprint"] = _digest({key: data[key] for key in ("date_raw", "divisions", "naval_air", "action_options")})
     data["observation_id"] = _digest(data)
     return data
@@ -141,8 +149,12 @@ def build_observation(tag, snapshots, match_id, turn_id, source, state=None,
 
 def validate_request(request, observed):
     """Only exact published candidates can reach the native executor."""
-    if not isinstance(request, dict) or set(request) != set(IDENTITY) | {"actions", "reason"}:
+    required = set(IDENTITY) | {"actions", "reason"}
+    if not isinstance(request, dict) or set(request) - {"review_after_hours"} != required:
         raise ValueError("Request requires exactly identity, actions and reason")
+    if "review_after_hours" in request and (type(request["review_after_hours"]) is not int
+            or request["review_after_hours"] not in observed.get("review_options_hours", [])):
+        raise ValueError("Review time must be one of the published choices")
     for key in IDENTITY:
         if type(request.get(key)) is not type(observed[key]) or request[key] != observed[key]:
             raise ValueError("Request does not match observation: " + key)
@@ -179,11 +191,18 @@ def to_native_plan(requests, observations, *, step_hours=24, label="native-model
     if len(identities) != 1:
         raise ValueError("Countries do not share a frozen native turn")
     countries = []
+    review_options = next(iter(observations.values())).get("review_options_hours", [])
+    if any(row.get("review_options_hours", []) != review_options for row in observations.values()):
+        raise ValueError("Countries must share the same review window")
+    if review_options and max(review_options) != step_hours:
+        raise ValueError("Review window does not match the announced time budget")
     for tag, observed in observations.items():
         if observed["country"] != tag:
             raise ValueError("Observation key does not match country")
         actions = validate_request(requests[tag], observed)
         countries.append({"tag": tag, "actions": [{"id": row["id"], "kind": row["type"], **row["args"]} for row in actions]})
+    if review_options:
+        step_hours = min(request.get("review_after_hours", review_options[0]) for request in requests.values())
     plan = {"schema": SCHEMA, "label": label, "step_hours": step_hours, "disable_ai": True, "countries": countries}
     if save_basename is not None:
         plan["save_basename"] = save_basename

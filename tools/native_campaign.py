@@ -22,7 +22,7 @@ from native_capture import capture, static_context, read_world
 from native_game import NativeGame
 from native_observation import build_observation, to_native_plan
 from native_turn import NativeTurn
-from native_pacing import select_step_hours
+from native_pacing import select_step_hours, war_review_options
 from story_channels import build_public_events, compress_own_memory, settle_commitments
 from performance import post_seal
 
@@ -54,6 +54,19 @@ def require_no_pending_choice(world):
         raise RuntimeError("registered pending event needs a qualified normal choice; stop before model calls and game orders")
 
 
+def scenario_control(scenario, world):
+    return {province: world["provinces"].get(province, {}).get("controller")
+            for province in scenario["opening_control"]}
+
+
+def check_scenario_opening(scenario, capture, date):
+    world = capture["state"]
+    wars = [{row["first"], row["second"]} for row in world.get("public_wars", [])]
+    if (date != scenario["start_date"] or set(scenario["war"]) not in wars
+            or scenario_control(scenario, world) != scenario["opening_control"]):
+        raise ValueError("The loaded save does not match the scenario opening date, war and province controllers")
+
+
 def apply_campaign_switch(manifest, spec, *, reason, source):
     """Record or reuse an auditable resume-time provider switch; returns the effective config and the active record."""
     frozen = manifest["config"]
@@ -67,7 +80,7 @@ def apply_campaign_switch(manifest, spec, *, reason, source):
         if last.get("spec") == spec and switch_fingerprint_list(model_slot_fingerprints(config)) == last.get("to_fingerprints"):
             return config, last
     base = recorded[-1] if recorded else None
-    reference = apply_model_switch(frozen, base["spec"]) if base else frozen
+    reference = config
     candidate = build_switch_record(reference, spec, reason=reason, source=source)
     if base is not None and candidate["from"] != base["to"]:
         raise ValueError("recorded model switches do not chain from the frozen configuration")
@@ -184,11 +197,19 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
         baseline = load_capture(initial, context)
     manifest["initial_date_raw"] = baseline["manifest"]["date_raw"]
     manifest["initial_date"] = baseline["snapshots"][tags[0]]["date"]
+    scenario = config.get("scenario")
+    deadline = None
+    if scenario:
+        check_scenario_opening(scenario, baseline, manifest["initial_date"])
+        deadline = manifest["initial_date_raw"] + scenario["hours"]
     write_json(manifest_path, manifest)
     history = {}
     public_board, host_messages = [], []
     try:
         for index in range(1, limit + 1):
+            remaining = deadline - baseline["manifest"]["date_raw"] if scenario else None
+            if remaining == 0:
+                break
             trial = directory / "trials" / f"turn_{index:03d}"
             execution = directory / "native_turns" / f"turn_{index:03d}"
             turn = directory / "turns" / f"turn_{index:03d}"
@@ -207,12 +228,17 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                 manifest["turns"].append(entry)
             turn_start = time.monotonic()
             require_no_pending_choice(baseline["state"])
+            if manifest.get("error"):
+                entry.setdefault("previous_stops", []).append({"at": manifest.pop("stopped_at", None),
+                                                              "error": manifest.pop("error")})
+            manifest["status"] = "running"
+            write_json(manifest_path, manifest)
             selection_path = trial / "clock_selection.json"
             if selection_path.exists():
                 selection = read(selection_path)
             elif "clock_policy" in config:
                 selection = select_step_hours(at_war=bool(baseline["state"].get("public_wars")),
-                                              public_events=public_board, policy=config["clock_policy"])
+                                              public_events=public_board, policy=config["clock_policy"], remaining_hours=remaining)
                 write_json(selection_path, selection)
             else:
                 selection = {"step_hours": config["step_hours"], "reason": "fixed"}
@@ -226,7 +252,9 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                 else:
                     observed[tag] = build_observation(tag, baseline["snapshots"][tag], name, index,
                                                       {"kind": "native_capture", "capture": baseline["manifest"]},
-                                                      state=baseline["state"], map_context=context, history=history.get(tag, []))
+                                                      state=baseline["state"], map_context=context, history=history.get(tag, []),
+                                                      move_limit=turn_show.get("move_candidate_limit", 2),
+                                                      review_options=war_review_options(selection, turn_show.get("default_war_review_hours")))
                     if config["show"].get("strict_public_context"):
                         observed[tag]["public_board"] = public_board[-256:]
                         observed[tag]["public_host_messages"] = host_messages
@@ -234,7 +262,8 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                         memory_path = directory / "own_memory" / (tag + ".json")
                         if memory_path.exists():
                             # Two recent turns are already in the normal brief.
-                            memory = compress_own_memory(read(memory_path)[:-2], tag, max_turns=6, max_letters=8)
+                            memory = compress_own_memory(read(memory_path)[:-2], tag, max_turns=6, max_letters=8,
+                                                         compact=bool(turn_show.get("player_prompt_bytes")))
                             while memory["records"] and len(json.dumps(memory, ensure_ascii=False)) > 24000:
                                 memory["records"].pop(0)
                             memory["retained_turn_count"] = len(memory["records"])
@@ -292,12 +321,14 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
             else:
                 after = capture(game, tags, after_dir, name, index + 1, map_context=context)
             elapsed = native["step_hours"]
-            if not 0 < elapsed <= selection["step_hours"] or (elapsed != selection["step_hours"] and not native.get("early_end")):
+            if not 0 < elapsed <= plan["step_hours"] or (elapsed != plan["step_hours"] and not native.get("early_end")):
                 raise ValueError("native execution did not honor the sealed clock budget")
             expected = baseline["manifest"]["date_raw"] + elapsed
             if native["date_raw"] != expected or after["manifest"]["date_raw"] != expected:
                 raise ValueError("native campaign clock does not match the exact cumulative bound")
             compatibility = adapt_result(native, execution, trial, observed, after)
+            if scenario:
+                compatibility["scenario_control"] = scenario_control(scenario, after["state"])
             public_board = build_public_events(baseline["state"], after["state"], tags,
                 {"before": observed[tags[0]]["date"], "after": after["snapshots"][tags[0]]["date"],
                  "before_raw": baseline["manifest"]["date_raw"], "after_raw": after["manifest"]["date_raw"],
@@ -305,7 +336,7 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
             compatibility["public_events"] = public_board
             write_json(turn / "public_events.json", public_board)
             write_json(turn / "result.json", compatibility)
-            commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) and not deferred else None
+            commentary = generate_commentary(trial, turn, config["commentary_model"], show=turn_show) if config.get("model_commentary", True) and not deferred else None
             export_episode(trial, turn, directory / "episodes" / f"turn_{index:03d}", commentary=commentary)
             if config.get("production"):
                 from production import export_production
@@ -326,16 +357,22 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                         write_json(turn / "promise_settlements" / (tag + ".json"), entries)
             from scoreboard import score
             origin = load_capture(initial, context)["state"]
+            finished = native["date_raw"] == deadline if scenario else index == config["turn_limit"]
             manifest["scoreboard"] = score({**origin, "date": manifest["initial_date"]},
                 {**after["state"], "date": compatibility["final_save"]["parsed_date"]}, tags,
-                context["map"], config["scoring"], index == config["turn_limit"])
+                context["map"], config["scoring"], finished)
             baseline = after
+            completed_at = now()
+            wall_seconds = (datetime.fromisoformat(completed_at) - datetime.fromisoformat(entry["started_at"])).total_seconds()
             entry.update(status="completed", final_date=compatibility["final_save"]["parsed_date"],
                          final_date_raw=native["date_raw"], action_counts={tag: len(requests[tag]["actions"]) for tag in tags},
-                         usage=model_usage(trial), elapsed_seconds=round(time.monotonic() - turn_start, 3), completed_at=now())
+                         usage=model_usage(trial), elapsed_seconds=round(wall_seconds, 3),
+                         last_attempt_seconds=round(time.monotonic() - turn_start, 3), completed_at=completed_at)
             manifest["usage"] = {key: sum(row.get("usage", {}).get(key, 0) for row in manifest["turns"])
                                  for key in ("calls", "prompt_tokens", "completion_tokens", "total_tokens", "calls_without_usage")}
-            manifest["status"] = "completed" if index == config["turn_limit"] else "ready_for_next_turn"
+            manifest["status"] = "completed" if finished else "ready_for_next_turn"
+            if scenario and not finished and index == config["turn_limit"]:
+                manifest["status"] = "turn_limit_reached"
             manifest.pop("error", None)
             manifest.pop("stopped_at", None)
             write_json(manifest_path, manifest); build_index(directory, manifest)
@@ -374,7 +411,7 @@ def complete_audience(name, *, through_turn=None):
         verify_decisions(trial, observed)
         show = {**config["show"], **read(trial / "show_profiles.json")}
         post_seal(trial, observed, config["model"], show, config.get("performance", {}), phase="audience")
-        commentary = generate_commentary(trial, turn, config["commentary_model"]) if config.get("model_commentary", True) else None
+        commentary = generate_commentary(trial, turn, config["commentary_model"], show=show) if config.get("model_commentary", True) else None
         output = directory / "episodes_postmatch" / f"turn_{index:03d}"
         export_episode(trial, turn, output, commentary=commentary)
         if config.get("production"):

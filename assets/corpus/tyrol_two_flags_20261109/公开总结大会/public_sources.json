@@ -1,0 +1,92 @@
+{
+  "1-AUS-2": {
+    "id": "1-AUS-2",
+    "speaker": "AUS",
+    "text": "大狐狸问听还是调——龙姐，听是耳朵，调是手，我等着看手。基米说6673风景正好，可风景不写房产证；停火能谈，旗子先别急着认自家。",
+    "source": "trials/turn_001/public_diplomacy.json#/8/message",
+    "original_id": "speech-065945a91d54436c783a6bf080744cbd1809e34a1e38b4bdd25d19146be99978"
+  },
+  "1-FRA-2": {
+    "id": "1-FRA-2",
+    "speaker": "FRA",
+    "text": "狐狸姐这句掂量问得准,本小姐就留着这份模糊。基米说'守住自家旗子',奥地利说'6673的归属要谈',你们两个先对一下口径。法国的条件很简单:671与6673的归属,未经巴黎同意不改动。谈可以谈,划线本小姐不签。",
+    "source": "trials/turn_001/public_diplomacy.json#/6/message",
+    "original_id": "speech-11f84876ef678c464e058171d26a89ca132c12db9d47e6e98e2634f832eb3d2a"
+  },
+  "1-GER-2": {
+    "id": "1-GER-2",
+    "speaker": "GER",
+    "text": "调停：肥鱼说“6673的归属要谈”，我赞成先谈停火条件，再谈归属。基米，你愿意接受这个次序吗？大狐狸，听是调停的第一步，不是全部。",
+    "source": "trials/turn_001/public_diplomacy.json#/5/message",
+    "original_id": "speech-2ef9cadd7b541f736284ba494624826eab3fb7d8598db6912e6a4b6d64049017"
+  },
+  "1-H3": {
+    "id": "1-H3",
+    "speaker": "GLM",
+    "text": "龙姐说\"愿听取维也纳与罗马的想法\"。维也纳那边回的是\"德国若愿意调停，我听着\"。一个在等调停，一个只说听——听，还是调？",
+    "source": "trials/turn_001/table_host.json#/2/message",
+    "original_id": "host-239605cf66fe943a5d2b2ed43710fb495376c9a689f1e10baeae29eb5fd51a62"
+  },
+  "2-ITA-2": {
+    "id": "2-ITA-2",
+    "speaker": "ITA",
+    "text": "很抱歉克莱德大小姐，喵！6673本喵早就在原地趴好、停止前进了。肥鱼小姐说旗子不是房产证，那本喵先当租客住着，只要你不来掀房顶，咱们就地停火慢慢算租金喵！",
+    "source": "trials/turn_002/public_diplomacy.json#/7/message",
+    "original_id": "speech-761771b66847568be1b1a03b49dadc2f131b678d5d754d84f2d3c71b70a95f4c"
+  },
+  "3-AUS-2": {
+    "id": "3-AUS-2",
+    "speaker": "AUS",
+    "text": "狐姐说“差一个房本的距离”——房本我揣着，租约能签，但租约上不写“现状即归属”。基米，租客想续住，把“没多拔草叶”换成一句公开的“停止进攻”，我就按第五天那份租约办。龙姐，手还没看见，耳朵先借你。",
+    "source": "trials/turn_003/public_diplomacy.json#/8/message",
+    "original_id": "speech-47c3d1e2dd5ffa73ff9cbf64c4274079ffee7ed9fa0241f5cc512ac076532004"
+  },
+  "4-FRA-2": {
+    "id": "4-FRA-2",
+    "speaker": "FRA",
+    "text": "狐狸姐的验收标准本小姐接了：一，基米公开发出“停止进攻”，并补上“不认6673归属”后半句；二，到第七天前，公开频道不再出现6673的进攻战报。法国看不到6673的实时部队，只认这两条公开记录，不认口头保证。千千的茶本小姐也续上，茶可以续，命令得写清楚。",
+    "source": "trials/turn_004/public_diplomacy.json#/6/message",
+    "original_id": "speech-bfdf4a6a73e2506fa15f0ae8f2d5ecc004790dc1a8613ce1802b2ac9d75a8b58"
+  },
+  "6-FRA-2": {
+    "id": "6-FRA-2",
+    "speaker": "FRA",
+    "text": "狐狸姐，作证不作保，这条本小姐认。基米，你的“第七天前绝不向671拔腿”只挂了奥方一个条件，请补上“6673内无新的进攻行动”，和肥鱼的口径对齐。本小姐的小本本已经记下，第六天前只看公开记录。",
+    "source": "trials/turn_006/public_diplomacy.json#/6/message",
+    "original_id": "speech-d3d9925e4650b51359ade31e727d3f770b98b2cd83fac989d00f89593c6731b0"
+  },
+  "6-H1": {
+    "id": "6-H1",
+    "speaker": "GLM",
+    "text": "基米说\"大小姐和千千作证\"——可克莱德说过\"不替租客作保\"，千千说\"接杯不接账\"。两位都只数盏，没答应替你按门。作证和作保，猫猫选哪个？",
+    "source": "trials/turn_006/table_host.json#/0/message",
+    "original_id": "host-969e88a640318803b0346e3ff4a9022bed34eb8714a75161ad70d0b8bcde40c5"
+  },
+  "6-SWI-2": {
+    "id": "6-SWI-2",
+    "speaker": "SWI",
+    "text": "狐姐问作证还是作保——门把在当事方手里，盏在我手里。肥鱼姐\"盏照数\"，收下了。第六盏见。",
+    "source": "trials/turn_006/public_diplomacy.json#/9/message",
+    "original_id": "speech-f2fb1920d3ac5d00d1ec9335b837704fd1910811a4ed2f905edbfc722b57f435"
+  },
+  "7-AUS-2": {
+    "id": "7-AUS-2",
+    "speaker": "AUS",
+    "text": "狐姐问6673里动了算不算先拔腿——算。这句我上轮就写进盏里了，动了茶当场作废，不用等开箱。基米把“6673不进攻”补上了，口径齐，我认。至于“坐等开箱”，箱还没开呢，猫猫别替我提前报喜。千问，第七盏照数，茶我续。",
+    "source": "trials/turn_007/public_diplomacy.json#/8/message",
+    "original_id": "speech-56457a8b37cf7fbe957df05bab62223515118e8c37e59abe5ec1da0ae775d766"
+  },
+  "7-ITA-2": {
+    "id": "7-ITA-2",
+    "speaker": "ITA",
+    "text": "很抱歉大狐狸，本喵可没偷看箱子！肥鱼小姐既然说“这顿白米饭我请”，那本喵带根香蕉去蹭饭总行吧？纸和锁全对齐，6673不拔腿也不折腾，明早一起开箱喵！",
+    "source": "trials/turn_007/public_diplomacy.json#/7/message",
+    "original_id": "speech-fad9ae9d8d00f5a5dc39e60d2675746afbcc4b3c326586158cd38ed1f27f614c"
+  },
+  "MAP": {
+    "id": "MAP",
+    "speaker": "地图",
+    "text": "开场奥意已交战。七个游戏日结束，671号省仍由奥地利控制，6673号省仍由意大利控制。",
+    "source": "turns/turn_007/result.json#/scenario_control"
+  }
+}

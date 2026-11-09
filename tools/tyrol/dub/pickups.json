@@ -1,0 +1,16 @@
+{
+  "pickup_parameters": {
+    "text_split_method": "cut0",
+    "speed_factor": 1.15,
+    "fragment_interval": 0.15
+  },
+  "pickup_line_ids": [
+    "324c1fcfd28e6bcbb0da",
+    "023617efa91f0b334d7e",
+    "e50bda6d01c013270f9e",
+    "e786940594808ae2d1af",
+    "41ae6b8ef58354191a48",
+    "2f714a89f6b5c2af50e6",
+    "66ea16133c2e56cc3778"
+  ]
+}

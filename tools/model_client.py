@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import copy
 import math
 import os
+import re
 import time
 import urllib.error
 from urllib.parse import urlsplit
@@ -17,6 +18,45 @@ GENERATION_PARAMETERS = {"temperature", "top_p", "top_k", "min_p", "frequency_pe
 
 class PermanentModelError(RuntimeError):
     """A provider-declared unavailable model must not be sampled again."""
+
+
+class ModelJSONError(RuntimeError):
+    def __init__(self, message, raw_content, metadata):
+        super().__init__(message)
+        self.raw_content = raw_content
+        self.metadata = metadata
+
+
+def parse_json_content(content):
+    """Accept JSON or one whole JSON code fence; never extract from surrounding prose."""
+    fenced = re.fullmatch(r"\s*```(?:json)?[ \t]*\r?\n(.*?)\r?\n```[ \t]*\s*", content, re.DOTALL | re.IGNORECASE)
+    body = fenced[1] if fenced else content
+    try:
+        value = json.loads(body)
+    except json.JSONDecodeError as error:
+        if error.msg != "Invalid control character at" or body[error.pos:error.pos + 1] not in ("\r", "\n"):
+            raise
+        # A line break inside a field NAME establishes provider wrapping. With
+        # only text values affected, keep the original line endings as text.
+        token = r'"(?:[^"\\]|\\.)*"'
+        wrapped = any("\n" in match[0] or "\r" in match[0]
+                      for match in re.finditer(token + r'(?=\s*:)', body, re.DOTALL))
+        if re.search(r'\\[\r\n]', body):
+            raise
+
+        def line_endings(match):
+            return match[0].replace("\r", "" if wrapped else r"\r").replace("\n", "" if wrapped else r"\n")
+
+        def unique_keys(pairs):
+            if len(dict(pairs)) != len(pairs):
+                raise json.JSONDecodeError("Ambiguous duplicate key in repaired JSON", body, 0)
+            return dict(pairs)
+
+        value = json.loads(re.sub(token, line_endings, body, flags=re.DOTALL), object_pairs_hook=unique_keys)
+        method = "json_string_line_wraps.v1" if wrapped else "json_string_line_endings.v1"
+        return value, {"method": method, "raw_content": content}
+    receipt = {"method": "whole_json_fence.v1", "raw_content": content} if fenced else None
+    return value, receipt
 
 
 def generation_parameters(config):
@@ -90,6 +130,12 @@ def request_body(config, messages):
         body["enable_thinking"] = config.get("enable_thinking", False)
     if config.get("json_mode", True):
         body["response_format"] = {"type": "json_object"}
+        if not any("json" in message["content"].lower() for message in messages):
+            instruction = "只输出 JSON 对象。"
+            if messages and messages[0]["role"] == "system":
+                body["messages"] = [{**messages[0], "content": messages[0]["content"] + "\n" + instruction}, *messages[1:]]
+            else:
+                body["messages"] = [{"role": "system", "content": instruction}, *messages]
     body.update(parameters)
     if config.get("omit_temperature"):
         body.pop("temperature", None)
@@ -120,12 +166,17 @@ def complete(config, messages, attempts=3):
     key = api_key_from_environment(config["api_key_env"])
     if not key:
         raise ValueError("Model API key environment variable is missing")
-    last_error = None
+    last_error, failed_samples = None, []
     for attempt in range(1, max(1, attempts) + 1):
         try:
-            return _complete_once(config, messages, key)
+            value, metadata = _complete_once(config, messages, key)
+            if failed_samples:
+                metadata["failed_samples"] = failed_samples
+            return value, metadata
         except (RuntimeError, json.JSONDecodeError) as error:
             last_error = error
+            if isinstance(error, ModelJSONError):
+                failed_samples.append({"raw_content": error.raw_content, "metadata": error.metadata, "error": str(error)})
             text = str(error)
             if isinstance(error, PermanentModelError):
                 retryable = False
@@ -137,6 +188,8 @@ def complete(config, messages, attempts=3):
             else:
                 retryable = True
             if attempt >= max(1, attempts) or not retryable:
+                if isinstance(error, ModelJSONError):
+                    error.failed_samples = failed_samples
                 raise
             time.sleep(2 * attempt)
     raise last_error
@@ -185,11 +238,6 @@ def _complete_once(config, messages, key):
     if choice.get("finish_reason") != "stop" or not isinstance(content, str):
         raise RuntimeError(f"Model did not finish a complete text response (finish_reason={choice.get('finish_reason')!r}, "
                            f"content_type={type(content).__name__}, reasoning_content_present={isinstance(message, dict) and bool(message.get('reasoning_content'))})")
-    # JSON is parsed before any game executor sees the result.
-    try:
-        result = json.loads(content)
-    except json.JSONDecodeError as error:
-        raise RuntimeError("Model returned malformed JSON: " + str(error)) from None
     metadata = {"requested_model": config["model"], "returned_model": value.get("model"),
                     "response_id": value.get("id"), "trace_id": trace_id,
                     "usage": value.get("usage"), "elapsed_seconds": elapsed_seconds,
@@ -197,4 +245,13 @@ def _complete_once(config, messages, key):
                     "finish_reason": choice.get("finish_reason")}
     if provider_usage is not None:
         metadata.update(api_format="anthropic", provider_usage=provider_usage)
+    if body.get("response_format", {}).get("type") == "json_object" and body["messages"] != messages:
+        metadata["json_mode_instruction_added"] = True
+    # Preserve the final text and actual usage when JSON fails, without executing it.
+    try:
+        result, content_normalization = parse_json_content(content)
+    except json.JSONDecodeError as error:
+        raise ModelJSONError("Model returned malformed JSON: " + str(error) + "; content_prefix=" + repr(content[:100]), content, metadata) from None
+    if content_normalization is not None:
+        metadata["content_normalization"] = content_normalization
     return result, metadata

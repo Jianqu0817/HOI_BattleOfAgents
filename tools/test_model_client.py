@@ -11,7 +11,7 @@ from unittest.mock import patch
 from types import SimpleNamespace
 import urllib.error
 
-from model_client import api_key_from_environment, complete, request_body
+from model_client import api_key_from_environment, complete, parse_json_content, request_body, ModelJSONError
 from model_trial import recorded_complete
 from showrunner import MODEL_FIELDS, model_settings
 
@@ -34,6 +34,56 @@ def completion(content='{"ok":true}', finish="stop"):
 
 
 class ModelClientTests(unittest.TestCase):
+    def test_failed_json_is_saved_with_prompt_and_usage_without_a_success_record(self):
+        metadata = {"requested_model": CONFIG["model"], "returned_model": CONFIG["model"], "usage": {"total_tokens": 20}}
+        error = ModelJSONError("bad JSON", "UNPARSEABLE_MODEL_TEXT", metadata)
+        error.failed_samples = [{"raw_content": error.raw_content, "metadata": metadata}]
+        with tempfile.TemporaryDirectory() as folder, patch("model_trial.complete", side_effect=error):
+            root = Path(folder)
+            with self.assertRaises(ModelJSONError):
+                recorded_complete(root, "decision_TEST", CONFIG, MESSAGES, "decision", "TEST")
+            paths = list((root / "failed_model_calls").glob("*.json"))
+            self.assertEqual(len(paths), 1)
+            value = json.loads(paths[0].read_text(encoding="utf-8"))
+            self.assertEqual(value["raw_content"], error.raw_content)
+            self.assertEqual(value["messages"], MESSAGES)
+            self.assertEqual(value["attempts"][0]["metadata"]["usage"]["total_tokens"], 20)
+            self.assertFalse((root / "model_calls/decision_TEST.json").exists())
+
+    def test_json_mode_interview_adds_wire_instruction_without_changing_cached_prompt(self):
+        messages = [{"role": "system", "content": "现在采访"}, {"role": "user", "content": "输出{country,answer}"}]
+        body = request_body(CONFIG, messages)
+        self.assertIn("JSON", body["messages"][0]["content"])
+        self.assertEqual(messages[0]["content"], "现在采访")
+        self.assertEqual(request_body({**CONFIG, "json_mode": False}, messages)["messages"], messages)
+
+    def test_literal_line_breaks_preserve_speech_or_reconstruct_wrapped_keys(self):
+        speech = '{"message":"第一行\n第二行","escaped":"a\\nb"}'
+        value, receipt = parse_json_content(speech)
+        self.assertEqual(value, {"message": "第一行\n第二行", "escaped": "a\nb"})
+        self.assertEqual(receipt["raw_content"], speech)
+        wrapped = '{"country":"\nITA","pre\ndictions":["控\n制权"],"escaped":"a\\nb"}'
+        value, receipt = parse_json_content(wrapped)
+        self.assertEqual(value, {"country":"ITA", "predictions":["控制权"], "escaped":"a\nb"})
+        self.assertEqual(receipt["method"], "json_string_line_wraps.v1")
+        for malformed in ('{"a":1,"a\n":2}', wrapped + "extra", '{"x":"a\tb"}'):
+            with self.assertRaises(ValueError):
+                parse_json_content(malformed)
+
+    def test_whole_json_fence_preserves_original_without_accepting_extra_prose(self):
+        text = '```json\n{"country":"FRA","message":"原样保留"}\n```'
+        value, receipt = parse_json_content(text)
+        self.assertEqual(value, {"country": "FRA", "message": "原样保留"})
+        self.assertEqual(receipt, {"method": "whole_json_fence.v1", "raw_content": text})
+        for invalid in ("Here is JSON:\n" + text, text + "\nAdditional instructions", '```json\n{"broken":\n```'):
+            with self.assertRaises(ValueError):
+                parse_json_content(invalid)
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                patch("model_client.urllib.request.urlopen", return_value=Response(completion(text))):
+            result, metadata = complete(CONFIG, MESSAGES, attempts=1)
+        self.assertEqual(result, value)
+        self.assertEqual(metadata["content_normalization"], receipt)
+
     def test_anthropic_messages_protocol_auth_effort_and_usage(self):
         config = {**CONFIG, "base_url": "https://provider.test/v1", "api_format": "anthropic",
                   "omit_temperature": True, "json_mode": False,
