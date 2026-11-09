@@ -32,6 +32,7 @@
     },
     "common_rules_file": "configs/prompts/common_rules.md",
     "guide_file": "configs/prompts/native_guide.md",
+    "knowledge_file": "configs/prompts/hoi4_basics.md",
     "profiles": {
       "GER": {},
       "FRA": {},
@@ -44,13 +45,14 @@
     "game_time_commitments": true,
     "common_rules": "综艺展示允许质问、调侃、支持与挑衅；行为以本国目标和已知局势为准。密封命令执行后仍然保密，对手只获得公开可观察结果和自愿说辞。对私信的回复或转述只进入新的私信。导演不能提供策略、引导战局或泄露信息。回合时长随已知事件调整，turn_hours是本轮预算，事件可能提前暂停。",
     "use_character_cards": true,
-    "character_rules_file": "configs/characters/common_rules.txt"
+    "character_rules_file": "configs/characters/common_rules.txt",
+    "quiet_interludes": true
   },
   "clock_policy": {
-    "peace_hours": 168,
+    "peace_hours": 720,
     "war_hours": 24,
     "critical_hours": 6,
-    "maximum_hours": 360,
+    "maximum_hours": 720,
     "chunk_hours": 6
   },
   "performance": {

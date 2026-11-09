@@ -1,0 +1,12 @@
+{
+  "base_url": "https://4router.net/v1",
+  "model": "deepseek-v4.1-flash",
+  "api_key_env": "IRON_DEEPSEEK_API_KEY",
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "timeout_seconds": 90,
+  "request_parameters": {
+    "reasoning_effort": "high",
+    "max_tokens": 4096
+  }
+}

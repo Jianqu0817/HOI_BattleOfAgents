@@ -43,6 +43,8 @@ def load_config(path):
     for key in ("common_rules", "guide"):
         if show.get(key + "_file"):
             show[key] = resolve(show[key + "_file"]).read_text(encoding="utf-8-sig")
+    if show.get("knowledge_file"):
+        show["guide"] = show.get("guide", "") + "\n\n" + resolve(show["knowledge_file"]).read_text(encoding="utf-8-sig")
     show.setdefault("profiles", {})
     for tag, profile in show["profiles"].items():
         if tag not in tags:
@@ -172,6 +174,14 @@ def key_envs(config):
     if config.get("model_commentary", True):
         models.append(config["commentary_model"])
     return sorted({model["api_key_env"] for model in models})
+
+
+def load_model_environment(config):
+    from model_client import api_key_from_environment
+    for name in key_envs(config):
+        value = api_key_from_environment(name)
+        if value and not os.environ.get(name):
+            os.environ[name] = value
 
 
 def acquire_campaign_lock(directory, session):

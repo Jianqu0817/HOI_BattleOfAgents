@@ -24,8 +24,8 @@ def settings(value, tags):
     result.setdefault("models", {})
     if type(result["action_limit"]) is not int or not 1 <= result["action_limit"] <= 6:
         raise ValueError("action_limit must be an integer from 1 to 6")
-    if type(result["step_hours"]) is not int or not 1 <= result["step_hours"] <= 360:
-        raise ValueError("step_hours must be an integer from 1 to 360")
+    if type(result["step_hours"]) is not int or not 1 <= result["step_hours"] <= 720:
+        raise ValueError("step_hours must be an integer from 1 to 720")
     if any(type(result[key]) is not bool for key in ("intents", "private_replies")):
         raise ValueError("intents and private_replies must be boolean")
     for key in ("strict_public_context", "performance", "game_time_commitments"):
@@ -231,6 +231,11 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
     elif phase in ("diplomacy", "private"):
         if phase == "diplomacy":
             payload["task"] = payload["task"].replace("其他四国", "其他参赛国")
+            if show.get("quiet_interludes") and payload.get("public_diplomacy") and not observed.get("public_board"):
+                payload["task"] += (" 本轮暂无新增公开局势事件，但这不代表没有战斗。第二轮先接住值得回应的具体提议；"
+                                    "若没有新议题，可用一两句自然的闺蜜式闲聊、调侃、关心或回怼接话，展现角色关系，避免重复战报。"
+                                    "以公开发言与可观察结果接话，不自动公开私信或密封命令；主动转述本人参与的私信仍只是你的新主张。"
+                                    "不读取他国未授权秘密，不编造战果，不为节目效果强行改变策略或宣战。")
             if show.get("strict_public_context"):
                 payload["task"] += " 不明白时可以质问或要求澄清；只根据公开材料表态。"
             if show.get("performance"):

@@ -11,7 +11,7 @@ from pathlib import Path
 import time
 
 from campaign import (ROOT, apply_model_switch, build_index, build_switch_record, config_digest,
-                      effective_resumed_config, key_envs, load_config, model_slot_fingerprints, model_usage,
+                      effective_resumed_config, key_envs, load_config, load_model_environment, model_slot_fingerprints, model_usage,
                       name_ok, remember_commitments, switch_fingerprint_list, turn_show_config,
                       validate_switch_spec)
 from episode import export_episode, generate_commentary
@@ -121,7 +121,7 @@ def verify_decisions(trial, observed):
 
 
 def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn=None,
-                 provider_check=False, switch_model=None, switch_reason=None):
+                 provider_check=False, switch_model=None, switch_reason=None, before_turn=None):
     directory = ROOT / "runs" / "campaigns" / name_ok(name)
     manifest_path = directory / "manifest.json"
     if resume:
@@ -162,6 +162,7 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
         raise ValueError("game process changed; original pending orders require reconciliation")
     manifest["game_identity"] = identity
     tags = config["countries"]
+    load_model_environment(config)
     for key in key_envs(config):
         if not os.environ.get(key):
             raise ValueError("model API key environment variable is missing: " + key)
@@ -199,6 +200,8 @@ def run_campaign(name, config_path, pid, save_dir, *, resume=False, through_turn
                 public_board = read(turn / "public_events.json") if (turn / "public_events.json").exists() else []
                 host_messages = read(trial / "performance.json").get("host", []) if (trial / "performance.json").exists() else []
                 continue
+            if before_turn is not None:
+                before_turn(index)
             if entry is None:
                 entry = {"index": index, "status": "prepared", "started_at": now(), "trial": str(trial), "turn": str(turn)}
                 manifest["turns"].append(entry)
@@ -422,6 +425,11 @@ def main():
                 historical = apply_model_switch(historical, switch["spec"])
                 keys.update(key_envs(historical))
         for key in sorted(keys):
+            if not os.environ.get(key):
+                from model_client import api_key_from_environment
+                value = api_key_from_environment(key)
+                if value:
+                    os.environ[key] = value
             if not os.environ.get(key):
                 os.environ[key] = getpass.getpass(f"{key} (hidden): ")
     if args.postmatch:

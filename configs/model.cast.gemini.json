@@ -1,0 +1,12 @@
+{
+  "base_url": "https://4router.net/v1",
+  "model": "gemini-3.8-flash",
+  "api_key_env": "IRON_GEMINI_API_KEY",
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "timeout_seconds": 90,
+  "request_parameters": {
+    "reasoning_effort": "medium",
+    "max_tokens": 4096
+  }
+}

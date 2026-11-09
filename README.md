@@ -6,6 +6,8 @@
 
 **[快速上手](docs/QUICKSTART.md) · [视频制作工作流](docs/VIDEO_WORKFLOW.md) · [节目设计](docs/PRODUCT_DIRECTION.md)**
 
+[本地观察席与50回合录制入口](docs/OBSERVER.md)：查看实时进度、地图预览、公开互动、观众密档，记录笔记并导出观察战报。新录制配置将和平期推进设为约30天，仍保留事件中断与短时战争回合；五国模型分别配置，令牌从环境变量读取。
+
 原生 Windows API 与实机验收说明：[原生 API](docs/NATIVE_API.md) · [验收记录](docs/NATIVE_ACCEPTANCE.md)。
 
 原生模型对局入口是 `tools/native_campaign.py`，支持聊天、私信、密封决策、裁判、执行和素材导出。当前五国对局完成29/50回合；离线审计22,349通过、0失败、4 unknown。第30回合尚未提交，原定50回合尚未完成。详见[最新制作验收](docs/PRODUCTION_REVIEW_20261109.md)和[原生对局说明](docs/NATIVE_CAMPAIGN.md)。`Start-IRON.cmd` 菜单及 `tools/campaign.py` 仍是旧 UI 路线，不代表启动器已经接入原生 API。
@@ -49,7 +51,7 @@ python tools/setup.py
 
 已验证：Windows、HOI4 1.19.4.2、简体中文、1280×720 游戏渲染。其他版本、语言、UI 比例和替换地图需要重新验收。安装器获取固定版本后端，不分发游戏本体。
 
-仓库发布项目源码、共享配置和文档。本地 `runs/`、`exports/`、个人路径配置、模型密钥、游戏存档、模型权重、参考音频和录制素材不纳入 Git。密钥通过进程环境变量提供，配置只记录变量名。
+仓库发布项目源码、共享配置和文档。本地 `runs/`、`exports/`、个人路径配置、模型密钥、游戏存档、模型权重、参考音频和录制素材不纳入 Git。密钥通过环境变量提供，Windows支持读取当前用户持久环境变量；配置只记录变量名。
 
 ## 一回合如何运行
 
@@ -118,6 +120,6 @@ python -m unittest discover -s tools -p 'test_*.py' -v
 python -I tools/parse_save.py --selftest
 ```
 
-本机322项离线测试通过，存档解析自测通过；此前还完成了Python模块编译以及两个事件sidecar的隔离构建/自测。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
+本机333项离线测试通过，存档解析自测通过；此前还完成了Python模块编译以及两个事件sidecar的隔离构建/自测。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
 
 [场景与计分](docs/SCENARIOS.md) · [陆军校准](docs/ARMY_CONTROL.md) · [模型接口](docs/MODEL_INTERFACE.md) · [技术路线](docs/TECHNICAL_ROADMAP.md) · [第三方声明](NOTICE.md)

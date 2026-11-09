@@ -1,0 +1,9 @@
+{
+  "base_url": "https://api.siliconflow.cn/v1",
+  "model": "zai-org/GLM-5.3-Flash",
+  "api_key_env": "IRON_GLM_API_KEY",
+  "enable_thinking": false,
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "timeout_seconds": 90
+}

@@ -52,6 +52,32 @@ class FakeGame:
 
 
 class NativeTurnTests(unittest.TestCase):
+    def test_monthly_peace_budget_uses_only_qualified_six_hour_steps(self):
+        game, candidate = FakeGame(), plan()
+        start = game.date
+        candidate["step_hours"] = 720
+        candidate["clock_policy"] = {"peace_hours": 720, "maximum_hours": 720}
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", poll_interval=0).run()
+        steps = [int(payload.split()[1]) for op, payload, _ in game.calls
+                 if op == "native_clock_v1" and payload.startswith("step ")]
+        self.assertEqual(steps, [6] * 120)
+        self.assertEqual(game.date - start, 720)
+        self.assertEqual(result["step_hours"], 720)
+        self.assertEqual(result["status"], "completed")
+
+    def test_monthly_budget_returns_to_models_when_public_war_changes(self):
+        game, candidate = FakeGame(), plan()
+        start = game.date
+        candidate["step_hours"] = 720
+        def boundary(turn, controls):
+            return {"war_changed": turn.date_raw > start}
+        with tempfile.TemporaryDirectory() as directory:
+            result = NativeTurn(game, candidate, Path(directory) / "run", poll_interval=0, boundary_observer=boundary).run()
+        self.assertEqual(result["step_hours"], 6)
+        self.assertEqual(result["early_end"]["remaining_budget_hours"], 714)
+        self.assertEqual(sum(payload.startswith("step ") for _, payload, _ in game.calls), 1)
+
     def test_entire_schema_rejected_before_any_calls(self):
         invalid = plan(); invalid["countries"][-1]["actions"] = [{"id": "bad", "kind": "division.move", "army_id": 1}]
         game = FakeGame()
@@ -61,7 +87,7 @@ class NativeTurnTests(unittest.TestCase):
 
     def test_schema_boundaries_and_conflicts(self):
         for change in (lambda p: p.update(step_hours=0), lambda p: p.update(step_hours=True),
-                       lambda p: p.update(step_hours=361), lambda p: p["countries"].pop(),
+                       lambda p: p.update(step_hours=721), lambda p: p["countries"].pop(),
                        lambda p: p["countries"][0]["actions"].append(copy.deepcopy(p["countries"][0]["actions"][0]))):
             candidate = plan(); change(candidate)
             with self.assertRaises(ValueError): validate_plan(candidate)

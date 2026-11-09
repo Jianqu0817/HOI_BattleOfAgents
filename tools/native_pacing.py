@@ -1,8 +1,8 @@
 """Explicit, deterministic policy for the single shared native game clock."""
 from __future__ import annotations
 
-DEFAULT_POLICY = {"peace_hours": 168, "war_hours": 24, "critical_hours": 6,
-                  "maximum_hours": 360, "chunk_hours": 6}
+DEFAULT_POLICY = {"peace_hours": 720, "war_hours": 24, "critical_hours": 6,
+                  "maximum_hours": 720, "chunk_hours": 6}
 
 
 def validate_policy(policy):
@@ -10,7 +10,7 @@ def validate_policy(policy):
         raise ValueError("unknown clock policy fields")
     value = {**DEFAULT_POLICY, **policy}
     for key, hours in value.items():
-        maximum = 6 if key == "chunk_hours" else 360
+        maximum = 6 if key == "chunk_hours" else 720
         if type(hours) is not int or not 1 <= hours <= maximum:
             raise ValueError(f"{key} must be an integer 1..{maximum}")
     if not value["critical_hours"] <= value["war_hours"] <= value["peace_hours"] <= value["maximum_hours"]:

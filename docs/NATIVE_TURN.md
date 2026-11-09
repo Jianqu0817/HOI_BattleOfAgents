@@ -26,7 +26,9 @@ Execute a prepared plan with a fresh output directory:
 
 The plan's `schema` is `iron.native-turn.v1`. `countries` contains 3–5 distinct
 `{tag, actions}` objects, with at most six actions per country. Every action has
-a unique `id`. `step_hours` is 1–360; 360 hours is fifteen game days. AI is
+a unique `id`. The aggregate `step_hours` is 1–720; 720 hours is thirty game days.
+The native bridge still receives steps of at most six hours, with event checks
+between them. AI is
 disabled for the planned countries by default. Set `disable_ai` to `false` only
 when all planned countries already have AI disabled.
 

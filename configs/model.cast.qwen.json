@@ -1,0 +1,12 @@
+{
+  "base_url": "https://4router.net/v1",
+  "model": "qwen3.8-27b",
+  "api_key_env": "IRON_QWEN_API_KEY",
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "timeout_seconds": 90,
+  "request_parameters": {
+    "reasoning_effort": "xhigh",
+    "max_tokens": 4096
+  }
+}

@@ -44,7 +44,7 @@ def validate_plan(plan: dict) -> dict:
         raise ValueError("unknown plan fields")
     if plan.get("schema") != SCHEMA:
         raise ValueError(f"schema must be {SCHEMA}")
-    _integer(plan.get("step_hours"), maximum=360)
+    _integer(plan.get("step_hours"), maximum=720)
     if "clock_policy" in plan:
         policy = validate_policy(plan["clock_policy"])
         if plan["step_hours"] > policy["maximum_hours"]:

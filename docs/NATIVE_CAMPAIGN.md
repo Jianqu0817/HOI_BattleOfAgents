@@ -12,7 +12,13 @@ python tools/native_campaign.py --name native_show --pid YOUR_PID --save-dir "YO
 python tools/native_campaign.py --name native_show --pid YOUR_PID --save-dir "YOUR_SAVE_DIRECTORY" --resume --prompt-key
 ```
 
-密钥隐蔽输入，仅存在进程环境中；也可预先设置模型配置中的环境变量。每国、裁判和解说的模型覆盖配置沿用 `campaign.py` 的配置格式。默认 `configs/campaign.native.example.json` 为 GER、FRA、ITA、AUS、SWI 五国，五回合，每回合 360 小时，每国至多两个动作。
+密钥可隐蔽输入，也可预先设置模型配置中的环境变量。Windows 运行入口会读取当前用户持久环境变量，已有进程无需重启桌面应用即可使用新保存的令牌。每国、裁判和解说的模型覆盖配置沿用 `campaign.py` 的配置格式。默认 `configs/campaign.native.example.json` 为 GER、FRA、ITA、AUS、SWI 五国，五回合，每国至多两个动作。
+
+新对局使用事件触发的自适应时间：和平720小时（约30天）、战争24小时、关键事件6小时。720小时是上层共同预算，原生桥仍分成至多6小时的小段推进并检查事件；宣战、控制权变化或待处理事件会提前返回观察/决策，不会无条件跳过整月。已冻结的旧对局保留原来的时间配置。
+
+`show.quiet_interludes=true` 时，若没有新增公开局势事件，第二轮公开互动可用简短的关心、调侃或回怼表现角色关系；仍先回应有意义的提议。没有公开事件不等于没有战斗。这复用原有讨论调用，不增加额外聊天轮次，不向其他国家公开私信/密封命令，也不强制为了节目效果改变策略。
+
+正式录制配置为 `configs/campaign.recording50.json`：50回合，五国分别使用 `model.cast.gpt/claude/gemini/deepseek/qwen.json`，GLM承担公开主持、裁判和赛后导演。各配置只保存环境变量名；连通性结果不能替代完整对局验收。
 
 `--turns 1` 表示先完成整个对局中的第一回合；随后 `--resume` 继续剩余回合，不重做已完成回合。配置、身份和模型请求被冻结。游戏重启或执行记录未确认时停止，不能换新请求 ID 重发命令。
 

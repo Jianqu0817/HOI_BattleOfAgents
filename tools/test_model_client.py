@@ -8,9 +8,10 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 import urllib.error
 
-from model_client import complete, request_body
+from model_client import api_key_from_environment, complete, request_body
 from model_trial import recorded_complete
 from showrunner import MODEL_FIELDS, model_settings
 
@@ -33,6 +34,28 @@ def completion(content='{"ok":true}', finish="stop"):
 
 
 class ModelClientTests(unittest.TestCase):
+    def test_unavailable_model_is_not_retried_even_when_provider_uses_503(self):
+        body = io.BytesIO(json.dumps({"error": {"code": "model_not_found", "message": "no available channel"}}).encode())
+        error = urllib.error.HTTPError("https://provider.test", 503, "Unavailable", {}, body)
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                patch("model_client.urllib.request.urlopen", side_effect=error) as opener, \
+                patch("model_client.time.sleep") as wait:
+            with self.assertRaisesRegex(RuntimeError, "model_not_found"):
+                complete(CONFIG, MESSAGES)
+        self.assertEqual(opener.call_count, 1)
+        wait.assert_not_called()
+
+    def test_persistent_windows_user_key_is_available_to_existing_processes(self):
+        class Key:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+        registry = SimpleNamespace(HKEY_CURRENT_USER=1, REG_SZ=1, REG_EXPAND_SZ=2,
+                                   OpenKey=lambda *args: Key(), QueryValueEx=lambda *args: (TEST_KEY, 1))
+        with patch.dict(os.environ, {}, clear=True), patch("model_client.os.name", "nt"), patch.dict("sys.modules", {"winreg": registry}):
+            self.assertEqual(api_key_from_environment(CONFIG["api_key_env"]), TEST_KEY)
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: "PROCESS_OVERRIDE"}):
+            self.assertEqual(api_key_from_environment(CONFIG["api_key_env"]), "PROCESS_OVERRIDE")
+
     def test_siliconflow_legacy_body_and_key_only_in_header(self):
         output = io.StringIO()
         with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), redirect_stdout(output), \

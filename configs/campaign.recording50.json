@@ -1,0 +1,84 @@
+{
+  "execution_backend": "native",
+  "countries": [
+    "GER",
+    "FRA",
+    "ITA",
+    "AUS",
+    "SWI"
+  ],
+  "step_hours": 360,
+  "turn_limit": 50,
+  "action_limit": 2,
+  "communication_rounds": 2,
+  "model_config": "configs/model.cast.glm.json",
+  "player_model_configs": {
+    "GER": "configs/model.cast.gpt.json",
+    "FRA": "configs/model.cast.claude.json",
+    "ITA": "configs/model.cast.gemini.json",
+    "AUS": "configs/model.cast.deepseek.json",
+    "SWI": "configs/model.cast.qwen.json"
+  },
+  "model_commentary": true,
+  "scoring": {
+    "mode": "exhibition"
+  },
+  "show": {
+    "enabled": true,
+    "intents": true,
+    "private_replies": true,
+    "compact_native_context": true,
+    "phase_max_tokens": {
+      "intent": 900,
+      "diplomacy": 700,
+      "private": 700,
+      "reply": 900,
+      "decision": 900
+    },
+    "common_rules_file": "configs/prompts/common_rules.md",
+    "guide_file": "configs/prompts/native_guide.md",
+    "knowledge_file": "configs/prompts/hoi4_basics.md",
+    "profiles": {
+      "GER": {},
+      "FRA": {},
+      "ITA": {},
+      "AUS": {},
+      "SWI": {}
+    },
+    "strict_public_context": true,
+    "performance": true,
+    "game_time_commitments": true,
+    "common_rules": "综艺展示允许质问、调侃、支持与挑衅；行为以本国目标和已知局势为准。密封命令执行后仍然保密，对手只获得公开可观察结果和自愿说辞。对私信的回复或转述只进入新的私信。导演不能提供策略、引导战局或泄露信息。回合时长随已知事件调整，turn_hours是本轮预算，事件可能提前暂停。",
+    "use_character_cards": true,
+    "character_rules_file": "configs/characters/common_rules.txt",
+    "quiet_interludes": true
+  },
+  "clock_policy": {
+    "peace_hours": 720,
+    "war_hours": 24,
+    "critical_hours": 6,
+    "maximum_hours": 720,
+    "chunk_hours": 6
+  },
+  "performance": {
+    "enabled": true,
+    "public_host": true,
+    "interviews_per_turn": 1
+  },
+  "production": {
+    "registry": "configs/characters.authored.json",
+    "assignments": {
+      "GER": "gpt",
+      "FRA": "claude",
+      "ITA": "gemini",
+      "AUS": "deepseek",
+      "SWI": "qwen",
+      "host": "glm"
+    },
+    "target_seconds": 180,
+    "tts_config": "configs/tts.cast.json"
+  },
+  "audience_timing": "postmatch",
+  "referee_model_config": "configs/model.cast.glm.json",
+  "commentary_model_config": "configs/model.cast.glm.json"
+}

@@ -1,4 +1,4 @@
-"""Small JSON chat client; credentials are read only from a process environment."""
+"""Small JSON chat client; credentials come from process or persistent user environment."""
 import json
 from datetime import datetime, timezone
 import copy
@@ -13,6 +13,10 @@ import urllib.request
 GENERATION_PARAMETERS = {"temperature", "top_p", "top_k", "min_p", "frequency_penalty", "presence_penalty",
                          "repetition_penalty", "seed", "stop", "max_tokens", "max_completion_tokens", "n",
                          "logprobs", "top_logprobs", "reasoning_effort", "thinking_budget", "chat_template_kwargs"}
+
+
+class PermanentModelError(RuntimeError):
+    """A provider-declared unavailable model must not be sampled again."""
 
 
 def generation_parameters(config):
@@ -67,11 +71,25 @@ def request_body(config, messages):
     return body
 
 
+def api_key_from_environment(name):
+    """Honor process overrides, then Windows persistent current-user variables."""
+    value = os.environ.get(name)
+    if value or os.name != "nt":
+        return value
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
+            value, kind = winreg.QueryValueEx(key, name)
+            return value if kind in (winreg.REG_SZ, winreg.REG_EXPAND_SZ) and isinstance(value, str) else None
+    except FileNotFoundError:
+        return None
+
+
 def complete(config, messages, attempts=3):
     """One chat completion; provider-variance failures (transport, truncated, malformed JSON, 429/5xx)
     are resampled up to three times because a fresh sample is independent and nothing is applied until
     downstream validation passes. Permanent rejections such as HTTP 4xx auth/balance errors are never retried."""
-    key = os.environ.get(config["api_key_env"])
+    key = api_key_from_environment(config["api_key_env"])
     if not key:
         raise ValueError("Model API key environment variable is missing")
     last_error = None
@@ -81,7 +99,9 @@ def complete(config, messages, attempts=3):
         except (RuntimeError, json.JSONDecodeError) as error:
             last_error = error
             text = str(error)
-            if isinstance(error, json.JSONDecodeError):
+            if isinstance(error, PermanentModelError):
+                retryable = False
+            elif isinstance(error, json.JSONDecodeError):
                 retryable = True
             elif text.startswith("Model HTTP "):
                 code = text[len("Model HTTP "):].split(":", 1)[0].strip()
@@ -107,7 +127,12 @@ def _complete_once(config, messages, key):
             trace_id = response.headers.get("x-siliconcloud-trace-id")
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", "replace").replace(key, "[redacted]")
-        raise RuntimeError(f"Model HTTP {error.code}: {detail[:600]}") from None
+        try:
+            provider_error = json.loads(detail).get("error", {})
+        except (ValueError, AttributeError):
+            provider_error = {}
+        error_type = PermanentModelError if isinstance(provider_error, dict) and provider_error.get("code") == "model_not_found" else RuntimeError
+        raise error_type(f"Model HTTP {error.code}: {detail[:600]}") from None
     except urllib.error.URLError as error:
         raise RuntimeError("Model transport error: " + str(error.reason).replace(key, "[redacted]")) from None
     ended_at = datetime.now(timezone.utc).isoformat()

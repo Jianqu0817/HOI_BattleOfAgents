@@ -1,0 +1,12 @@
+{
+  "base_url": "https://4router.net/v1",
+  "model": "gpt-6.1-terra",
+  "api_key_env": "IRON_GPT_API_KEY",
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "timeout_seconds": 90,
+  "request_parameters": {
+    "reasoning_effort": "low",
+    "max_tokens": 4096
+  }
+}

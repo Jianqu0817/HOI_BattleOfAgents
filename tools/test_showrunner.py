@@ -36,6 +36,20 @@ def intent(tag):
 
 
 class ShowrunnerTests(unittest.TestCase):
+    def test_quiet_interlude_reuses_second_public_round_and_only_public_material(self):
+        self.show["quiet_interludes"] = True
+        o = observed("ITA")
+        public = [{"country": "GER", "message": "公开话题"}]
+        first = extend_prompt(country_messages(o, "diplomacy", []), o, "diplomacy", self.show, TAGS)
+        second = extend_prompt(country_messages(o, "diplomacy", public, public_round=2), o, "diplomacy", self.show, TAGS)
+        self.assertNotIn("闺蜜式", json.loads(first[1]["content"])["task"])
+        task = json.loads(second[1]["content"])["task"]
+        self.assertIn("闺蜜式", task)
+        self.assertIn("不自动公开私信或密封命令", task)
+        o["public_board"] = [{"kind": "war_started"}]
+        urgent = extend_prompt(country_messages(o, "diplomacy", public), o, "diplomacy", self.show, TAGS)
+        self.assertNotIn("闺蜜式", json.loads(urgent[1]["content"])["task"])
+
     def test_commitment_note_is_preserved_without_becoming_an_action(self):
         message = {"country": "GER", "to": "ENG", "message": "保持边境稳定。", "commitments": [],
                    "commitments_note": "外交表态不会自动执行游戏操作"}
