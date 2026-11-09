@@ -86,7 +86,7 @@ def audit_model(audit, record, expected, label):
         audit.add(label + ":provider", status="unknown", detail="No provider fingerprint")
     else:
         wanted = model_settings(expected)
-        required = {"base_url", "model", "enable_thinking", "temperature", "max_tokens"} | (set(wanted) & {"include_thinking_parameter", "json_mode", "request_parameters"})
+        required = {"base_url", "model", "enable_thinking", "temperature", "max_tokens"} | (set(wanted) & {"include_thinking_parameter", "json_mode", "api_format", "omit_temperature", "request_parameters"})
         audit.add(label + ":provider_parameters", saved == wanted if "request_config" in record else
                   required <= set(saved) and all(key in wanted and wanted[key] == value for key, value in saved.items()))
     start = audit.stamp(metadata.get("started_at"), label + ":started_at")

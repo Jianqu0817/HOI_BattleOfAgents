@@ -50,7 +50,7 @@ def model_settings(config):
     parameters = generation_parameters(config)
     values = {key: config[key] for key in MODEL_FIELDS}
     # Missing optional controls retain the existing SiliconFlow cache fingerprint.
-    for key in ("include_thinking_parameter", "json_mode"):
+    for key in ("include_thinking_parameter", "json_mode", "api_format", "omit_temperature"):
         if key in config:
             values[key] = config[key]
     if "request_parameters" in config:

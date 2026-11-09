@@ -32,4 +32,8 @@ python tools/record_session.py --name NEW_MATCH_NAME --config configs/campaign.r
 
 `IRON_GLM_API_KEY`、`IRON_QWEN_API_KEY`、`IRON_DEEPSEEK_API_KEY`、`IRON_CLAUDE_API_KEY`、`IRON_GPT_API_KEY`、`IRON_GEMINI_API_KEY` 保存于Windows当前用户环境。显式进程环境变量优先。源码、配置、观察接口和Git提交均不包含令牌值。
 
+当前六个配置均已有最小JSON连通性验证。GLM保持OpenAI兼容 `/chat/completions`，仅该模型配置 `json_mode=false`，避免本次服务在 `response_format=json_object` 下返回空正文；提示仍要求JSON，客户端仍严格解析和校验JSON。该参数按[硅基流动官方接口](https://api-docs.siliconflow.cn/docs/api/chat-completions-post)为可选项，不能将本次兼容性结果推广到所有模型。
+
+Claude当前渠道使用[Anthropic Messages协议](https://platform.claude.com/docs/en/api/messages/create)：`api_format=anthropic`，请求 `/messages`、顶层 `system`、`x-api-key`及版本请求头；`reasoning_effort=high`映射到 `output_config.effort`。该模型实际拒绝temperature，配置 `omit_temperature=true`。仅最终text块可进入JSON解析，thinking块不作为命令；原始用量与统一token计数同时保留。协议选项参与缓存指纹与审计，不能将不同协议的旧响应静默复用。
+
 和平预算改为720小时，战争仍24小时、关键事件6小时。50回合是本轮上限；分段检查可以使某轮提前结束，不能按50×30天推定真实对局跨度。

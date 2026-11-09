@@ -24,7 +24,9 @@ def generation_parameters(config):
     value = config.get("request_parameters", {})
     if not isinstance(value, dict) or any(key not in GENERATION_PARAMETERS for key in value):
         raise ValueError("request_parameters may contain only supported generation parameters")
-    for key in ("include_thinking_parameter", "json_mode"):
+    if config.get("api_format", "openai") not in ("openai", "anthropic"):
+        raise ValueError("api_format must be openai or anthropic")
+    for key in ("include_thinking_parameter", "json_mode", "omit_temperature"):
         if key in config and type(config[key]) is not bool:
             raise ValueError(key + " must be boolean")
     for key in ("temperature", "top_p", "top_k", "min_p", "frequency_penalty", "presence_penalty", "repetition_penalty"):
@@ -56,6 +58,30 @@ def request_body(config, messages):
     parameters = generation_parameters(config)
     body = {"model": config["model"], "messages": messages, "stream": False,
             "max_tokens": config["max_tokens"], "temperature": config["temperature"]}
+    if config.get("api_format") == "anthropic":
+        allowed = {"max_tokens", "temperature", "top_p", "top_k", "stop", "reasoning_effort"}
+        if set(parameters) - allowed:
+            raise ValueError("Unsupported Anthropic generation parameter")
+        system, conversation = [], []
+        for message in messages:
+            if message["role"] == "system" and not conversation:
+                system.append(message["content"])
+            elif message["role"] in ("user", "assistant"):
+                conversation.append(copy.deepcopy(message))
+            else:
+                raise ValueError("Anthropic adapter requires leading system and user/assistant messages")
+        body["messages"] = conversation
+        if system:
+            body["system"] = "\n\n".join(system)
+        body.update({key: value for key, value in parameters.items() if key in {"max_tokens", "temperature", "top_p", "top_k"}})
+        if "reasoning_effort" in parameters:
+            body["output_config"] = {"effort": parameters["reasoning_effort"]}
+        if "stop" in parameters:
+            value = parameters["stop"]
+            body["stop_sequences"] = value if isinstance(value, list) else [value]
+        if config.get("omit_temperature"):
+            body.pop("temperature", None)
+        return body
     hostname = (urlsplit(config["base_url"]).hostname or "").lower()
     default_thinking_parameter = hostname == "siliconflow.cn" or hostname.endswith(".siliconflow.cn")
     if config.get("include_thinking_parameter", default_thinking_parameter):
@@ -65,6 +91,8 @@ def request_body(config, messages):
     if config.get("json_mode", True):
         body["response_format"] = {"type": "json_object"}
     body.update(parameters)
+    if config.get("omit_temperature"):
+        body.pop("temperature", None)
     # Providers which use max_completion_tokens generally reject both limit keys.
     if "max_completion_tokens" in parameters and "max_tokens" not in parameters:
         body.pop("max_tokens", None)
@@ -116,15 +144,17 @@ def complete(config, messages, attempts=3):
 
 def _complete_once(config, messages, key):
     body = request_body(config, messages)
-    request = urllib.request.Request(config["base_url"].rstrip("/") + "/chat/completions",
+    anthropic = config.get("api_format") == "anthropic"
+    headers = ({"x-api-key": key, "anthropic-version": "2023-06-01"} if anthropic else {"Authorization": "Bearer " + key})
+    request = urllib.request.Request(config["base_url"].rstrip("/") + ("/messages" if anthropic else "/chat/completions"),
                                      data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
-                                     headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+                                     headers={**headers, "Content-Type": "application/json"})
     start = time.monotonic()
     started_at = datetime.now(timezone.utc).isoformat()
     try:
         with urllib.request.urlopen(request, timeout=config["timeout_seconds"]) as response:
             value = json.load(response)
-            trace_id = response.headers.get("x-siliconcloud-trace-id")
+            trace_id = response.headers.get("x-siliconcloud-trace-id") or response.headers.get("request-id")
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", "replace").replace(key, "[redacted]")
         try:
@@ -137,6 +167,16 @@ def _complete_once(config, messages, key):
         raise RuntimeError("Model transport error: " + str(error.reason).replace(key, "[redacted]")) from None
     ended_at = datetime.now(timezone.utc).isoformat()
     elapsed_seconds = round(time.monotonic() - start, 3)
+    provider_usage = None
+    if anthropic:
+        if not isinstance(value, dict) or value.get("stop_reason") != "end_turn" or not isinstance(value.get("content"), list):
+            raise RuntimeError("Anthropic model did not finish a complete message")
+        content = "".join(block["text"] for block in value["content"] if block.get("type") == "text" and isinstance(block.get("text"), str))
+        provider_usage = value.get("usage", {})
+        prompt = sum(provider_usage.get(key, 0) for key in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+        completion = provider_usage.get("output_tokens", 0)
+        value = {**value, "choices": [{"finish_reason": "stop", "message": {"content": content}}],
+                 "usage": {"prompt_tokens": prompt, "completion_tokens": completion, "total_tokens": prompt + completion}}
     if not isinstance(value, dict) or not isinstance(value.get("choices"), list) or len(value["choices"]) != 1 or not isinstance(value["choices"][0], dict):
         raise RuntimeError("Model response did not contain one complete choice")
     choice = value["choices"][0]
@@ -150,8 +190,11 @@ def _complete_once(config, messages, key):
         result = json.loads(content)
     except json.JSONDecodeError as error:
         raise RuntimeError("Model returned malformed JSON: " + str(error)) from None
-    return result, {"requested_model": config["model"], "returned_model": value.get("model"),
+    metadata = {"requested_model": config["model"], "returned_model": value.get("model"),
                     "response_id": value.get("id"), "trace_id": trace_id,
                     "usage": value.get("usage"), "elapsed_seconds": elapsed_seconds,
                     "started_at": started_at, "ended_at": ended_at,
                     "finish_reason": choice.get("finish_reason")}
+    if provider_usage is not None:
+        metadata.update(api_format="anthropic", provider_usage=provider_usage)
+    return result, metadata

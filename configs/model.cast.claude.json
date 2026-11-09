@@ -8,5 +8,8 @@
   "request_parameters": {
     "reasoning_effort": "high",
     "max_tokens": 4096
-  }
+  },
+  "json_mode": false,
+  "api_format": "anthropic",
+  "omit_temperature": true
 }

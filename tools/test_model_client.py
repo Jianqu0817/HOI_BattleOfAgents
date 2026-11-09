@@ -34,6 +34,42 @@ def completion(content='{"ok":true}', finish="stop"):
 
 
 class ModelClientTests(unittest.TestCase):
+    def test_anthropic_messages_protocol_auth_effort_and_usage(self):
+        config = {**CONFIG, "base_url": "https://provider.test/v1", "api_format": "anthropic",
+                  "omit_temperature": True, "json_mode": False,
+                  "request_parameters": {"reasoning_effort": "high", "max_tokens": 4096}}
+        usage = {"input_tokens": 10, "cache_creation_input_tokens": 20, "cache_read_input_tokens": 30, "output_tokens": 3}
+        response = {"id": "msg_test", "model": "test-model", "stop_reason": "end_turn", "usage": usage,
+                    "content": [{"type": "thinking", "thinking": "DO_NOT_USE_AS_FINAL"}, {"type": "text", "text": '{"ok":true}'}]}
+        with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                patch("model_client.urllib.request.urlopen", return_value=Response(response)) as opener:
+            value, metadata = complete(config, MESSAGES, attempts=1)
+        request = opener.call_args.args[0]
+        body = json.loads(request.data)
+        self.assertEqual(request.full_url, "https://provider.test/v1/messages")
+        self.assertEqual(request.get_header("X-api-key"), TEST_KEY)
+        self.assertEqual(request.get_header("Anthropic-version"), "2023-06-01")
+        self.assertNotIn(TEST_KEY, request.data.decode())
+        self.assertEqual(body["system"], MESSAGES[0]["content"])
+        self.assertEqual(body["messages"], MESSAGES[1:])
+        self.assertEqual(body["output_config"], {"effort": "high"})
+        self.assertEqual(body["max_tokens"], 4096)
+        for field in ("temperature", "response_format", "enable_thinking", "reasoning_effort"):
+            self.assertNotIn(field, body)
+        self.assertEqual(value, {"ok": True})
+        self.assertEqual(metadata["usage"], {"prompt_tokens": 60, "completion_tokens": 3, "total_tokens": 63})
+        self.assertEqual(metadata["provider_usage"], usage)
+        self.assertEqual(metadata["finish_reason"], "stop")
+
+    def test_anthropic_truncation_and_reasoning_only_are_never_executed(self):
+        config = {**CONFIG, "api_format": "anthropic", "omit_temperature": True}
+        for reason, blocks in [("max_tokens", [{"type": "text", "text": '{"ok":true}'}]),
+                               ("end_turn", [{"type": "thinking", "thinking": '{"ok":true}'}])]:
+            response = {"stop_reason": reason, "content": blocks, "usage": {}}
+            with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
+                    patch("model_client.urllib.request.urlopen", return_value=Response(response)), self.assertRaises(RuntimeError):
+                complete(config, MESSAGES, attempts=1)
+
     def test_unavailable_model_is_not_retried_even_when_provider_uses_503(self):
         body = io.BytesIO(json.dumps({"error": {"code": "model_not_found", "message": "no available channel"}}).encode())
         error = urllib.error.HTTPError("https://provider.test", 503, "Unavailable", {}, body)
@@ -93,8 +129,8 @@ class ModelClientTests(unittest.TestCase):
         self.assertNotIn("response_format", request_body(config, MESSAGES))
         with patch.dict(os.environ, {CONFIG["api_key_env"]: TEST_KEY}), \
                 patch("model_client.urllib.request.urlopen", return_value=Response(completion("plain text"))):
-            with self.assertRaises(ValueError):
-                complete(config, MESSAGES)
+            with self.assertRaisesRegex(RuntimeError, "malformed JSON"):
+                complete(config, MESSAGES, attempts=1)
 
     def test_generation_controls_merge_without_mutating_config_or_messages(self):
         parameters = {"top_p": .8, "seed": 42, "temperature": .6,
@@ -122,7 +158,7 @@ class ModelClientTests(unittest.TestCase):
                     complete({**CONFIG, "request_parameters": {key: value}}, MESSAGES)
                 self.assertNotIn(TEST_KEY, str(error.exception))
             opener.assert_not_called()
-        for control in ({"json_mode": "false"}, {"include_thinking_parameter": 1},
+        for control in ({"json_mode": "false"}, {"include_thinking_parameter": 1}, {"api_format": "unknown"}, {"omit_temperature": "true"},
                         {"request_parameters": {"n": 2}}, {"request_parameters": {"seed": True}},
                         {"request_parameters": {"chat_template_kwargs": {"messages": []}}}):
             with self.subTest(control=control), self.assertRaises(ValueError):
@@ -180,6 +216,7 @@ class ModelClientTests(unittest.TestCase):
             recorded_complete(root, "old_sf", dict(CONFIG), MESSAGES, require_settings=True)
             self.assertEqual(mocked.call_count, 1)
             for override in ({"json_mode": False}, {"include_thinking_parameter": False},
+                             {"api_format": "anthropic"}, {"omit_temperature": True},
                              {"request_parameters": {"top_p": .8}}):
                 with self.subTest(override=override), self.assertRaisesRegex(ValueError, "parameters changed"):
                     recorded_complete(root, "old_sf", {**CONFIG, **override}, MESSAGES, require_settings=True)

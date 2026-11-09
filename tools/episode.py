@@ -446,7 +446,7 @@ def generate_commentary(trial, turn, config):
     messages = [{"role": "system", "content": "你是只面向观众的独立赛后解说。玩家不会收到你的全知信息。只输出JSON。"},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
     settings = {key: config[key] for key in ("base_url", "model", "api_key_env", "temperature", "max_tokens", "enable_thinking",
-                                            "include_thinking_parameter", "json_mode", "request_parameters") if key in config}
+                                            "include_thinking_parameter", "json_mode", "api_format", "omit_temperature", "request_parameters") if key in config}
     directory = trial / "audience_commentary"
     path = directory / "model_call.json"
     if path.exists():

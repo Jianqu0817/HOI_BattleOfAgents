@@ -120,6 +120,6 @@ python -m unittest discover -s tools -p 'test_*.py' -v
 python -I tools/parse_save.py --selftest
 ```
 
-本机333项离线测试通过，存档解析自测通过；此前还完成了Python模块编译以及两个事件sidecar的隔离构建/自测。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
+本机335项离线测试通过，存档解析自测通过；此前还完成了Python模块编译以及两个事件sidecar的隔离构建/自测。离线测试不需要游戏或 API 密钥。GitHub Actions 在 Windows/Ubuntu 运行离线检查；界面操作单独在 Windows 游戏内验收。
 
 [场景与计分](docs/SCENARIOS.md) · [陆军校准](docs/ARMY_CONTROL.md) · [模型接口](docs/MODEL_INTERFACE.md) · [技术路线](docs/TECHNICAL_ROADMAP.md) · [第三方声明](NOTICE.md)

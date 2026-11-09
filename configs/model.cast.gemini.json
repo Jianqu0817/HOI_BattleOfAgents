@@ -8,5 +8,6 @@
   "request_parameters": {
     "reasoning_effort": "medium",
     "max_tokens": 4096
-  }
+  },
+  "json_mode": true
 }

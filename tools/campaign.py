@@ -72,9 +72,9 @@ def config_digest(config):
 
 
 SWITCH_FIELDS = ("base_url", "model", "api_key_env", "enable_thinking", "temperature", "max_tokens",
-                 "timeout_seconds", "include_thinking_parameter", "json_mode", "request_parameters")
+                 "timeout_seconds", "include_thinking_parameter", "json_mode", "api_format", "omit_temperature", "request_parameters")
 SWITCH_IDENTITY_FIELDS = ("base_url", "model", "api_key_env", "enable_thinking", "temperature",
-                          "timeout_seconds", "include_thinking_parameter", "json_mode", "request_parameters")
+                          "timeout_seconds", "include_thinking_parameter", "json_mode", "api_format", "omit_temperature", "request_parameters")
 
 
 def validate_switch_spec(spec):
