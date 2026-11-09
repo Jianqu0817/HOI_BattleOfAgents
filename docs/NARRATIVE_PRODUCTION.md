@@ -1,6 +1,8 @@
 # 叙事、角色素材与视频制作
 
-当前原生入口为 `tools/native_campaign.py`，原生五国为 GER/FRA/ITA/AUS/SWI。当前对局完成29/50回合；离线审计22,349通过、0失败、4 unknown。第30回合尚未提交，原定50回合尚未完成。宣战与海空军任务设置已有独立验收；news.66 已验证一次安全暂停、选择、resolved 关窗并恢复剩余12小时，其他通用事件尚未验证。详情见[制作验收记录](PRODUCTION_REVIEW_20261109.md)。旧 UI 入口保留，原生 API 是默认路径。
+> 本文记录叙事接口和早期制作验收。当前制作步骤与声线选样规则见[视频工作流](VIDEO_WORKFLOW.md)和[节目制作约定](节目制作约定.md)。
+
+当前原生入口为 `tools/native_campaign.py`，原生五国为 GER/FRA/ITA/AUS/SWI。该次验收完成29/50回合；离线审计22,349通过、0失败、4 unknown。第30回合尚未提交，原定50回合尚未完成。宣战与海空军任务设置已有独立验收；news.66 已验证一次安全暂停、选择、resolved 关窗并恢复剩余12小时，其他通用事件尚未验证。详情见[制作验收记录](PRODUCTION_REVIEW_20261109.md)。当前入口见[工具目录](../tools/README.md)。
 
 ## 可见性与表演
 
@@ -61,7 +63,7 @@ python tools/start_gpt_sovits.py
 python tools/production.py --episode <已冻结台词素材目录> --config <引用 configs/tts.cast.json 的后期配置> --synthesize
 ```
 
-以上命令是后续统一生成时的操作示例，不代表当前已开始生成。资产清单中的模型和 WAV 为本机文件并由 Git 忽略；仓库只保存配置和说明。正式声线配置为 qwen/妃咲、glm/和纱、gemini/泉奈、gpt/莉音、claude/佳代子、deepseek/宫子。GLM 主参考固定为 `CH0250_Season_NewYear.wav`，其余角色各自随机选定一次主参考后固定；均支持多条辅助参考。素材采集完成后再批量生成。分句、停顿和目标时长控制尚未实现，语音时长生成后仍需在剪辑软件调整镜头。
+以上命令是后续统一生成时的操作示例，不代表当前已开始生成。资产清单中的模型和 WAV 为本机文件并由 Git 忽略；仓库只保存配置和说明。正式声线配置为 qwen/妃咲、glm/和纱、gemini/泉奈、gpt/莉音、claude/佳代子、deepseek/宫子。该版 GPT-SoVITS 配置的 GLM 主参考为 `CH0250_Season_NewYear.wav`，其余角色各自随机选定一次主参考后固定；均支持多条辅助参考。素材采集完成后再批量生成。该版接口未实现分句、停顿和目标时长控制，语音时长生成后仍需在剪辑软件调整镜头。
 
 ## 历史验证记录（2026-11-08）
 

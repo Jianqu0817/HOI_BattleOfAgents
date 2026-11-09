@@ -6,6 +6,7 @@ from campaign import effective_resumed_config
 from model_client import complete
 from m0_probe import write_json
 from showrunner import country_model
+from host_skills import host_guidance
 work=Path('runs/tyrol_official_20261109/closing'); work.mkdir(parents=True,exist_ok=True); run=ROOT/'runs/campaigns/tyrol_two_flags_20261109'
 read=lambda p:json.loads(p.read_text(encoding='utf-8-sig'))
 m=read(run/'manifest.json');cfg=effective_resumed_config(m);show=cfg['show'];tags=cfg['countries']
@@ -42,6 +43,7 @@ def speak(no,tag,phase,question,earlier,reply_to=None,target=None):
     payload={'公开演员':names,'本人公开简介':cast[tag]['self_intro'],'公开记录':lines,'刚才实际公开说的话':history,'本次发言':question,
       '格式':'返回 JSON {"text":"一段可直接朗读的简体中文台词","refs":["公开材料或刚才发言的真实id"]}。refs一至四项。正文不要读编号；直接开口，不写舞台指令、角色标签。'}
     sysmsg=f'你是{names[tag]}。{voices[tag]} 现在是本期公开收尾大会，大家和观众都听得见。全场只谈公开地图和台词。不得透露、猜测或暗示未公开的决策、任务、私信、执行记录或他人动机；只说对公开言语的理解。说自己今天这句如何改、接眼前的梗都可以。不要虚构别人说过的话。只给JSON。'
+    if tag=='GLM':sysmsg+=host_guidance(show)
     messages=[{'role':'system','content':sysmsg},{'role':'user','content':json.dumps(payload,ensure_ascii=False)}]
     config=cfg['model'] if tag=='GLM' else country_model(cfg['model'],show,tag)
     path=work/f'{no:02d}_{tag}.json'

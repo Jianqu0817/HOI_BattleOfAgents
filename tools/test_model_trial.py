@@ -4,6 +4,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from model_trial import country_messages, validate_trial_request, normalize_request, validate_private, private_context, factual_notes, own_history
 
@@ -53,6 +54,21 @@ class ModelTrialTests(unittest.TestCase):
         self.assertIn("PUBLIC_PROPOSAL", message)
         self.assertIn("第二轮公开沟通", message)
         self.assertIn("不能当成零或已满", country_messages(self.observed, "decision", [])[0]["content"])
+
+    def test_public_quote_survives_an_unlisted_aside_reference(self):
+        from model_trial import call_country
+        from showrunner import settings
+        tags = ["GER", "ITA"]
+        show = settings({"performance": True, "strict_public_context": True}, tags)
+        aside = {"about": "ITA", "stance": "追问", "ref": "unlisted", "text": "待核对"}
+        raw = {"country": "GER", "message": "先合照，条件留到桌上谈。", "public_asides": [aside]}
+        with tempfile.TemporaryDirectory() as temp, patch("model_trial.recorded_complete", return_value={"response": raw}):
+            directory = Path(temp)
+            result = call_country(directory, {}, self.observed, "diplomacy", [], tags=tags, show_config=show)
+            self.assertEqual(result, {**raw, "public_asides": []})
+            receipt = json.loads((directory / "model_calls/diplomacy_GER.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["response"], raw)
+            self.assertEqual(receipt["aside_projection"]["rejected"][0]["aside"], aside)
 
     def test_unsupported_claim_is_flagged_without_rewriting_actions(self):
         request = copy.deepcopy(self.request)

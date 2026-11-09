@@ -1,19 +1,14 @@
-"""IRON: configure, check, run/resume a bounded match, and export episodes."""
-import argparse
+"""Shared campaign configuration, model routing and episode indexing."""
 import copy
 from dataclasses import asdict
-from datetime import datetime, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
-import subprocess
-import sys
-import time
 
-from m0_probe import ROOT, Probe, ai_receipt_state, countries_from, settled_pause_state, write_json
-from scoreboard import validate_rules, rules_text, score, controllers
+from m0_probe import ROOT, countries_from, write_json
+from scoreboard import validate_rules, rules_text
 
 
 def read(path):
@@ -45,6 +40,9 @@ def load_config(path):
     for key in ("common_rules", "guide"):
         if show.get(key + "_file"):
             show[key] = resolve(show[key + "_file"]).read_text(encoding="utf-8-sig")
+    if show.get("host_skills"):
+        from host_skills import load_host_readings
+        show["host_readings"] = load_host_readings(show["host_skills"])
     if "player_prompt_limits" in show and ("player_prompt_bytes" not in show or not isinstance(show["player_prompt_limits"], dict)):
         raise ValueError("player_prompt_limits requires a model mapping and a default player_prompt_bytes")
     if "player_prompt_bytes" in show:
@@ -78,6 +76,12 @@ def load_config(path):
             show["profiles"].setdefault(tag, {})["scenario_goal"] = scenario["goals"][tag]
         rules = f"\n本场展演《{scenario['title']}》持续{scenario['hours']}游戏小时。开场公共消息：{scenario['opening']}"
         show["public_opening"] = scenario["opening"]
+        if "public_host_cues" in scenario:
+            cues = scenario["public_host_cues"]
+            if not isinstance(cues, dict) or any(not re.fullmatch(r"[1-9][0-9]*", turn)
+                    or not isinstance(cue, str) or not 0 < len(cue.strip()) <= 600 for turn, cue in cues.items()):
+                raise ValueError("public_host_cues requires turn numbers and short public hosting directions")
+            show["public_host_cues"] = cues
     if show.get("table_host") and (not show.get("strict_public_context") or config["communication_rounds"] != 2
                                     or not config.get("performance", {}).get("enabled")
                                     or not config["performance"].get("public_host", True)):
@@ -227,107 +231,6 @@ def load_model_environment(config):
             os.environ[name] = value
 
 
-def acquire_campaign_lock(directory, session):
-    directory.mkdir(parents=True, exist_ok=True)
-    handle = (directory / "campaign.lock.json").open("a+b")
-    try:
-        handle.seek(0)
-        if os.name == "nt":
-            import msvcrt
-            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
-        else:
-            import fcntl
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        owner = identity(session, os.getpid())
-        handle.seek(0)
-        handle.truncate()
-        handle.write(json.dumps(owner).encode("utf-8"))
-        handle.flush()
-        return handle
-    except OSError as error:
-        handle.close()
-        raise ValueError("该对局已有活动进程，请勿同时运行") from error
-    except Exception:
-        handle.close()
-        raise
-
-
-def release_campaign_lock(handle):
-    # OS locks are released on close and on process death; metadata need not be deleted.
-    handle.close()
-
-
-def doctor(config, directory):
-    probe = Probe(directory, config["countries"])
-    try:
-        status = probe.call("hoi4_status", {})
-        pids = status["game"]["pids"]
-        pause, evidence = settled_pause_state(probe.session) if len(pids) == 1 else ("unavailable", {})
-        result = {"game_running": len(pids) == 1, "pids": pids, "pause": pause,
-                  "pause_evidence": evidence, "model_keys": {key: bool(os.environ.get(key)) for key in key_envs(config)},
-                  "version": status["game"].get("version"), "window": status.get("window"),
-                  "note": "中文 1280×720 渲染配置；运行前载入单人非铁人存档。模型密钥只检查是否已设置。"}
-        write_json(directory / "doctor.json", result)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return result
-    finally:
-        probe.session.shutdown()
-
-
-def establish_control(config, directory, known_disabled_pid=None):
-    """Normalize toggles while paused; verify every response, never infer toggle state."""
-    tags = config["countries"]
-    probe = Probe(directory / "control", tags)
-    try:
-        with probe.session.lock.hold("IRON campaign control setup"):
-            status = probe.call("hoi4_status", {})
-            pids = status["game"]["pids"]
-            if len(pids) != 1 or settled_pause_state(probe.session)[0] != "paused":
-                raise ValueError("需要唯一游戏进程和已暂停的存档")
-            current = identity(probe.session, pids[0])
-            path = directory / "control.json"
-            existing = read(path) if path.exists() else None
-            if existing and existing.get("identity") == current and existing.get("disabled_ai") == tags and existing.get("status") == "verified":
-                return pids[0]
-            if existing and existing.get("identity") != current:
-                raise ValueError("游戏进程已变。请载入正确检查点后运行 control --refresh，重新建立本轮控制。")
-            record = {"identity": current, "disabled_ai": [], "status": "checking", "toggles": []}
-            write_json(path, record)
-            if known_disabled_pid is not None:
-                if known_disabled_pid != pids[0]:
-                    raise ValueError("已知 AI 停用证据不属于当前进程")
-                record["disabled_ai"] = tags
-                record["basis"] = "operator supplied same-process disabled-AI evidence"
-            else:
-                for tag in tags:
-                    # `ai TAG` is a toggle. Its response proves the resulting state.
-                    for attempt in range(2):
-                        record["pending"] = tag
-                        write_json(path, record)
-                        response = probe.command(["ai " + tag])
-                        text = " ".join(response["results"][0].get("response", []))
-                        record["toggles"].append({"country": tag, "response": text})
-                        write_json(path, record)
-                        resulting_state = ai_receipt_state(response["results"][0].get("response", []), tag)
-                        if resulting_state == "disabled":
-                            record["disabled_ai"].append(tag)
-                            break
-                        if resulting_state != "enabled":
-                            raise ValueError("无法确认 AI 状态，保持暂停: " + tag)
-                    else:
-                        raise ValueError("无法停用原生国家 AI: " + tag)
-            record.pop("pending", None)
-            record["receipt"] = probe.receipts(tags + [tags[0]], "campaign_control")
-            record["status"] = "verified"
-            write_json(path, record)
-            from hoi4_live.game import console, panels
-            console.close_console(probe.session)
-            panels.to_map(probe.session)
-            return pids[0]
-    finally:
-        probe.session.shutdown()
-
-
 def execution_mode(result):
     if result.get("status") == "completed_deterministic_turn":
         return "done"
@@ -336,18 +239,6 @@ def execution_mode(result):
     if "before_clock" in result:
         return "clock"
     return "actions"
-
-
-def run_child(arguments):
-    result = subprocess.run([sys.executable, *map(str, arguments)], cwd=ROOT)
-    if result.returncode:
-        raise RuntimeError("子阶段停止，保持原记录供 resume: " + str(arguments[0]))
-
-
-def production_marker(directory, turn, phase):
-    with (directory / "production.jsonl").open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps({"turn": turn, "phase": phase, "epoch": time.time(),
-                                 "recorded_at": datetime.now(timezone.utc).isoformat()}, ensure_ascii=False) + "\n")
 
 
 def turn_show_config(config, directory):
@@ -392,49 +283,6 @@ def remember_commitments(config, trial, directory):
         write_json(destination, active + ordered[-100:])
 
 
-def update_standings(config, manifest, directory):
-    if "scoring" not in config:
-        return
-    completed = [entry for entry in manifest["turns"] if entry.get("status") == "completed"]
-    if not completed:
-        return
-    from run_turn import saved_state
-    from army_actions import context_for_session
-    first_dir, last_dir = resolve(completed[0]["turn"]), resolve(completed[-1]["turn"])
-    first, last = read(first_dir / "result.json"), read(last_dir / "result.json")
-    probe = Probe(directory / "score_data", config["countries"])
-    try:
-        context = context_for_session(probe.session)
-        standings = score(saved_state(first_dir, first["before_save"]), saved_state(last_dir, last["final_save"]),
-                          config["countries"], context["map"], config["scoring"], manifest["status"] == "completed")
-        manifest["standings"] = standings
-        write_json(directory / "standings.json", standings)
-    finally:
-        probe.session.shutdown()
-
-
-def player_score_context(config, trial, first_trial, directory):
-    from army_actions import context_for_session
-    tag = config["countries"][0]
-    current_source = read(trial / "observations" / (tag + ".json"))["source"]["path"]
-    initial_source = read(first_trial / "observations" / (tag + ".json"))["source"]["path"]
-    current_state, initial_state = read(current_source), read(initial_source)
-    probe = Probe(directory / "score_context", config["countries"])
-    try:
-        index = context_for_session(probe.session)["map"]
-        current, initial = controllers(current_state, index), controllers(initial_state, index)
-        objectives = [{"province_id": point, "controller": current[point]} for point in config["scoring"].get("province_ids", [])]
-        result = {}
-        for tag in config["countries"]:
-            start, now = sum(owner == tag for owner in initial.values()), sum(owner == tag for owner in current.values())
-            result[tag] = {"mode": config["scoring"]["mode"], "initial_controlled_land": start,
-                           "current_controlled_land": now, "land_delta": now - start,
-                           "public_objectives": objectives, "campaign_round_limit": config["turn_limit"]}
-        return result
-    finally:
-        probe.session.shutdown()
-
-
 def model_usage(trial):
     paths = list((trial / "model_calls").glob("*.json")) + list((trial / "private_lessons/model_calls").glob("*.json"))
     commentary = trial / "audience_commentary/model_call.json"
@@ -451,187 +299,6 @@ def model_usage(trial):
     return totals
 
 
-def finish_execution(config, entry, pid):
-    trial, turn = resolve(entry["trial"]), resolve(entry["turn"])
-    path = turn / "result.json"
-    mode = execution_mode(read(path)) if path.exists() else "new"
-    if mode == "done":
-        return
-    if path.exists():
-        result = read(path)
-        if result["status"] in ("executing", "advancing", "starting", "resuming"):
-            # The campaign owns a process lock; an interrupted child cannot still run.
-            result.update(status="interrupted", error="process ended before phase commit")
-            write_json(path, result)
-    match_config = turn.parent / (turn.name + "_config.json")
-    write_json(match_config, {"countries": config["countries"], "step_hours": config["step_hours"]})
-    if mode == "clock":
-        run_child([ROOT / "tools/recover_clock.py", "--name", turn.name, "--config", match_config,
-                   "--known-disabled-pid", pid])
-    else:
-        args = [ROOT / "tools/run_turn.py", "--observations", trial / "observations", "--requests", trial / "requests",
-                "--name", turn.name, "--config", match_config, "--known-disabled-pid", pid,
-                "--decision-source", "IRON campaign sealed model requests"]
-        if mode == "actions":
-            args.append("--resume")
-        run_child(args)
-
-
-def run_campaign(name, config_path=None, resume=False, turns=None, previous_trial=None, previous_turn=None,
-                 known_disabled_pid=None):
-    from model_trial import prepare, decide
-    from episode import export_episode, generate_commentary
-    directory = ROOT / "runs/campaigns" / name_ok(name)
-    path = directory / "manifest.json"
-    if resume:
-        manifest = read(path)
-        config = manifest["config"]
-        if config_path and config_digest(load_config(config_path)) != manifest["config_sha256"]:
-            raise ValueError("恢复配置与已冻结配置不同，请为新配置新开对局")
-    else:
-        if path.exists():
-            raise ValueError("对局名称已存在，请使用 resume 或新名称")
-        config = load_config(config_path or "configs/campaign.example.json")
-        if bool(previous_trial) != bool(previous_turn):
-            raise ValueError("续接需要同时提供 from-trial 与 from-turn")
-        for value in (previous_trial, previous_turn):
-            if value:
-                name_ok(value)
-        manifest = {"schema_version": 1, "name": name, "status": "new", "config": config,
-                    "config_sha256": config_digest(config), "turns": [], "created_at": time.time(),
-                    "previous_trial": previous_trial, "previous_turn": previous_turn}
-    # Lock the campaign across model calls too; the backend desktop lock covers input phases.
-    probe = Probe(directory / "session", config["countries"])
-    try:
-        campaign_lock = acquire_campaign_lock(directory, probe.session)
-    finally:
-        probe.session.shutdown()
-    owns_manifest = resume
-    try:
-        if not resume:
-            if path.exists():
-                raise ValueError("对局已由另一进程建立，请使用 resume 或新名称")
-            write_json(path, manifest)
-            owns_manifest = True
-        else:
-            manifest = read(path)
-            config = manifest["config"]
-        missing = [key for key in key_envs(config) if not os.environ.get(key)]
-        if missing:
-            raise ValueError("请设置模型密钥环境变量: " + ", ".join(missing))
-        pid = establish_control(config, directory, known_disabled_pid)
-        manifest["known_disabled_pid"] = pid
-        if config.get("scoring", {}).get("mode", "exhibition") != "exhibition":
-            from army_actions import context_for_session
-            probe = Probe(directory / "score_preflight", config["countries"])
-            try:
-                index = context_for_session(probe.session)["map"]
-                if not index.get("provinces"):
-                    raise ValueError("该地图尚未校准，不能使用领土/目标点计分")
-                for point in config["scoring"].get("province_ids", []):
-                    if index["provinces"].get(str(point), {}).get("kind") != "land":
-                        raise ValueError("目标不是当前地图的陆地省份: " + str(point))
-            finally:
-                probe.session.shutdown()
-        limit = min(config["turn_limit"], len([row for row in manifest["turns"] if row.get("status") == "completed"]) + turns) if turns else config["turn_limit"]
-        if turns is not None and (type(turns) is not int or turns < 1):
-            raise ValueError("turns 必须为正整数")
-        for index in range(limit):
-            if index < len(manifest["turns"]):
-                entry = manifest["turns"][index]
-            else:
-                trial_name = f"{name}_t{index + 1:03d}"
-                entry = {"index": index + 1, "trial": "runs/" + trial_name,
-                         "turn": "runs/turns/" + trial_name + "_exec", "status": "pending"}
-                manifest["turns"].append(entry)
-            if entry.get("status") == "completed":
-                continue
-            trial, turn = resolve(entry["trial"]), resolve(entry["turn"])
-            if index:
-                prior_trial, prior_turn = [resolve(manifest["turns"][index - 1][key]) for key in ("trial", "turn")]
-            else:
-                prior_trial = ROOT / "runs" / manifest["previous_trial"] if manifest["previous_trial"] else None
-                prior_turn = ROOT / "runs/turns" / manifest["previous_turn"] if manifest["previous_turn"] else None
-            manifest.update(status="running", current_turn=index + 1)
-            entry["status"] = "observing"
-            write_json(path, manifest)
-            if not (trial / "prepared.json").exists():
-                production_marker(directory, index + 1, "observe.start")
-                prepare(trial, config["countries"], pid, prior_trial, prior_turn, resume=(trial / "capture").exists())
-                production_marker(directory, index + 1, "observe.end")
-            entry["status"] = "deciding"
-            write_json(path, manifest)
-            decision = read(trial / "decision_result.json") if (trial / "decision_result.json").exists() else {}
-            if decision.get("status") != "approved":
-                production_marker(directory, index + 1, "decide.start")
-                show = turn_show_config(config, directory)
-                if config.get("scoring", {}).get("mode", "exhibition") != "exhibition":
-                    show["score_context"] = player_score_context(config, trial, resolve(manifest["turns"][0]["trial"]), directory)
-                decide(trial, config["model"], config["countries"], resume=bool(decision),
-                       communication_rounds=config["communication_rounds"], private_diplomacy=True,
-                       show_config=show)
-                production_marker(directory, index + 1, "decide.end")
-            remember_commitments(config, trial, directory)
-            entry["status"] = "executing"
-            write_json(path, manifest)
-            production_marker(directory, index + 1, "execute.start")
-            finish_execution(config, entry, pid)
-            production_marker(directory, index + 1, "execute.end")
-            entry["status"] = "exporting"
-            write_json(path, manifest)
-            if config.get("summarize_lessons", True):
-                from lessons import generate_lessons
-                try:
-                    player_models = {tag: {**config["model"], **config["show"]["models"].get(tag, {})} for tag in config["countries"]}
-                    lessons = generate_lessons(trial, turn, config["model"], configs_by_country=player_models)
-                    for tag, record in lessons.items():
-                        knowledge_path = directory / "knowledge" / (tag + ".json")
-                        knowledge = read(knowledge_path) if knowledge_path.exists() else []
-                        knowledge = [row for row in knowledge if row.get("turn_id") != record["turn_id"]]
-                        write_json(knowledge_path, (knowledge + [record])[-20:])
-                    entry.pop("lessons_error", None)
-                except (ValueError, RuntimeError) as error:
-                    entry["lessons_error"] = str(error)
-                    print("本轮游戏已完成，复盘暂未完成：" + str(error), flush=True)
-            commentary = None
-            if config.get("model_commentary", True):
-                try:
-                    commentary = generate_commentary(trial, turn, config["commentary_model"])
-                    entry.pop("commentary_error", None)
-                except (ValueError, RuntimeError) as error:
-                    entry["commentary_error"] = str(error)
-                    print("模型解说暂未通过校验，继续导出事实记录：" + str(error), flush=True)
-            exported = export_episode(trial, turn, directory / "episodes" / f"turn_{index + 1:03d}", commentary,
-                                      load_cached_commentary=commentary is not None,
-                                      production_markers=[row for row in (json.loads(line) for line in (directory / "production.jsonl").read_text(encoding="utf-8").splitlines()) if row["turn"] == index + 1])
-            production_marker(directory, index + 1, "export.end")
-            entry.update(status="completed", final_date=read(turn / "result.json")["final_save"]["parsed_date"],
-                         export=exported)
-            write_json(path, manifest)
-            build_index(directory, manifest)
-            print(f"回合 {index + 1} 完成：{entry['final_date']}", flush=True)
-        manifest["status"] = "completed" if len(manifest["turns"]) == config["turn_limit"] and all(row["status"] == "completed" for row in manifest["turns"]) else "ready"
-        manifest.pop("error", None)
-        update_standings(config, manifest, directory)
-        write_json(path, manifest)
-        build_index(directory, manifest)
-        return manifest
-    except Exception as error:
-        if owns_manifest:
-            manifest.update(status="interrupted", error=str(error))
-            write_json(path, manifest)
-        raise
-    finally:
-        try:
-            if owns_manifest:
-                for entry in manifest["turns"]:
-                    entry["usage"] = model_usage(resolve(entry["trial"]))
-                manifest["usage"] = {key: sum(entry["usage"][key] for entry in manifest["turns"]) for key in ("calls", "prompt_tokens", "completion_tokens", "total_tokens", "calls_without_usage")}
-                write_json(path, manifest)
-        finally:
-            release_campaign_lock(campaign_lock)
-
-
 def build_index(directory, manifest):
     import html
     links = []
@@ -644,38 +311,5 @@ def build_index(directory, manifest):
     (directory / "index.html").write_text('<!doctype html><meta charset="utf-8"><title>IRON 对局回看</title><style>body{background:#111827;color:#eee;font:20px system-ui;margin:6vw}a{color:#8ddaff}li{margin:1em}td,th{padding:8px;border-bottom:1px solid #374151}</style><h1>IRON · ' + html.escape(manifest["name"]) + '</h1><p>观众全知视角；含各国私密计划与定向私信。</p><ul>' + ''.join(links) + '</ul><p>' + html.escape(standings.get('rule', '')) + '</p><table><tr><th>国家</th><th>控制陆地省份</th><th>增减</th><th>分数</th></tr>' + table + '</table><p>' + html.escape('获胜：' + '、'.join(standings['winners']) if standings.get('winners') else '') + '</p>', encoding="utf-8")
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["doctor", "control", "run", "resume", "status"])
-    parser.add_argument("--config")
-    parser.add_argument("--name", default="my_match")
-    parser.add_argument("--turns", type=int, help="本次最多新增的回合数")
-    parser.add_argument("--from-trial")
-    parser.add_argument("--from-turn")
-    parser.add_argument("--known-disabled-pid", type=int)
-    parser.add_argument("--refresh", action="store_true", help="control：新进程重新建立原生AI控制")
-    args = parser.parse_args()
-    name_ok(args.name)
-    directory = ROOT / "runs/campaigns" / args.name
-    if args.command == "status":
-        data = read(directory / "manifest.json")
-        print(json.dumps({key: data.get(key) for key in ("name", "status", "current_turn", "error", "turns")}, ensure_ascii=False, indent=2))
-    elif args.command in ("run", "resume"):
-        run_campaign(args.name, args.config, args.command == "resume", args.turns, args.from_trial, args.from_turn, args.known_disabled_pid)
-    else:
-        config = load_config(args.config or "configs/campaign.example.json")
-        if args.command == "doctor":
-            doctor(config, directory / "checks")
-        else:
-            if args.refresh:
-                (directory / "control.json").unlink(missing_ok=True)
-            print("已控制进程", establish_control(config, directory, args.known_disabled_pid))
-
-
 if __name__ == "__main__":
-    try:
-        main()
-    except (ValueError, RuntimeError, FileNotFoundError) as error:
-        print("IRON 停止：" + str(error), file=sys.stderr)
-        raise SystemExit(1)
+    raise SystemExit("旧桌面对局入口已移除。请使用 tools/native_campaign.py。")

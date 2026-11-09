@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import argparse
 from getpass import getpass
 import base64
 import hashlib
@@ -26,18 +27,36 @@ def finite_wav(data):
         result.writeframes(pcm)
     return dest.getvalue(),len(pcm)/48000
 
-def main():
+def main(reference=False):
     key=os.getenv('DASHSCOPE_API_KEY') or getpass('Qwen API key: ')
-    dest=WORK/'takes'
+    work=WORK.with_name(WORK.name+'_ref') if reference else WORK
+    dest=work/'takes'
     dest.mkdir(parents=True,exist_ok=True)
+    items=list(enumerate(rows,1))
+    pairs={}
+    cast_ids={i:voices[r['tag']][2] for i,r in items}
+    if reference:
+        from reference import reference_assignments,load_voice
+        selections=reference_assignments([r['tag'] for _,r in items],work)
+        enrolled={}
+        for (i,r),sources in zip(items,selections):
+            pair=(r['tag'],sources)
+            if pair not in enrolled:
+                enrolled[pair]=load_voice(key,MODEL,r['tag'],work,sources)
+            pairs[i]=sources
+            cast_ids[i]=enrolled[pair]
     def take(item):
         i,r=item
         settings=voices[r['tag']]
         instruction=settings[3]
         if r['tag']=='GLM':
             instruction+=('给观众解说时亲切清楚，数字逐位读。' if r['kind']=='观众解说' else '这句是对同桌玩家发问，俏皮一点，把问题抛给对方。')
-        body={'model':MODEL,'input':{'text':spoken(r['text']),'voice':settings[2],'format':'wav','sample_rate':24000,
+        body={'model':MODEL,'input':{'text':spoken(r['text']),'voice':cast_ids[i],'format':'wav','sample_rate':24000,
                                     'instruction':instruction,'rate':0.94}}
+        if reference:
+            delivery=('对桌边的玩家说话，问完等她接话。' if r['kind']=='桌边发言' else '给第一次看的观众讲清眼前的局面。')
+            body['input'].update(rate=1.04,pitch=1.045,language_hints=['zh'],
+                                 instruction='用普通话，保留参考音色，直接读出台词第一个字，标点处自然换气，字外保持安静。'+delivery)
         identity=hashlib.sha256(json.dumps(body,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
         audio=dest/f'{i:02d}.wav'
         meta=audio.with_suffix('.json')
@@ -66,13 +85,17 @@ def main():
         temp=audio.with_suffix('.part')
         temp.write_bytes(data)
         temp.replace(audio)
-        meta.write_text(json.dumps(dict(identity=identity,model=MODEL,voice=settings[2],request_id=response.get('request_id'),seconds=seconds,
+        meta.write_text(json.dumps(dict(identity=identity,model=MODEL,voice=cast_ids[i],sources=pairs.get(i),request_id=response.get('request_id'),seconds=seconds,
                                          usage=response.get('usage',{})),ensure_ascii=False,indent=2),'utf8')
         print(i,r['tag'],round(seconds,2),flush=True)
-    items=list(enumerate(rows,1))
     take(items[0])
     with ThreadPoolExecutor(max_workers=3) as pool:
         list(pool.map(take,items[1:]))
 
 if __name__=='__main__':
-    main()
+    parser=argparse.ArgumentParser()
+    mode=parser.add_mutually_exclusive_group()
+    mode.add_argument('--reference',dest='reference',action='store_true')
+    mode.add_argument('--preset',dest='reference',action='store_false',help='Use the original system-voice pilot')
+    parser.set_defaults(reference=True)
+    main(parser.parse_args().reference)

@@ -29,6 +29,21 @@ def assign_public_message_ids(messages, match_id, turn_id):
     return result
 
 
+def saved_scenario_board(state, scenario, map_index, tags, match_id, turn_id):
+    from army_actions import _controller
+    objectives = (scenario or {}).get("opening_control", {})
+    if not objectives:
+        return []
+    controllers = {p: _controller(state, int(p), map_index) for p in objectives}
+    pairs = [sorted([w["first"], w["second"]]) for w in state.get("public_wars", [])
+             if w.get("first") in tags and w.get("second") in tags]
+    row = {"visibility": "public", "kind": "scenario_map", "observed_date": state["date"],
+           "facts": {"province_controllers": controllers, "participating_countries_at_war": sorted(pairs)},
+           "source": {"kind": "game_save_scenario_map"}}
+    row["id"] = _id("event", {"match_id": match_id, "turn": turn_id, "event": row})
+    return [row]
+
+
 def build_public_events(before_world, after_world, tagset, dates):
     """Project only observable control/war changes, never sealed action targets."""
     tags, events = set(tagset), []
@@ -104,7 +119,7 @@ def public_context(messages, observed):
         if row.get("visibility") != "public" or not isinstance(row.get("id"), str) or row["id"] in seen:
             continue
         # Accept only the structured board produced from world observations.
-        if row.get("source", {}).get("kind") != "native_world_diff":
+        if row.get("source", {}).get("kind") not in ("native_world_diff", "game_save_scenario_map"):
             continue
         allowed_events.append({key: copy.deepcopy(row[key]) for key in
                                ("id", "visibility", "kind", "observed_date", "before_date", "observed_date_raw", "before_date_raw", "facts", "source") if key in row})
@@ -231,12 +246,17 @@ def public_commentary_messages(observed, public, question="概括刚才公开发
         payload["own_profile"] = {key: show.get("host_profile", {})[key] for key in ("name", "persona")
                                   if key in show.get("host_profile", {})}
     if show and show.get("table_host"):
+        from host_skills import host_guidance
+        messages[0]["content"] += host_guidance(show)
         if show.get("public_opening"):
             payload["match_rules"] = show["public_opening"]
         question = ("你是智谱娘大狐狸，五国刚说完第一轮，正等你插话。挑一两句桌上原话，"
                     "抓一个口径差异、吹嘘或暧昧的保证。可以故意拱火：点名问另一个当事人敢不敢认，"
                     "也可以拿一句旧话逗她。每次围绕一个话头，留个能让人回嘴的空隙。"
                     "你的推断要让人听出是你在逗或追问；逐字引语只用对方真说过的话。")
+        cue = show.get("public_host_cues", {}).get(str(observed["turn_id"]))
+        if cue:
+            question += "\n本轮已定的公开环节：" + cue + "。环节说明不能作为事实引用，若现场无依据可跳过。"
     if payload.get("public_host_messages"):
         # Host comments cite direct player/world evidence, never host chains.
         payload.pop("public_host_messages")

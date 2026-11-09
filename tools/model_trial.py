@@ -1,16 +1,13 @@
 """One bounded trial: five isolated countries, public diplomacy, sealed orders and a referee."""
-import argparse
 import copy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
-import sys
-import time
 
-from m0_probe import Probe, ROOT, countries_from, write_json, settled_pause_state, game_hours
-from agent_contract import observation, validate_request, country_fingerprint
+from m0_probe import ROOT, write_json, game_hours
+from agent_contract import validate_request, country_fingerprint
 from model_client import complete, ModelJSONError, parse_json_content
 from showrunner import (settings as show_settings, model_settings, country_model, referee_model, player_prompt_limits,
                         check_intent, check_message, check_replies, extend_prompt, ledger,
@@ -368,106 +365,6 @@ def check_partial_observation(value, baseline, tag, source, expected_match, expe
     check_history(value.get("recent_history", []), tag)
 
 
-def prepare(directory, tags, expected_pid, previous_trial=None, previous_turn=None, resume=False):
-    if (directory / "prepared.json").exists():
-        raise ValueError("This trial already has observations")
-    probe = Probe(directory / "capture", tags)
-    try:
-        with probe.session.lock.hold("IRON model trial observation"):
-            status = probe.call("hoi4_status", {})
-            if status["game"]["pids"] != [expected_pid]:
-                raise ValueError("Game process changed; country AI control must be established again")
-            from hoi4_live.game import console, panels, researchview
-            from hoi4_live.perception import topbar
-            from hoi4_live.gamedata import tech, focus, loc
-            from army_actions import context_for_session
-            from naval_air_actions import context_for_session as naval_air_context_for_session
-            if settled_pause_state(probe.session)[0] != "paused":
-                raise ValueError("Observation requires a paused game")
-            receipt = probe.receipts(tags + [tags[0]], "model_trial_start")
-            recovered = recover_observation_baseline(directory, tags, status["game"]["user_dir"]) if resume else None
-            if recovered:
-                save, parsed, state = recovered
-                raw_dir = Path(save["path"]).parent
-                number = 1
-                while True:
-                    checkpoint_name = "iron_" + directory.name + f"_reobserve_{number:02d}"
-                    if not (probe.directory / (checkpoint_name + ".json")).exists() and not (raw_dir / ("hoi4live_" + checkpoint_name + ".hoi4")).exists():
-                        break
-                    number += 1
-                checkpoint = probe.save(checkpoint_name)
-                check_observation_checkpoint(state, read(probe.directory / (checkpoint_name + ".json")), tags)
-                write_json(probe.directory / f"observation_recovery_{number:02d}.json", {"checkpoint": checkpoint, "receipt": receipt, "baseline": save})
-            else:
-                save = probe.save("iron_" + directory.name + "_before")
-                parsed = probe.directory / ("iron_" + directory.name + "_before.json")
-                state = read(parsed)
-                write_json(probe.directory / "baseline.json", save)
-            previous = read(previous_turn / "result.json") if previous_turn else None
-            if previous:
-                if previous["status"] != "completed_deterministic_turn":
-                    raise ValueError("Previous game turn did not complete")
-                final = previous_turn / (previous["final_save"]["name"].removeprefix("hoi4live_") + ".json")
-                prior_state = read(final)
-                if state["date"] != prior_state["date"] or any(country_fingerprint(state, tag) != country_fingerprint(prior_state, tag) for tag in tags):
-                    raise ValueError("Game state does not continue from the previous completed turn")
-                from army_actions import army_activity
-                if any(army_activity(state["countries"][tag]) != army_activity(prior_state["countries"][tag]) for tag in tags):
-                    raise ValueError("Army activity does not continue from the previous completed turn")
-            technologies, focuses = tech.for_session(probe.session), focus.for_session(probe.session)
-            army_context = context_for_session(probe.session)
-            naval_air_context = naval_air_context_for_session(probe.session)
-            keys = list(technologies["techs"]) + [f"STATE_{sid}" for sid in state["states"]]
-            for tag in tags:
-                from diplomacy_actions import wargoals
-                keys += [tag, tag + "_DEF"] + [goal["type"] for goal in wargoals(state, tag)]
-                keys += list(focus.tree_focuses(focuses, state["countries"][tag]["focus_tree"]))
-                keys += [key for kind in state["equipments"] for key in (kind, f"{tag}_{kind}")]
-            names = loc.for_session(probe.session).get_many(keys)
-            source = {"kind": "parsed_text_save", "path": str(parsed.resolve()), "sha256": hashlib.sha256(parsed.read_bytes()).hexdigest(), "game_save": save["path"]}
-            for tag in tags:
-                old = read(previous_trial / "observations" / (tag + ".json")) if previous else None
-                expected_match = old["match_id"] if old else directory.name
-                expected_turn = old["turn_id"] + 1 if old else 1
-                observation_path = directory / "observations" / (tag + ".json")
-                if recovered and observation_path.exists():
-                    check_partial_observation(read(observation_path), state, tag, source, expected_match, expected_turn)
-                    print("KEPT frozen observation " + tag, flush=True)
-                    continue
-                actor = probe.receipts([tag], "model_observe_" + tag)
-                if actor["date"] != receipt["date"]:
-                    raise ValueError("Date changed during observation")
-                console.close_console(probe.session)
-                panels.to_map(probe.session)
-                panels.open_panel(probe.session, "research")
-                probe.session.input.move(80, 100)
-                time.sleep(.8)
-                researchview.read_slots_settled(probe.session)
-                image = probe.session.grab()
-                slots = researchview.read_slots(probe.session, img=image)
-                history = own_history(previous_trial, previous, tag) if previous else []
-                observed = observation(state, tag, expected_match, expected_turn, source, technologies, focuses, names,
-                                       army_context=army_context, naval_air_context=naval_air_context)
-                from army_actions import army_activity
-                observed["army_activity"] = army_activity(state["countries"][tag])
-                observed["recent_history"] = history
-                observed["research"]["visible_slots"] = [{key: row[key] for key in ("index", "state")} for row in slots]
-                observed["research"]["screen_evidence"] = probe.session.artifact(image, "slots_" + tag)
-                observed["research"]["active_names"] = {key: names.get(key, key) for key in observed["research"]["slots"] if key != "empty"}
-                observed.pop("observation_id")
-                observed["observation_id"] = digest(observed)
-                write_json(directory / "observations" / (tag + ".json"), observed)
-                print(f"OBSERVED {tag}: idle slots {[row['index'] for row in slots if row['state']=='idle']}", flush=True)
-            probe.receipts([tags[0]], "model_observe_return")
-            console.close_console(probe.session)
-            panels.to_map(probe.session)
-            write_json(directory / "prepared.json", {"countries": tags, "pid": expected_pid, "save": save, "receipt": receipt,
-                       "previous_trial": str(previous_trial) if previous_trial else None,
-                       "previous_turn": str(previous_turn) if previous_turn else None})
-    finally:
-        probe.session.shutdown()
-
-
 def validate_private(value, sender, tags):
     if not isinstance(value, dict) or set(value) != {"country", "to", "message"} or value["country"] != sender:
         raise ValueError("Invalid private-message sender or schema")
@@ -602,7 +499,13 @@ def call_country(directory, config, observed, phase, public, private=None, publi
     path = directory / "model_calls" / (label + "_" + tag + ".json")
     record = recorded_complete(directory, label + "_" + tag, config, messages, phase, tag, bool(show_config))
     value = record["response"]
-    if observed.get("execution_backend") == "native" and phase in ("diplomacy", "private", "reply"):
+    if isinstance(value.get("country"), str) and value["country"] != tag and value["country"].strip() == tag:
+        value = {**value, "country": tag}
+        record["normalized_response"] = value
+        record["identity_whitespace_trimmed"] = True
+        write_json(path, record)
+    strict_chat = observed.get("execution_backend") == "native" or (show_config and show_config.get("strict_public_context"))
+    if strict_chat and phase in ("diplomacy", "private", "reply"):
         # Chat is a typed channel, not an execution envelope. Preserve all raw
         # annotations for audit while routing only contract fields to players.
         if value.get("actions"):
@@ -621,6 +524,24 @@ def call_country(directory, config, observed, phase, public, private=None, publi
             record["normalized_response"] = value
             record["normalizations"] = removed
             write_json(path, record)
+        if phase == "diplomacy" and "public_asides" in value and sources is not None:
+            from story_channels import check_public_asides
+            kept, rejected = [], []
+            raw_asides = value["public_asides"]
+            if not isinstance(raw_asides, list):
+                rejected.append({"reason": "Public asides must be a list"})
+                raw_asides = []
+            for aside in raw_asides:
+                try:
+                    check_public_asides({"public_asides": kept + [aside]}, tags, sources)
+                    kept.append(aside)
+                except ValueError as error:
+                    rejected.append({"aside": aside, "reason": str(error)})
+            if rejected:
+                value = {**value, "public_asides": kept}
+                record["aside_projection"] = {"rejected": rejected}
+                record["normalized_response"] = value
+                write_json(path, record)
         if phase == "reply" and show_config and show_config.get("strict_public_context"):
             from communication_annotations import project_reply_routes
             value, rejected = project_reply_routes(value, tag, private["received"])
@@ -890,40 +811,3 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
         raise
     finally:
         write_json(directory / "decision_result.json", result)
-
-
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["prepare", "decide"])
-    parser.add_argument("--name", default="deepseek_trial_1")
-    parser.add_argument("--model-config", default="configs/model.example.json")
-    parser.add_argument("--known-disabled-pid", type=int, default=34280)
-    parser.add_argument("--resume", action="store_true", help="Reuse identical recorded model calls after a failed decision phase")
-    parser.add_argument("--communication-rounds", type=int, choices=[1, 2, 3], default=1)
-    parser.add_argument("--private-diplomacy", action="store_true")
-    parser.add_argument("--show-config", help="Optional recording rules, country profiles and model routing JSON")
-    parser.add_argument("--previous-trial", help="Completed preceding model trial name")
-    parser.add_argument("--previous-turn", help="Completed preceding game turn name")
-    args = parser.parse_args()
-    if not args.name.replace("_", "").isalnum():
-        parser.error("name must be letters, digits or underscores")
-    if bool(args.previous_trial) != bool(args.previous_turn):
-        parser.error("previous-trial and previous-turn must be supplied together")
-    for name in (args.previous_trial, args.previous_turn):
-        if name and not name.replace("_", "").isalnum():
-            parser.error("previous run names must be letters, digits or underscores")
-    tags = countries_from(read(ROOT / "configs/match.example.json"))
-    directory = ROOT / "runs" / args.name
-    if args.phase == "prepare":
-        prepare(directory, tags, args.known_disabled_pid,
-                ROOT / "runs" / args.previous_trial if args.previous_trial else None,
-                ROOT / "runs" / "turns" / args.previous_turn if args.previous_turn else None, resume=args.resume)
-    else:
-        decide(directory, read(ROOT / args.model_config), tags, resume=args.resume,
-               communication_rounds=args.communication_rounds, private_diplomacy=args.private_diplomacy,
-               show_config=read(ROOT / args.show_config) if args.show_config else None)
-
-
-if __name__ == "__main__":
-    main()

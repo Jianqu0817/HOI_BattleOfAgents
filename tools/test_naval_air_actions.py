@@ -3,8 +3,6 @@ import copy
 import unittest
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import Mock, patch
 
 from naval_air_actions import (air_wings, naval_air_observation, validate_naval_air_action,
                                verify_naval_air_action, retained_naval_air_order,
@@ -142,38 +140,6 @@ class NavalAirTests(unittest.TestCase):
         self.assertIsNone(selected_air_count(["0/1 个联队"]))
         self.assertIsNone(selected_air_count(["100"]))
 
-    def test_air_selection_clicks_exact_name_instead_of_size_controls(self):
-        from naval_air_actions import _air_selection
-        session = SimpleNamespace(window=Mock(), input=Mock(), ocr=Mock(), grab=Mock())
-        session.window.size.return_value = (1280, 720)
-        session.ocr.recognize.return_value.lines = [SimpleNamespace(text="1 个联队")]
-        name_line = SimpleNamespace(center=(285, 265))
-        with patch("naval_air_actions._exact_lines", return_value=([name_line], ["71000001"])), patch("naval_air_actions.time.sleep"):
-            result = _air_selection(session, "71000001")
-        session.input.click.assert_called_once_with(285, 265)
-        self.assertEqual(result["selected_count_evidence"], ["1 个联队"])
-        session.ocr.recognize.return_value.lines = [SimpleNamespace(text="2 个联队")]
-        with patch("naval_air_actions._exact_lines", return_value=([name_line], ["71000001"])), patch("naval_air_actions.time.sleep"):
-            with self.assertRaisesRegex(RuntimeError, "exactly one"):
-                _air_selection(session, "71000001")
-
-    def test_air_rename_blurs_edit_box_after_enter_before_return(self):
-        import sys
-        from contextlib import nullcontext
-        from naval_air_actions import rename_selected_ui
-        events = []
-        session = SimpleNamespace(window=Mock(), input=Mock(), ocr=Mock(), grab=Mock())
-        session.window.size.return_value = (1280, 720)
-        session.ocr.recognize.return_value.lines = [SimpleNamespace(text="第1空战狩猎中队", center=(600, 180))]
-        session.input.click.side_effect = lambda *args: events.append(("click", args))
-        session.input.move.side_effect = lambda *args: events.append(("move", args))
-        session.input.key.side_effect = lambda key: events.append(("key", key))
-        session.ocr.recognize.side_effect = lambda *args, **kwargs: (events.append(("ocr", None)) or SimpleNamespace(lines=[SimpleNamespace(text="第1空战狩猎中队", center=(600, 180))]))
-        clipboard = SimpleNamespace(Preserved=nullcontext, set_text=Mock())
-        with patch.dict(sys.modules, {"hoi4_live.desktop": SimpleNamespace(clipboard=clipboard)}), patch("naval_air_actions.time.sleep"):
-            rename_selected_ui(session, "air_wings", None, "71000001")
-        self.assertEqual(events[-2:], [("key", "enter"), ("click", (390, 135))])
-        self.assertEqual(events[:2], [("move", (390, 135)), ("ocr", None)])
 
     def test_green_counter_reads_zero_every_digit_and_multidigit_without_expected_value(self):
         import numpy as np
@@ -202,20 +168,6 @@ class NavalAirTests(unittest.TestCase):
                 self.assertEqual(count, int(text))
                 self.assertEqual(evidence["text"], text)
             self.assertIsNone(green_air_count(np.zeros((720, 1280, 3), dtype=np.uint8), path)[0])
-
-    def test_air_missing_ocr_digit_uses_full_glyph_count_and_rejects_two_or_unknown(self):
-        from naval_air_actions import _air_selection
-        session = SimpleNamespace(window=Mock(), input=Mock(), ocr=Mock(), grab=Mock(), cfg=SimpleNamespace(game_dir="game"))
-        session.window.size.return_value = (1280, 720)
-        session.ocr.recognize.return_value.lines = [SimpleNamespace(text="已 选 中 个")]
-        name_line = SimpleNamespace(center=(285, 265))
-        with patch("naval_air_actions._exact_lines", return_value=([name_line], ["71000001"])), patch("naval_air_actions.time.sleep"):
-            for count in (0, 2, None):
-                with patch("naval_air_actions.green_air_count", return_value=(count, {"text": str(count)})):
-                    with self.assertRaisesRegex(RuntimeError, "exactly one"):
-                        _air_selection(session, "71000001")
-            with patch("naval_air_actions.green_air_count", return_value=(1, {"text": "1"})):
-                self.assertEqual(_air_selection(session, "71000001")["selected_count_glyphs"]["text"], "1")
 
 
 if __name__ == "__main__":

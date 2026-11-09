@@ -40,7 +40,8 @@ def country_fingerprint(state, country):
     return hashlib.sha256(encoded).hexdigest()
 
 
-def observation(state, country, match_id, turn_id, source, technology_index, focus_index, names, army_context=None, naval_air_context=None):
+def observation(state, country, match_id, turn_id, source, technology_index, focus_index, names, army_context=None, naval_air_context=None,
+                visible_research_folders=None):
     from hoi4_live.gamedata import tech, focus
     own = state["countries"][country]
     technology = own.get("technology", {})
@@ -83,7 +84,9 @@ def observation(state, country, match_id, turn_id, source, technology_index, foc
                           "ahead_years": max(0, (item.get("year") or 0) - int(state["date"].split(".")[0])),
                           "requires_ui_check": True}
                          for key, item in technology_index["techs"].items()
-                         if tech.status(item, completed_tech, researching) == "available" and item.get("folders")],
+                         if tech.status(item, completed_tech, researching) == "available" and item.get("folders")
+                         and (visible_research_folders is None
+                              or item["folders"][0]["name"] in visible_research_folders)],
             "construction_buildings": ["industrial_complex"]},
         "unavailable": {"available_manpower": "country manpower field not yet calibrated",
                         "free_building_slots": "requires game UI check",
@@ -166,40 +169,6 @@ def validate_request(request, observed):
     return actions
 
 
-def execute_action(session, country, action, state):
-    """Called only after batch validation; the caller must verify the resulting save."""
-    from player_actions import research_start, focus_start, production_assign_one, construction_queue_one
-    args, kind = action["args"], action["type"]
-    own = state["countries"][country]
-    if kind.startswith(("air.", "navy.")):
-        from naval_air_actions import execute_naval_air_action
-        return execute_naval_air_action(session, country, action, state)
-    if kind == "diplomacy.declare_war":
-        from diplomacy_actions import declare_war
-        return declare_war(session, country, args["target_country"], args["wargoal_id"], state)
-    if kind.startswith("army."):
-        from army_actions import execute_army_action
-        return execute_army_action(session, country, action, state)
-    if kind == "research.start":
-        return research_start(session, country, args["technology_id"], args["slot"], own["technology"])
-    if kind == "focus.select":
-        return focus_start(session, args["focus_id"], own)
-    if kind == "production.assign":
-        line = next(row for row in many(own["production"]["military_lines"]) if object_id(row["id"]) == args["line_id"])
-        variant_id = object_id(line["equipment_variant_index"])
-        from hoi4_live.gamedata import loc
-        keys = [key for kind in state.get("equipments", {}) for key in (kind, f"{country}_{kind}", kind + "_short", f"{country}_{kind}_short")]
-        names = loc.for_session(session).get_many(keys)
-        name = equipment_variant_name(state, variant_id, country, names)
-        if not name:
-            raise ValueError("The production variant name is missing from the exact save")
-        labels = list(dict.fromkeys([name, equipment_variant_name(state, variant_id, country, names, prefer_short=True)]))
-        return production_assign_one(session, line["priority"] + 1, args["factories"], own["production"], expected_name=labels)
-    if kind == "construction.queue":
-        return construction_queue_one(session, country, args["state_id"], args["building_id"], state)
-    raise ValueError("Unsupported action")
-
-
 def naval_air_isolation(proof, action, before, after, country):
     from naval_air_actions import naval_air_fingerprint
     proof["checks"]["peers_naval_air_unchanged"] = all(naval_air_fingerprint(before, tag) == naval_air_fingerprint(after, tag)
@@ -258,29 +227,28 @@ def verify_action(action, before, after, country):
 
 
 def export(save_path, output, match_id, turn_id, countries):
-    from m0_probe import Probe, write_json
+    from m0_probe import ROOT, write_json
+    from types import SimpleNamespace
+    from hoi4_live.config import load
     from hoi4_live.gamedata import tech, focus, loc
     state = json.loads(save_path.read_text(encoding="utf-8"))
-    probe = Probe(output / "backend", countries)
-    try:
-        technologies, focuses = tech.for_session(probe.session), focus.for_session(probe.session)
-        keys = list(technologies["techs"]) + [f"STATE_{sid}" for sid in state.get("states", {})]
-        for country in countries:
-            keys += list(focus.tree_focuses(focuses, state["countries"][country].get("focus_tree")))
-            keys += [key for kind in state.get("equipments", {}) for key in (kind, f"{country}_{kind}")]
-        names = loc.for_session(probe.session).get_many(keys)
-        source = {"kind": "parsed_text_save", "path": str(save_path.resolve()),
-                  "sha256": hashlib.sha256(save_path.read_bytes()).hexdigest()}
-        for country in countries:
-            data = observation(state, country, match_id, turn_id, source, technologies, focuses, names)
-            write_json(output / (country + ".json"), data)
-            hold = {key: data[key] for key in ("match_id", "turn_id", "country", "date", "observation_id")}
-            hold.update(actions=[], reason="Keep existing orders this turn")
-            validate_request(hold, data)
-            write_json(output / (country + ".hold.json"), hold)
-            print(f"{country}: {len(data['candidates']['research'])} research candidates, {len(data['candidates']['focus'])} focus candidates")
-    finally:
-        probe.session.shutdown()
+    session = SimpleNamespace(cfg=load(str(ROOT / "configs/live.local.json")))
+    technologies, focuses = tech.for_session(session), focus.for_session(session)
+    keys = list(technologies["techs"]) + [f"STATE_{sid}" for sid in state.get("states", {})]
+    for country in countries:
+        keys += list(focus.tree_focuses(focuses, state["countries"][country].get("focus_tree")))
+        keys += [key for kind in state.get("equipments", {}) for key in (kind, f"{country}_{kind}")]
+    names = loc.for_session(session).get_many(keys)
+    source = {"kind": "parsed_text_save", "path": str(save_path.resolve()),
+              "sha256": hashlib.sha256(save_path.read_bytes()).hexdigest()}
+    for country in countries:
+        data = observation(state, country, match_id, turn_id, source, technologies, focuses, names)
+        write_json(output / (country + ".json"), data)
+        hold = {key: data[key] for key in ("match_id", "turn_id", "country", "date", "observation_id")}
+        hold.update(actions=[], reason="Keep existing orders this turn")
+        validate_request(hold, data)
+        write_json(output / (country + ".hold.json"), hold)
+        print(f"{country}: {len(data['candidates']['research'])} research candidates, {len(data['candidates']['focus'])} focus candidates")
 
 
 def main():

@@ -37,4 +37,4 @@ python tools/native_game.py --pid <PID> --journal runs/native_trial --request-id
 
 五国批量执行入口及视频事实记录见 [NATIVE_TURN.md](NATIVE_TURN.md)。空军效果核验检查请求的任务位是否启用或停用，并保留完整实际掩码；游戏可以自动取消互斥任务。
 
-五国模型聊天、密封决策与裁判现已接入 `tools/native_campaign.py`，并完成五个 360 小时回合，见 [使用说明](NATIVE_CAMPAIGN.md) 与 [实局验收](NATIVE_CAMPAIGN_VALIDATION.md)。`tools/campaign.py` 保留为旧 UI 执行器；新原生入口单独运行。本次未把任务设置验收等同于真实海空战。
+五国模型聊天、密封决策与裁判现已接入 `tools/native_campaign.py`，并完成五个 360 小时回合，见 [使用说明](NATIVE_CAMPAIGN.md) 与 [实局验收](NATIVE_CAMPAIGN_VALIDATION.md)。旧 UI 执行器已移除。本次未把任务设置验收等同于真实海空战。

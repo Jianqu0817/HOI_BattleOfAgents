@@ -1,10 +1,22 @@
 # 从 AI 对局到视频成片
 
-## 《蒂罗尔的两面旗》制作入口
+## 合照局开场
+
+在项目根目录运行以下三个离线工具。它们读取本机已制作的分镜、立绘、音频、地图素材及 SRT；成片写到 `exports/蒂罗尔开场/`。先确认输入属于合照局。讲课分镜与混音在 `runs/tyrol_opening_preview_v2/`，入场原话、配音及剪过的 P13 在 `runs/tyrol_class_photo_20261109/`。需要 FFmpeg、ffprobe，字幕渲染需要支持 ASS 的 FFmpeg，可用 `FFMPEG`、`FFPROBE`、`FFMPEG_ASS` 指定路径。
+
+```powershell
+python tools/tyrol/opening/lecture.py
+python tools/tyrol/opening/cast_scene.py opening
+python tools/tyrol/opening/assemble.py
+```
+
+合成时复用已录配音。检查合照、双人接话和地图镜头的裁边，按[节目制作约定](节目制作约定.md)审片。
+
+## 七日场的制作入口
 
 工具位于 [tools/tyrol](../tools/tyrol/)。从仓库根目录运行。五国七日场的开局与续录命令见[原生对局说明](NATIVE_CAMPAIGN.md)。剪辑时先给智谱娘一个面向新观众的开场，随后让观众听到桌上挑问和玩家回应，再揭相关目标。公开总结大会只引用公开发言、主持词和已核实的地图结果。
 
-**前两天的节奏试片**以人声长度决定镜头时长。使用六个千问系统音色，保留句内换气，接话之间留约 0.65–1.1 秒，事件转换另留读图时间。智谱娘交代开局、日末局势和次日的新问题。先审这两天的节奏，再决定是否继续。
+**前两天的节奏试片**以人声长度决定镜头时长。默认使用六个角色各自的参考录音，保留句内换气，接话之间留约 0.65–1.1 秒，事件转换另留读图时间。智谱娘交代开局、日末局势和次日的新问题。先审这两天的节奏，再决定是否继续。
 
 ```powershell
 python -m pip install requests
@@ -12,7 +24,9 @@ python tools/tyrol/qwen_day12/voices.py
 python tools/tyrol/qwen_day12/edit.py
 ```
 
-第一条制作命令调用 `qwen-audio-3.1-tts-flash`。可通过 `DASHSCOPE_API_KEY` 或终端隐藏输入提供密钥。台本和公开引文随代码提供。逐句 WAV 与请求摘要保存在 `runs/tyrol_official_20261109/qwen_day12/takes/`，相同台词、音色和参数可以复用。第二条命令离线合成 25 fps 的 MP4、SRT 和逐句停顿表，输出到 `exports/tyrol_two_flags_20261109/前两日节奏试片/`。画面使用本场第一段 OBS 原片、仓库内的角色立绘和游戏省份图。Windows 剪辑机使用微软雅黑，`HOI4_DIR` 指向游戏安装目录。FFmpeg 和 ffprobe 可从 PATH 查找，也可用 `FFMPEG`、`FFPROBE` 指定程序。
+第一条制作命令调用 `qwen-audio-3.1-tts-flash`。可通过 `DASHSCOPE_API_KEY` 或终端隐藏输入提供密钥。台本和公开引文随代码提供。逐句 WAV 与请求摘要保存在 `runs/tyrol_official_20261109/qwen_day12_ref/takes/`，相同台词、音色和参数可以复用。第二条命令离线合成 25 fps 的 MP4、SRT 和逐句停顿表，输出到 `exports/tyrol_two_flags_20261109/前两日参考声线试片/`。画面使用本场第一段 OBS 原片、仓库内的角色立绘和游戏省份图。Windows 剪辑机使用微软雅黑，`HOI4_DIR` 指向游戏安装目录。FFmpeg 和 ffprobe 可从 PATH 查找，也可用 `FFMPEG`、`FFPROBE` 指定程序。
+
+两条命令默认使用参考声线。每个角色从自己的录音中随机配对，按句轮换；选样保存在 reference_draw.json，续做时复用。主持样本避开带明显句首语气词的两条。参考版使用 1.045 音高和 1.04 语速，输出到原有的前两日参考声线试片目录。若要复现旧的系统音色版本，给两条命令都加 --preset。
 
 **整期剪辑与总结大会**基于本场已归档的七回合记录、OBS 原片、终局净地图和已审台词。按制作顺序使用以下入口。
 
@@ -46,7 +60,7 @@ bash run.sh mix
 
 ## 1．开始录制前
 
-OBS 原生 game_capture 已验证：1280×720、30fps、约2秒暂停画面，无音轨；portable `IRON_VERIFY` 配置已保存并正常退出。该短片只证明暂停画面捕获，不是29回合实录，也未验证长录制稳定性或游戏音轨。正式录制前仍需按实际节目配置试拍。录屏存独立目录，不放入 Git。
+录制使用 `tools/record_session.py` 和 OBS 的游戏捕获源。试拍时检查净地图、分辨率、帧率和音轨。合照局使用静音底片，讲话和事件停顿在配音阶段处理。原片保存在本机独立目录。
 
 原始录制建议使用 MKV，结束后可用 OBS 的“录像转封装”生成剪辑软件接受的 MP4。保持原片，另外制作剪辑副本。若使用窗口／显示器捕获，录制范围应只覆盖游戏或回看页，避免将配置终端和密钥录入过程摄入。
 

@@ -3,15 +3,13 @@ import copy
 import json
 from pathlib import Path
 import tempfile
-import sys
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 import unittest
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 
 from agent_contract import country_fingerprint, validate_request, verify_action
-from diplomacy_actions import (checkbox_state, declare_war, diplomacy_fingerprint, diplomacy_observation,
+from diplomacy_actions import (checkbox_state, diplomacy_fingerprint, diplomacy_observation,
                                public_war_graph, reciprocal_war, retained_declaration, selected_dialog_goal,
                                state_id_from_tooltip, verify_declaration)
 from model_trial import options, validate_trial_request
@@ -109,8 +107,6 @@ class DiplomacyTests(unittest.TestCase):
         self.assertEqual(proof["effect_status"], "full")
         self.assertTrue(proof["observations"]["new_war"])
         second = action("FRA", "GER", 12)
-        no_input = declare_war(None, "FRA", "GER", 12, after)
-        self.assertFalse(no_input["declaration_sent"])
         proof = verify_declaration(second, after, copy.deepcopy(after), "FRA")
         self.assertTrue(proof["verified"], proof)
         self.assertEqual(proof["effect_status"], "already_present")
@@ -212,63 +208,6 @@ class DiplomacyTests(unittest.TestCase):
             audit = Audit(directory)
             audit_execution(audit, directory, result, requests, snapshots, 24, "mutual")
             self.assertTrue(any(row["status"] == "failed" and row["check"].endswith("declaration_new_vs_already_present") for row in audit.checks))
-
-    def test_preview_follows_legality_checks_but_never_clicks_submit(self):
-        def line(text, x, y, w=60, h=18):
-            return SimpleNamespace(text=text, box=[x, y, w, h], center=(x + w / 2, y + h / 2))
-
-        game = ModuleType("hoi4_live.game")
-        game.diplomacyview = SimpleNamespace(scroll_actions=MagicMock(), _mark=lambda image, y: None)
-        game.panels = SimpleNamespace(text_colour=lambda image, box: "white")
-        data = ModuleType("hoi4_live.gamedata")
-        data.loc = SimpleNamespace(for_session=lambda session: SimpleNamespace(get_many=lambda keys: {"annex_everything": "吞并"}))
-        package = ModuleType("hoi4_live")
-        package.game, package.gamedata = game, data
-        perception = ModuleType("hoi4_live.perception")
-        perception.tooltip = SimpleNamespace(read=MagicMock())
-        modules = {"hoi4_live": package, "hoi4_live.game": game, "hoi4_live.gamedata": data,
-                   "hoi4_live.perception": perception}
-
-        for preview, hover_title, already_selected in ((True, "吞并", False), (False, "吞并", False),
-                                                       (True, "傀儡", False), (True, "吞并", True)):
-            with self.subTest(preview=preview, hover_title=hover_title, already_selected=already_selected):
-                session = MagicMock()
-                session.window.size.return_value = (1280, 720)
-                image = np.zeros((720, 1280, 3), dtype=np.uint8)
-                image[..., 1] = 100
-                session.grab.return_value = image
-                session.artifact.return_value = "synthetic_ready.png"
-                goal_lines = [line("吞并", 430, 240)]
-                if already_selected:
-                    goal_lines.append(line("吞并", 750, 230))
-                session.ocr.recognize.side_effect = [
-                    SimpleNamespace(lines=[line("宣战", 280, 520)]),
-                    SimpleNamespace(lines=goal_lines),
-                    SimpleNamespace(lines=[line("宣战", 610, 122), line("吞并", 750, 230)]),
-                    SimpleNamespace(lines=[line("提交", 760, 577, 50)])]
-                with patch.dict(sys.modules, modules), patch("diplomacy_actions.open_country", return_value={"country": "FRA"}), \
-                        patch("army_actions.clear_hover"), patch("diplomacy_actions.time.sleep"):
-                    perception.tooltip.read.reset_mock()
-                    perception.tooltip.read.return_value = ({"found": True, "title": hover_title}, None, None)
-                    if hover_title != "吞并":
-                        with self.assertRaisesRegex(RuntimeError, "goal tooltip"):
-                            declare_war(session, "GER", "FRA", 11, fixture(), preview=preview)
-                        self.assertEqual(session.input.click.call_count, 1)
-                        continue
-                    result = declare_war(session, "GER", "FRA", 11, fixture(), preview=preview)
-                    if not already_selected:
-                        perception.tooltip.read.assert_called_with(session, 440, 249, wait=1.2)
-                    else:
-                        perception.tooltip.read.assert_not_called()
-                self.assertTrue(result["ready_to_send"])
-                self.assertIs(result["declaration_sent"], not preview)
-                self.assertEqual(session.input.click.call_count, (2 if preview else 3) - int(already_selected))
-                self.assertEqual(result["goal_selection"], "already_selected" if already_selected else "selected_once")
-                self.assertTrue(session.input.scroll.call_count)
-                self.assertTrue(all(0 <= call.args[0] < 1280 and 0 <= call.args[1] < 720 for call in session.input.scroll.call_args_list))
-                submit = (785, 586)
-                clicks = [call.args for call in session.input.click.call_args_list]
-                self.assertEqual(submit in clicks, not preview)
 
 
 if __name__ == "__main__":

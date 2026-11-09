@@ -68,7 +68,7 @@ python tools/start_gpt_sovits.py --root D:/GPT-SoVITS_IRON
 .venv/Scripts/python.exe tools/production.py --episode <素材目录> --config <后期配置.json> --synthesize
 ```
 
-角色卡与声线描述不能替代参考录音。正式资产已有主参考和辅助参考路径，GLM 主参考固定为 `CH0250_Season_NewYear.wav`，其余角色从精选素材中各抽取一次后固定；具体路径以配置为准。当前暂缓生成，待台词采集完成后统一处理。下文的试听和单句出声记录属于此前独立验证。
+角色卡与声线描述不能替代参考录音。正式资产已有主参考和辅助参考路径，GLM 主参考固定为 `CH0250_Season_NewYear.wav`，其余角色从精选素材中各抽取一次后固定；具体路径以配置为准。本节描述 GPT-SoVITS 的声线资产。千问配音的逐句参考选样见[视频制作工作流](VIDEO_WORKFLOW.md)。下文的试听和单句出声记录属于此前独立验证。
 
 ### 多辅助参考验证（2026-11-09）
 

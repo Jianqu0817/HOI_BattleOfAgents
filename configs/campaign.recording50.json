@@ -54,6 +54,7 @@
     "quiet_interludes": true,
     "public_callbacks": true,
     "table_host": true,
+    "host_skills": ["reality-tv-narrative-analyzer", "director-agent"],
     "player_prompt_bytes": 1100000,
     "player_prompt_limits": {
       "gpt-6.1-terra": {"max_bytes": 1480000},

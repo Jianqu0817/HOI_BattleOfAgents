@@ -1,5 +1,4 @@
 """Own-army observations and calibrated ordinary movement for the Chinese UI profile."""
-import argparse
 import copy
 from collections import deque
 from functools import lru_cache
@@ -7,9 +6,6 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import sys
-import time
-import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROFILE = ROOT / "configs/army.local.json"
@@ -341,33 +337,10 @@ def validate_army_action(action, observed):
     return "army", args["army_id"]
 
 
-def _fold(text):
-    return re.sub(r"[^a-z0-9]", "", (text or "").lower())
-
-
-def clear_hover(session):
-    # The pinned backend's park_cursor is intentionally a no-op. Tooltip
-    # differencing needs a frame with the previous hover genuinely gone.
-    session.input.move(min(600, session.window.size()[0] - 40), 60)
-    time.sleep(.25)
-
-
 def debug_response_state(results):
     text = "\n".join(line for entry in results for line in entry.get("response", []))
     matches = re.findall(r"debug\s+(ENABLED|DISABLED)", text, flags=re.I)
     return matches[-1].lower() if matches else None
-
-
-def ensure_debug_tooltips(session):
-    from hoi4_live.game import console
-    for _ in range(2):
-        state = debug_response_state(console.run(session, ["tdebug"], keep_open=False))
-        if state == "enabled":
-            session._iron_debug_tooltips_enabled = True
-            return
-        if state != "disabled":
-            break
-    raise RuntimeError("Could not confirm ENABLED state from tdebug console response")
 
 
 def tooltip_army_name(lines, known_names):
@@ -407,22 +380,6 @@ def existing_army_tooltip_frame(session, tip, image):
     return existing_army_tooltip(lines), lines
 
 
-def read_army_candidate(session, x, y, source):
-    from hoi4_live.perception import tooltip
-    clear_hover(session)
-    tip, _, image = tooltip.read(session, x, y)
-    accepted, lines = existing_army_tooltip_frame(session, tip, image)
-    original = (tip, image, accepted, lines, (x, y))
-    if accepted or source != "theatre":
-        return original
-    # Training icons cover the upper part of a shield. A failed identity read
-    # may sample six pixels lower inside the same native 32px shield sprite.
-    clear_hover(session)
-    lower_tip, _, lower_image = tooltip.read(session, x, y + 6)
-    accepted, lower_lines = existing_army_tooltip_frame(session, lower_tip, lower_image)
-    return (lower_tip, lower_image, True, lower_lines, (x, y + 6)) if accepted else original
-
-
 def theatre_shield_points(image):
     """Hover candidates from observed coloured shield rows in the calibrated 720p sidebar."""
     if image.shape[:2] != (720, 1280):
@@ -442,14 +399,9 @@ def theatre_shield_points(image):
             if 12 <= offset - start <= 32:
                 rows.append(top + start + min(10, (offset - start) // 2))
             start = None
-    return [(x, y) for y in rows for x in range(left + 5, right, 6)]
-
-
-def army_selection_points(session):
-    from hoi4_live.game import armyview
-    image = session.grab()
-    return ([(x, session.window.size()[1] - 70, "bottom") for x in armyview.card_boxes(image)]
-            + [(x, y, "theatre") for x, y in theatre_shield_points(image)])
+    # Most theatre rows contain one army at the left. Try that column in every
+    # row before walking the empty area to the right of the first shield.
+    return [(x, y) for x in range(left + 5, right, 6) for y in rows]
 
 
 def retained_acceptance(previous, country, army_id, before_group, after_group):
@@ -472,53 +424,6 @@ def retained_acceptance(previous, country, army_id, before_group, after_group):
             result["accepted_actions"].append(action)
             result["acceptance_evidence"][action] = str(path)
     return result
-
-
-def bind_visible_armies(session, country, source_groups, registered=None):
-    from hoi4_live.game import armyview
-    from hoi4_live.perception import tooltip
-    names = [row.get("name") for row in source_groups.values() if row.get("name")]
-    existing_names = {row.get("name") for row in source_groups.values()}
-    bound_names = {entry["name"] for key, entry in (registered or {}).items()
-                   if str(key).isdigit() and int(key) in source_groups
-                   and entry.get("name") == source_groups[int(key)].get("name")}
-    if len(bound_names) == len(source_groups):
-        return [], []
-    nonce = 100000 + uuid.uuid4().int % 899000
-    while any(str(nonce + index) in existing_names for index in range(1, 100)):
-        nonce = 100000 + uuid.uuid4().int % 899000
-    records, skipped = [], []
-    height = session.window.size()[1]
-    for cx, cy, source in army_selection_points(session):
-        if len(bound_names) >= len(source_groups):
-            break
-        tip, image, existing, lines, point = read_army_candidate(session, cx, cy, source)
-        cx, cy = point
-        source_name = tooltip_army_name(tip.get("lines", []), names)
-        if not existing:
-            skipped.append({"x": cx, "reason": "tooltip is not an exact existing own-army name", "tooltip": tip.get("lines", [])})
-            continue
-        numeric_label = None
-        if tip.get("found") and tip.get("region"):
-            x, top, width, size = tip["region"]
-            numeric_label, _, _ = numeric_army_identity(session, image, [x, top, width, min(size, 120)])
-        if source_name in bound_names or numeric_label in bound_names:
-            skipped.append({"x": cx, "reason": "already bound", "name": source_name or numeric_label})
-            continue
-        marker = str(nonce + len(records) + 1)
-        if source == "bottom":
-            armyview.select_card(session, cx)
-        else:
-            session.input.click(cx, cy)
-            time.sleep(.7)
-        numeric_label, _, _ = numeric_army_identity(session, session.grab(), [62, 84, 145, 38])
-        if numeric_label in bound_names:
-            skipped.append({"x": cx, "reason": "already bound", "name": numeric_label})
-            continue
-        armyview.rename_army(session, marker)
-        bound_names.add(marker)
-        records.append({"card_x": cx, "card_y": cy, "source": source, "old_title": source_name, "name": marker})
-    return records, skipped
 
 
 def validate_creation_selection(state, country, province_id, division_ids, from_army_id=None):
@@ -550,62 +455,6 @@ def new_army_tooltip(lines):
         return False
     return ("创建一个新的集团军" in compact and "编入已选中的陆军师" in compact
             or bool(re.search(r"newarmy", compact)) and "selected" in compact)
-
-
-def create_army_ui(session, country, state, province_id, division_ids, binding_name, half=(64, 48), from_army_id=None):
-    """Setup only: select a local unassigned stack and click the evidenced New Army card once."""
-    from hoi4_live.game import armyview, console, mapview, panels
-    from hoi4_live.perception import tooltip
-    validate_creation_selection(state, country, province_id, division_ids, from_army_id)
-    if any(group.get("name") == binding_name for group in armies(state["countries"][country]).values()):
-        raise ValueError("Creation binding name already exists")
-    console.close_console(session)
-    panels.to_map(session)
-    session.input.key("f1")
-    time.sleep(.4)
-    mapview.zoom_abs(session, "province")
-    console.run(session, ["goto_province " + str(province_id)], keep_open=False)
-    time.sleep(1)
-    point, evidence = target_province_point(session, province_id, enable_debug=True)
-    if point is None:
-        raise RuntimeError("Creation source province identity was not confirmed: " + str(evidence))
-    armyview.box_select(session, (session.window.size()[0] // 2, session.window.size()[1] // 2), half)
-    candidates, seen = [], []
-    boxes = armyview.card_boxes(session.grab())
-    for cx in boxes:
-        clear_hover(session)
-        tip, _, _ = tooltip.read(session, cx, session.window.size()[1] - 70)
-        lines = tip.get("lines", [])
-        seen.append({"x": cx, "lines": lines})
-        if new_army_tooltip(lines):
-            candidates.append(cx)
-    if not candidates:
-        lower = max(boxes) + 20 if boxes else 20
-        hits = []
-        for cx in range(lower, session.window.size()[0] - 20, 20):
-            clear_hover(session)
-            tip, _, image = tooltip.read(session, cx, session.window.size()[1] - 70)
-            lines = tip.get("lines", [])
-            if not new_army_tooltip(lines):
-                lines = [line.text for line in session.ocr.recognize(image, scale=1.5).lines]
-            seen.append({"x": cx, "lines": lines, "source": "bounded_right_hover"})
-            if new_army_tooltip(lines):
-                hits.append(cx)
-        clusters = []
-        for cx in hits:
-            if not clusters or cx - clusters[-1][-1] > 40:
-                clusters.append([])
-            clusters[-1].append(cx)
-        candidates = [row[len(row) // 2] for row in clusters]
-    if len(candidates) != 1:
-        raise RuntimeError("Creation requires exactly one evidenced New Army card: " + str(seen))
-    session.input.click(candidates[0], session.window.size()[1] - 70)
-    time.sleep(1.4)
-    armyview.rename_army(session, binding_name)
-    return {"input_path": "ordinary UI setup", "source_province_id": province_id,
-            "from_army_id": from_army_id,
-            "requested_division_ids": division_ids, "selection_half": list(half),
-            "create_card_x": candidates[0], "card_evidence": seen, "save_verification_required": True}
 
 
 def verify_army_creation(before, after, country, province_id, division_ids, binding_name, from_army_id=None):
@@ -708,164 +557,6 @@ def numeric_army_identity(session, image, region):
     return None, [], evidence
 
 
-def target_province_point(session, province_id, enable_debug=False):
-    from hoi4_live.perception import tooltip
-    width, height = session.window.size()
-    observed, any_id = [], False
-    offsets = [(0, 0)]
-    for radius in (12, 40, 56):
-        offsets.extend([(radius, 0), (-radius, 0), (0, radius), (0, -radius)])
-    offsets.extend([(40, 40), (-40, 40), (40, -40), (-40, -40)])
-    points = [(width // 2 + dx, height // 2 + dy) for dx, dy in offsets]
-    preferred = getattr(session, "_iron_province_points", {}).get(province_id)
-    if preferred:
-        points = [preferred] + [point for point in points if point != preferred]
-    for point in points:
-        clear_hover(session)
-        data, _, full_image = tooltip.read(session, *point)
-        lines = data.get("lines", [])
-        actual, candidates, evidence = full_frame_province_id(session, full_image)
-        data["full_frame_identity_lines"] = evidence
-        data["full_frame_identity_candidates"] = candidates
-        any_id = any_id or bool(candidates) or province_id_from_tooltip(lines) is not None
-        observed.append({"point": point, "province_id": actual, "lines": lines, "identity_lines": evidence})
-        if actual == province_id:
-            session._iron_debug_tooltips_enabled = True
-            if not hasattr(session, "_iron_province_points"):
-                session._iron_province_points = {}
-            session._iron_province_points[province_id] = point
-            data["confirmed_province_id"] = actual
-            data["identity_screenshot"] = session.artifact(full_image, "iron_province_identity")
-            return point, data
-    if enable_debug and not any_id and not getattr(session, "_iron_debug_tooltips_enabled", False):
-        ensure_debug_tooltips(session)
-        return target_province_point(session, province_id, enable_debug=False)
-    raise RuntimeError("Requested map province not confirmed by debug tooltip: " + repr(observed))
-
-
-def resolve_selected_bottom_card(session, name, expected_count):
-    """A sidebar shield's x is never a bottom stop-button coordinate."""
-    from hoi4_live.game import armyview
-    from hoi4_live.perception import tooltip
-    height = session.window.size()[1]
-    for cx in armyview.card_boxes(session.grab()):
-        clear_hover(session)
-        tip, _, image = tooltip.read(session, cx, height - 70)
-        region = tip.get("region")
-        if not tip.get("found") or not region or region[1] < 180 or region[2] > 600 or region[3] > 300:
-            continue
-        if name.isdigit():
-            label, _, _ = numeric_army_identity(session, image, region)
-            exact = label == name
-        else:
-            exact = tooltip_army_name(tip.get("lines", []), [name]) == name
-        if exact:
-            return {"x": cx, "y": height - 70, "source": "bottom", "selected_via": "theatre",
-                    "expected_divisions": expected_count, "stop_point": armyview.card_points(session, cx)["stop"]}
-    raise RuntimeError("Selected sidebar army has no exact named bottom card; stop button is unlocated")
-
-
-def select_bound_army(session, name, expected_count):
-    from hoi4_live.game import armyview, panels
-    from hoi4_live.perception import tooltip
-    panels.to_map(session)
-    session.input.key("f1")
-    time.sleep(.4)
-    seen = []
-    height = session.window.size()[1]
-    for cx, cy, source in army_selection_points(session):
-        tip, tip_image, existing, reads, point = read_army_candidate(session, cx, cy, source)
-        cx, cy = point
-        card = {"x": cx, "y": cy, "source": source, "expected_divisions": expected_count}
-        texts = tip.get("lines", [])
-        seen.extend(texts)
-        first = re.sub(r"\s+", "", next(iter(texts), "")).casefold()
-        if re.search(r"create|newarmy|创建|新建|新集团军|新军团", first, re.I):
-            continue
-        if name.isdigit():
-            tip_label = None
-            if tip.get("found") and tip.get("region"):
-                x, top, width, size = tip["region"]
-                tip_label, _, reads = numeric_army_identity(session, tip_image, [x, top, width, min(size, 120)])
-                seen.extend(reads)
-            exact_tip = tip_label == name
-        else:
-            exact_tip = any(_fold(text) == _fold(name) for text in texts)
-        if not exact_tip:
-            seen.extend(reads)
-            if not existing:
-                continue
-        if source == "bottom":
-            armyview.select_card(session, card["x"])
-        else:
-            session.input.click(cx, cy)
-            time.sleep(.7)
-        image = session.grab()
-        if name.isdigit():
-            label, _, reads = numeric_army_identity(session, image, [62, 84, 145, 38])
-            seen.extend(reads)
-            if label == name:
-                return resolve_selected_bottom_card(session, name, expected_count) if source == "theatre" else card
-            continue
-        for scale in (2, 3):
-            lines = session.ocr.recognize(image, region=[62, 84, 145, 38], scale=scale).lines
-            texts = [line.text for line in lines]
-            seen.extend(texts)
-            if any(_fold(text) == _fold(name) for text in texts):
-                return resolve_selected_bottom_card(session, name, expected_count) if source == "theatre" else card
-    raise RuntimeError("Bound army header and member count not confirmed: " + repr(seen))
-
-
-def execute_army_action(session, country, action, state, allow_probe=False):
-    from hoi4_live.game import console, armyview, mapview, panels
-    context = context_for_session(session)
-    args, kind = action["args"], action["type"]
-    group = armies(state["countries"][country]).get(args["army_id"])
-    profile = context["profile"].get("countries", {}).get(country, {}).get(str(args["army_id"]), {})
-    if not group or not profile.get("name") or group.get("name") != profile["name"]:
-        raise ValueError("Army lacks a current exact ID/name binding")
-    if not allow_probe and kind not in context.get("operations", []):
-        raise ValueError("Army action has no live acceptance")
-    if kind in ("army.move", "army.attack"):
-        targets = movement_targets(state, country, group, context, limit=128, attack=kind == "army.attack")
-        if args["target_province_id"] not in [row["province_id"] for row in targets]:
-            raise ValueError("Target is not a friendly land route for every member")
-        if kind == "army.attack" and not any(row["province_id"] == args["target_province_id"] and row["state_id"] == args["target_state_id"] for row in targets):
-            raise ValueError("Attack province/state identity changed")
-        # Camera movement is referee administration; the order itself is an ordinary right click.
-        # At world zoom the engine does not place the requested province at the
-        # screen centre; establish the accepted province scale before the jump.
-        console.close_console(session)
-        panels.to_map(session)
-        mapview.zoom_abs(session, "province")
-        console.run(session, ["goto_province " + str(args["target_province_id"])], keep_open=False)
-        time.sleep(1)
-        target_province_point(session, args["target_province_id"], enable_debug=True)
-    else:
-        console.close_console(session)
-    card = select_bound_army(session, group["name"], len(members(group)))
-    if card.get("source", "bottom") != "bottom":
-        raise RuntimeError("Army stop control needs an exact bottom card, not a sidebar coordinate")
-    stop_point = card.get("stop_point") or armyview.card_points(session, card["x"])["stop"]
-    evidence = session.artifact(session.grab(), "iron_army_selected")
-    target_tip = None
-    if kind in ("army.move", "army.attack"):
-        point, target_tip = target_province_point(session, args["target_province_id"])
-        session.input.click(*stop_point)
-        time.sleep(.3)
-        session.input.click(*point, button="right", hold=.15)
-    elif kind == "army.stop":
-        session.input.click(*stop_point)
-        time.sleep(.4)
-        # The installed unitview.gui binds btn_hold / HALT_UNIT to H.
-        session.input.key("h")
-    else:
-        raise ValueError("Unsupported army operation")
-    time.sleep(.8)
-    return {"input_path": "ordinary UI", "army_id": args["army_id"], "division_ids": members(group),
-            "selected_evidence": evidence, "target_tooltip": target_tip, "save_verification_required": True}
-
-
 def _orders_compatible_with_stop(before_country, after_country, army_id):
     expected, actual = copy.deepcopy(armies(before_country)), copy.deepcopy(armies(after_country))
     changes = []
@@ -891,6 +582,49 @@ def _defending_at_own_location(state, country, identity):
             and type(battle["battle_id"]) is int and battle["province_id"] == unit.get("location")}
 
 
+def stopped_battle_settlement(before, after, army_ids):
+    """A paused halt can settle accrued losses for both sides of a battle it ends."""
+    def battles(state):
+        return {ident(row["id"]): row for row in many(state.get("combat", {}).get("land_combat"))
+                if isinstance(row, dict) and ident(row.get("id")) is not None}
+    old, new = battles(before), battles(after)
+    removed = old.keys() - new.keys()
+    if not removed or any(old.get(key) != row for key, row in new.items()):
+        return set()
+    participants = set()
+    for key in removed:
+        battle = old[key]
+        attackers = {ident(row) for row in many(battle.get("attacker", {}).get("unit"))}
+        if not attackers or not attackers <= set(army_ids):
+            return set()
+        participants.update(attackers)
+        participants.update(ident(row) for row in many(battle.get("defender", {}).get("unit")))
+    if any(type(i) is not int for i in participants):
+        return set()
+    def losses(state):
+        totals = {}
+        for war in state.get("public_wars", []):
+            for side in ("first", "second"):
+                totals[war[side]] = totals.get(war[side], 0) + war.get(side + "_casualties", 0)
+        return totals
+    first, last = losses(before), losses(after)
+    for tag, own in before["countries"].items():
+        prev, curr = divisions(own), divisions(after["countries"][tag])
+        deltas = [curr[k].get("killed", 0) - prev[k].get("killed", 0) for k in participants & prev.keys() & curr.keys()]
+        if any(n < 0 for n in deltas) or sum(deltas) != last.get(tag, 0) - first.get(tag, 0):
+            return set()
+    return participants
+
+
+def settlement_units(country, participants):
+    units = copy.deepcopy(country.get("units", {}))
+    for row in many(units.get("division")):
+        if ident(row.get("id")) in participants:
+            for field in ("experience", "org_damage", "str_damage", "army_manpower", "dig_in_cap", "killed", "equipment", "last_combat_date"):
+                row.pop(field, None)
+    return units
+
+
 def verify_army_action(action, before, after, country):
     args, kind = action["args"], action["type"]
     first, last = before["countries"][country], after["countries"][country]
@@ -898,6 +632,7 @@ def verify_army_action(action, before, after, country):
     group, newer = old_groups.get(args["army_id"]), new_groups.get(args["army_id"])
     ids = members(group) if group else []
     x, y = divisions(first), divisions(last)
+    settled = stopped_battle_settlement(before, after, ids) if kind == "army.stop" else set()
     compatible_orders, plan_stop_changes = _orders_compatible_with_stop(first, last, args["army_id"])
     responded, blocked, unknown, new_paths = [], [], [], []
     checks = {"same_date": before["date"] == after["date"], "army_members_unchanged": bool(ids) and newer is not None and members(newer) == ids,
@@ -913,6 +648,17 @@ def verify_army_action(action, before, after, country):
     checks["own_economy_unchanged"] = all(first.get(key) == last.get(key) for key in ("focus", "technology", "production", "politics"))
     checks["buildings_unchanged"] = all(value.get("buildings") == after.get("states", {}).get(sid, {}).get("buildings") for sid, value in before.get("states", {}).items())
     checks["ordered_units_other_state_unchanged"] = all({key: value for key, value in x[identity].items() if key not in ORDER_FIELDS} == {key: value for key, value in y.get(identity, {}).items() if key not in ORDER_FIELDS} for identity in ids if identity in x)
+    if settled:
+        own_before = divisions({"units": settlement_units(first, settled)})
+        own_after = divisions({"units": settlement_units(last, settled)})
+        checks["ordered_units_other_state_unchanged"] = all(
+            {k:v for k,v in own_before[i].items() if k not in ORDER_FIELDS} ==
+            {k:v for k,v in own_after.get(i, {}).items() if k not in ORDER_FIELDS}
+            for i in ids if i in own_before)
+        checks["peers_unchanged"] = all(
+            all(before["countries"][t].get(d) == after["countries"][t].get(d) for d in ("focus", "technology", "production"))
+            and settlement_units(before["countries"][t], settled) == settlement_units(after["countries"][t], settled)
+            for t in before["countries"] if t != country)
     if kind in ("army.move", "army.attack"):
         target = args["target_province_id"]
         for identity in ids:
@@ -948,6 +694,7 @@ def verify_army_action(action, before, after, country):
     verified = all(checks.values())
     return {"verified": verified, "effect_status": ("partial" if blocked else "full") if verified else "unverified",
             "checks": checks, "observations": {"members": ids, "responded_units": responded, "blocked_units": blocked,
+                                               "settled_battle_units": sorted(settled),
                                                "unknown_units": unknown, "new_path_units": new_paths,
                                                "army_activity_before": army_activity(first).get(str(args["army_id"])),
                                                "army_activity_after": army_activity(last).get(str(args["army_id"])),
@@ -993,175 +740,3 @@ def retained_army_order(action, checkpoint, current, country):
         target = action["args"]["target_province_id"]
         return all(units[identity].get("location") == target or (items(units[identity].get("path")) and items(units[identity]["path"])[-1] == target) for identity in ids)
     return all(not items(units[identity].get("path")) and not units[identity].get("execute_order", 0) for identity in ids)
-
-
-def main():
-    from m0_probe import Probe, settled_pause_state, write_json, countries_from
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["bind", "bind-all", "create", "probe"])
-    parser.add_argument("--country", required=True)
-    parser.add_argument("--army-id", type=int)
-    parser.add_argument("--card-index", type=int)
-    parser.add_argument("--card-x", type=int, help="Observed count-frame x; bind only")
-    parser.add_argument("--binding-name", help="Unique UI label for bind; default: numeric army ID")
-    parser.add_argument("--action", choices=["army.move", "army.stop", "army.attack"])
-    parser.add_argument("--target-province-id", type=int)
-    parser.add_argument("--province-id", type=int, help="create: exact source stack province")
-    parser.add_argument("--division-ids", help="create: comma-separated complete unassigned stack IDs")
-    parser.add_argument("--from-army-id", type=int, help="create: explicitly transfer this source army's entire local stack")
-    parser.add_argument("--box", nargs=2, type=int, default=[64, 48], help="create: selection half width/height")
-    parser.add_argument("--known-disabled-pid", required=True, type=int)
-    parser.add_argument("--name", required=True)
-    parser.add_argument("--match-config", type=Path, default=ROOT / "configs/match.example.json")
-    args = parser.parse_args()
-    if not re.fullmatch(r"[A-Z][A-Z0-9]{2}", args.country) or not re.fullmatch(r"[A-Za-z0-9_]+", args.name):
-        parser.error("country/name is invalid")
-    if args.operation in ("bind", "probe") and (args.army_id is None or args.army_id < 1):
-        parser.error("bind/probe needs a positive army-id")
-    if args.binding_name is not None and not re.fullmatch(r"[A-Za-z0-9 _-]{1,24}", args.binding_name):
-        parser.error("binding-name must be 1–24 ASCII letters, digits, spaces, underscores or hyphens")
-    if args.operation == "bind" and args.card_x is None and (args.card_index is None or args.card_index < 1):
-        parser.error("bind needs a positive raw card-index or observed card-x")
-    if args.operation == "probe" and (not args.action or (args.action in ("army.move", "army.attack") and not args.target_province_id)):
-        parser.error("probe needs action and move needs target-province-id")
-    division_ids = []
-    if args.operation == "create":
-        if (not args.province_id or not args.division_ids or not re.fullmatch(r"[1-9][0-9]*(?:,[1-9][0-9]*)*", args.division_ids)
-                or not args.binding_name or not args.binding_name.isdigit() or any(value <= 0 or value > 200 for value in args.box)):
-            parser.error("create needs province-id, comma-separated division-ids, numeric binding-name, and box 1..200")
-        division_ids = [int(value) for value in args.division_ids.split(",")]
-        if args.from_army_id is not None and args.from_army_id < 1:
-            parser.error("from-army-id must be positive")
-    directory = ROOT / "runs/army" / args.name
-    if (directory / "result.json").exists():
-        parser.error("Run exists; inspect its journal before another attempt")
-    tags = countries_from(json.loads(args.match_config.read_text(encoding="utf-8")))
-    if args.country not in tags:
-        parser.error("country must be configured in match-config")
-    probe, result = Probe(directory, tags), {"operation": args.operation, "country": args.country, "army_id": args.army_id, "status": "starting"}
-    if args.operation == "create":
-        result["creation_request"] = {"province_id": args.province_id, "division_ids": division_ids,
-                                      "from_army_id": args.from_army_id, "binding_name": args.binding_name}
-    try:
-        with probe.session.lock.hold("IRON army calibration"):
-            status = probe.call("hoi4_status", {})
-            if status["game"]["pids"] != [args.known_disabled_pid] or settled_pause_state(probe.session)[0] != "paused":
-                raise ValueError("Same controlled process and paused game required")
-            probe.receipts([args.country], "army_calibrate")
-            result["before_save"] = probe.save("iron_" + args.name + "_before")
-            before = json.loads((directory / ("iron_" + args.name + "_before.json")).read_text(encoding="utf-8"))
-            group = armies(before["countries"][args.country]).get(args.army_id)
-            if not group and args.operation in ("bind", "probe"):
-                raise ValueError("Own army ID is absent")
-            from hoi4_live.game import console, armyview, panels
-            console.close_console(probe.session)
-            panels.to_map(probe.session)
-            if args.operation in ("bind", "bind-all"):
-                probe.session.input.key("f1")
-                time.sleep(.4)
-            profile_path = Path(probe.session.cfg.data.get("iron_army_profile", DEFAULT_PROFILE))
-            profile = load_profile(profile_path)
-            result["ui_profile"] = ui_profile_identity(probe.session)
-            marker = args.binding_name or str(args.army_id)
-            try:
-                if args.operation == "bind-all":
-                    result["binding_attempts"], result["skipped_frames"] = bind_visible_armies(probe.session, args.country, armies(before["countries"][args.country]), profile.get("countries", {}).get(args.country, {}))
-                elif args.operation == "create":
-                    result["binding_name"] = marker
-                    result["ui_result"] = create_army_ui(probe.session, args.country, before, args.province_id, division_ids, marker, tuple(args.box), args.from_army_id)
-                elif args.operation == "bind":
-                    if any(key != args.army_id and value.get("name") == marker for key, value in armies(before["countries"][args.country]).items()):
-                        raise ValueError("Binding name is already used by another own army")
-                    cards = [{"x": cx} for cx in armyview.card_boxes(probe.session.grab())]
-                    if args.card_x is not None:
-                        matched = [row for row in cards if abs(row["x"] - args.card_x) <= 3]
-                        if len(matched) != 1:
-                            raise ValueError("card-x is not a uniquely observed army count frame")
-                        chosen = matched[0]
-                    elif args.card_index > len(cards):
-                        raise ValueError("Requested army card is not present")
-                    else:
-                        chosen = cards[args.card_index - 1]
-                    armyview.select_card(probe.session, chosen["x"])
-                    armyview.rename_army(probe.session, marker)
-                    result["binding_name"] = marker
-                else:
-                    action = {"id": "calibration", "type": args.action, "args": {"army_id": args.army_id}}
-                    if args.action in ("army.move", "army.attack"):
-                        action["args"]["target_province_id"] = args.target_province_id
-                    if args.action == "army.attack":
-                        action["args"]["target_state_id"] = context_for_session(probe.session)["map"].get("provinces", {}).get(str(args.target_province_id), {}).get("state")
-                    result["action"] = action
-                    result["ui_result"] = execute_army_action(probe.session, args.country, action, before, allow_probe=True)
-            except Exception as error:
-                result["ui_error"] = str(error)
-            result["after_save"] = probe.save("iron_" + args.name + "_after")
-            after = json.loads((directory / ("iron_" + args.name + "_after.json")).read_text(encoding="utf-8"))
-            if args.operation == "create":
-                result["verification"] = verify_army_creation(before, after, args.country, args.province_id, division_ids, marker, args.from_army_id)
-                result["verified"] = result["verification"]["verified"]
-                result["army_id"] = result["verification"]["observations"]["army_id"]
-                if result["verified"]:
-                    profile.setdefault("countries", {}).setdefault(args.country, {})[str(result["army_id"])] = {
-                        "name": marker, "accepted_actions": [], "acceptance_evidence": {},
-                        "binding_evidence": str(directory / "result.json")}
-            elif args.operation in ("bind", "bind-all"):
-                expected = copy.deepcopy(before)
-                before_groups, after_groups = armies(before["countries"][args.country]), armies(after["countries"][args.country])
-                bound = {}
-                if args.operation == "bind":
-                    bound[args.army_id] = marker
-                else:
-                    for attempt in result.get("binding_attempts", []):
-                        matches = [key for key, value in after_groups.items() if value.get("name") == attempt["name"]]
-                        if len(matches) == 1 and matches[0] in before_groups:
-                            bound[matches[0]] = attempt["name"]
-                    result["binding_map"] = {str(key): value for key, value in bound.items()}
-                for identity, name in bound.items():
-                    armies(expected["countries"][args.country])[identity]["name"] = name
-                # Ignore log receipt flags; every gameplay field and army order must match.
-                from agent_contract import country_fingerprint
-                result["verified"] = before["date"] == after["date"] and all(country_fingerprint(expected, tag) == country_fingerprint(after, tag) for tag in tags)
-                result["verified"] = result["verified"] and all(after_groups.get(key, {}).get("name") == name for key, name in bound.items())
-                if args.operation == "bind-all":
-                    previous = profile.get("countries", {}).get(args.country, {})
-                    already = {identity for identity, value in before_groups.items()
-                               if previous.get(str(identity), {}).get("name") == value.get("name") and value.get("name")}
-                    covered = set(bound) | already
-                    result["verified"] = result["verified"] and len(bound) == len(result.get("binding_attempts", [])) and (bool(covered) or not before_groups)
-                    result["binding_coverage"] = {"bound_army_ids": sorted(covered), "newly_bound_army_ids": sorted(bound),
-                                                  "unbound_army_ids": sorted(set(before_groups) - covered),
-                                                  "all_existing_armies_bound": covered == set(before_groups)}
-                if result["verified"]:
-                    registered = profile.setdefault("countries", {}).setdefault(args.country, {})
-                    for identity, name in bound.items():
-                        kept = retained_acceptance(registered.get(str(identity), {}), args.country, identity, before_groups[identity], after_groups[identity])
-                        registered[str(identity)] = {"name": name, **kept, "binding_evidence": str(directory / "result.json")}
-            else:
-                result["verification"] = verify_army_action(action, before, after, args.country)
-                result["verified"] = result["verification"]["verified"]
-                if result["verified"]:
-                    entry = profile["countries"][args.country][str(args.army_id)]
-                    entry["accepted_actions"] = sorted(set(entry.get("accepted_actions", []) + [args.action]))
-                    entry.setdefault("acceptance_evidence", {})[args.action] = str(directory / "result.json")
-                    profile.setdefault("accepted_operations", {})[args.action] = {"ui_profile": result["ui_profile"], "evidence": str(directory / "result.json")}
-            if result["verified"]:
-                write_json(profile_path, profile)
-            result["status"] = "verified" if result["verified"] else "needs_inspection"
-            console.close_console(probe.session)
-            clear_hover(probe.session)
-            result["screenshot"] = probe.call("hoi4_screenshot", {})
-    except Exception as error:
-        result.update(status="interrupted", error=str(error))
-        raise
-    finally:
-        write_json(directory / "result.json", result)
-        probe.session.shutdown()
-        print(json.dumps({key: result.get(key) for key in ("status", "verified", "error")}, ensure_ascii=False))
-    if not result.get("verified"):
-        raise SystemExit(1)
-
-
-if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
-    main()

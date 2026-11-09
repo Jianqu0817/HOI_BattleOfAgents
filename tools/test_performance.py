@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from performance import post_seal
+from campaign import load_config
 from model_trial import decide
 from m0_probe import write_json
 from verify_campaign import Audit
@@ -22,12 +23,19 @@ class PerformanceTests(unittest.TestCase):
         observations = {tag: observe(tag) for tag in tags}
         show = settings({"table_host": True, "strict_public_context": True, "performance": True,
                          "intents": False, "profiles": {tag: {"scenario_goal": "SECRET_" + tag} for tag in tags}}, tags)
+        production_show = load_config("configs/campaign.tyrol.json")["show"]
+        for key in ("host_skills", "host_readings"):
+            show[key] = production_show[key]
+        show["public_host_cues"] = {str(observations["GER"]["turn_id"]): "HOST_CUE_TODAY", "99": "HOST_CUE_LATER"}
         config = {"countries": tags, "show": show, "performance": {"enabled": True, "interviews_per_turn": 0}}
         calls = {}
 
         def fake(directory, label, model, messages, phase, country=None, require_settings=False):
             payload = json.loads(messages[1]["content"])
             if phase == "public_host":
+                self.assertTrue(all(name in messages[0]["content"] for name in show["host_skills"]))
+                self.assertIn("HOST_CUE_TODAY", payload["task"])
+                self.assertNotIn("HOST_CUE_LATER", str(messages))
                 self.assertNotIn("SECRET_", str(payload))
                 self.assertEqual([r["round"] for r in payload["public_diplomacy"]], [1] * len(tags))
                 value = {"commentary": [{"ref": payload["public_diplomacy"][0]["id"], "text": "这话有人敢认吗？"}]}
@@ -44,6 +52,9 @@ class PerformanceTests(unittest.TestCase):
                     if label.startswith("diplomacy_2_"):
                         self.assertEqual(payload["public_host_messages"][0]["message"], "这话有人敢认吗？")
                     value = {"country": country, "message": "听见了。"}
+            if phase != "public_host":
+                self.assertNotIn("HOST_CUE_", str(messages))
+                self.assertFalse(any(name in str(messages) for name in show["host_skills"]))
             calls[label] = {"messages": messages, "response": value}
             return calls[label]
 

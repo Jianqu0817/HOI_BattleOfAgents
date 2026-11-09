@@ -182,6 +182,4 @@ Acceptance changed an air wing task and region, and a naval task force type
 and its parent fleet's sea region. Sibling task forces share fleet regions;
 these checks do not demonstrate actual air or naval combat.
 
-No complete five-country AI native campaign has been validated. The existing
-`tools/campaign.py` remains the UI executor and does not switch to native
-execution.
+Use `tools/native_campaign.py` for campaign execution. The legacy desktop executor has been removed.

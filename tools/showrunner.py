@@ -247,7 +247,8 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
             payload["task"] = payload["task"].replace("其他四国", "其他参赛国")
             if show.get("table_host") and payload.get("public_diplomacy"):
                 payload["task"] += " 大狐狸刚才的插话在public_host_messages中。你可以回嘴、接梗、质疑她的解读，也可以继续谈自己的事。"
-            if show.get("quiet_interludes") and payload.get("public_diplomacy") and not observed.get("public_board"):
+            new_events = any(row.get("kind") != "scenario_map" for row in observed.get("public_board", []))
+            if show.get("quiet_interludes") and payload.get("public_diplomacy") and not new_events:
                 payload["task"] += (" 本轮暂无新增公开局势事件，但这不代表没有战斗。第二轮先接住值得回应的具体提议；"
                                     "若没有新议题，可用一两句自然的闺蜜式闲聊、调侃、关心或回怼接话，展现角色关系，避免重复战报。"
                                     "以公开发言与可观察结果接话，不自动公开私信或密封命令；主动转述本人参与的私信仍只是你的新主张。"

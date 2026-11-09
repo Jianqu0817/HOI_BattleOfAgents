@@ -1,9 +1,9 @@
 """Check multicountry admission and equal rotation before touching the game."""
 import unittest
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from live_compat import ai_receipt_from_reads, close_profile_panel, parse_chinese_date, read_profile_title, reread_ai_receipt
+from live_compat import ai_receipt_from_reads, parse_chinese_date, read_profile_title, reread_ai_receipt
 from m0_probe import ai_receipt_state, countries_from, game_hours, order_for
 
 
@@ -21,16 +21,6 @@ class MulticountryTests(unittest.TestCase):
         fallback.assert_called_with(session, img=image, attempts=2)
         session.input.key.assert_not_called()
 
-    def test_diplomacy_close_uses_escape_for_modal_and_panel_without_blind_click(self):
-        session, fallback, pause = MagicMock(), MagicMock(), MagicMock(return_value=(False, None))
-        with patch("time.sleep"):
-            self.assertEqual(close_profile_panel(session, "diplomacy", fallback, pause), "diplomacy")
-            self.assertEqual(close_profile_panel(session, "diplomacy", fallback, pause), "diplomacy")
-        self.assertEqual([call.args for call in session.input.key.call_args_list], [("esc",), ("esc",)])
-        session.input.click.assert_not_called()
-        fallback.assert_not_called()
-        self.assertEqual(close_profile_panel(session, None, fallback, pause), fallback.return_value)
-        fallback.assert_called_once_with(session)
 
     def test_ai_receipt_rereads_only_latest_row_and_uses_fractional_scale(self):
         ocr = MagicMock()

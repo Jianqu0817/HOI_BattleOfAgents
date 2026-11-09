@@ -1,4 +1,5 @@
 from collections import Counter
+import argparse
 import csv
 from functools import lru_cache
 import json
@@ -16,7 +17,7 @@ from cut import CAST, province_panel, FF, PROBE as FP
 
 FPS, SR, SPF=25,24000,960
 art=WORK/'art'
-art.mkdir(exist_ok=True)
+art.mkdir(exist_ok=True,parents=True)
 OUT.mkdir(exist_ok=True,parents=True)
 R=Image.Resampling.LANCZOS
 gold='#F4CE88'
@@ -157,8 +158,14 @@ def srt_time(f):
 def ff(cmd):
     subprocess.run([FF,'-hide_banner','-nostdin','-v','error','-y',*map(str,cmd)],check=True)
 
-def render():
+def render(reference=False):
     pieces=[];cues=[];schedule=[];chapters=[];frame=0;current=-1;day2=None
+    baseline={}
+    if reference:
+        previous=WORK.with_name('qwen_day12')/'schedule.json'
+        if previous.exists():
+            baseline={(r['speaker'],r['text']):r['audio_samples']
+                      for r in json.loads(previous.read_text('utf8'))['lines']}
     drawn=set()
     def add(name,n,make):
         if n<=0:return
@@ -175,12 +182,23 @@ def render():
             sc=r['scene']
             if sc!=current:
                 if sc==4:day2=frame
-                hold=[36,36,43,48,72,43,57][sc]
+                hold=([32,34,39,44,68,39,52] if reference else [36,36,43,48,72,43,57])[sc]
                 chapters.append((frame,groups[sc][1]+' · '+groups[sc][2]))
                 add(f'card-{sc}',hold,lambda:image(sc,i,card=True))
                 track.writeframesraw(bytes(hold*SPF*2))
                 frame+=hold;current=sc
             pcm=read_take(i)
+            original=len(pcm)
+            rate=1.0
+            if reference:
+                prior=baseline.get((voices[r['tag']][0],r['text']))
+                rate=min(1.10,max(1.0,original/(prior*0.94))) if prior else 1.06
+                if rate>1.005:
+                    compressed=subprocess.check_output([FF,'-v','error','-f','s16le','-ar',str(SR),'-ac','1',
+                                                        '-i','pipe:0','-af',f'atempo={rate:.6f}',
+                                                        '-f','s16le','pipe:1'],input=pcm.tobytes())
+                    pcm=np.frombuffer(compressed,'<i2')
+                else:rate=1.0
             n=math.ceil(len(pcm)/SPF)
             txt=caption_parts(r['text'])
             bounds=align(txt,pcm,n)
@@ -194,13 +212,16 @@ def render():
                     speaking=bool(len(block) and np.sqrt(np.mean(block*block))>200 and ((k-a)//4)%3!=2)
                     add(f'{i:02d}-{j}-{int(speaking)}',amt,lambda:image(sc,i,t,speaking))
             track.writeframesraw(pcm.tobytes())
-            gap=round(FPS*r['gap'])
+            gap=round(FPS*r['gap']*(0.86 if reference else 1.0))
             track.writeframesraw(bytes((n*SPF-len(pcm)+gap*SPF)*2))
             frame+=n
             add(f'{i:02d}-listen',gap,lambda:image(sc,i))
+            voice_id=json.loads((WORK/'takes'/f'{i:02d}.json').read_text('utf8'))['voice'] if reference else voices[r['tag']][2]
             schedule.append(dict(sequence=i,day=groups[sc][0],scene=groups[sc][2],speaker=voices[r['tag']][0],kind=r['kind'],
                                  text=r['text'],event_ids=' '.join(r['refs']),start=timecode(start),end=timecode(frame),
-                                 start_frame=start,end_frame=frame,audio_samples=len(pcm),pause_frames=gap,voice=voices[r['tag']][2]))
+                                 start_frame=start,end_frame=frame,audio_samples=len(pcm),pause_frames=gap,voice=voice_id))
+            if reference:
+                schedule[-1].update(source_audio_samples=original,edit_tempo=round(rate,6))
             frame+=gap
     assert sum(n for _,n in pieces)==frame and day2
     ffconcat=['ffconcat version 1.0']
@@ -219,7 +240,7 @@ def render():
                 '-an','-c:v','libx264','-crf','17','-preset','veryfast',target])
     filt=(f'[0:v]trim=end_frame={day2},setpts=PTS-STARTPTS[a];[1:v]trim=end_frame={frame-day2},setpts=PTS-STARTPTS[b];'
           '[a][b]concat=n=2:v=1:a=0[game];[2:v]fps=25,format=rgba[overlay];[game][overlay]overlay=repeatlast=1,format=yuv420p[v]')
-    outfile=OUT/'蒂罗尔的两面旗·前两天·Qwen节奏试片.mp4'
+    outfile=OUT/('蒂罗尔的两面旗·前两天·参考声线版.mp4' if reference else '蒂罗尔的两面旗·前两天·Qwen节奏试片.mp4')
     ff(['-stream_loop','-1','-i',WORK/'day1-plate.mp4','-stream_loop','-1','-i',WORK/'day2-plate.mp4',
         '-f','concat','-safe','0','-i',WORK/'overlay.ffconcat','-i',wav_path,'-f','ffmetadata','-i',WORK/'chapters.txt',
         '-filter_complex_threads','4','-filter_complex',filt,'-map','[v]','-map','3:a:0','-map_metadata','4','-map_chapters','4',
@@ -232,4 +253,17 @@ def render():
     (WORK/'schedule.json').write_text(json.dumps(dict(summary=summary,lines=schedule),ensure_ascii=False,indent=2),'utf8')
     print(json.dumps(summary,ensure_ascii=False))
 
-if __name__=='__main__':render()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    mode=parser.add_mutually_exclusive_group()
+    mode.add_argument('--reference',dest='reference',action='store_true')
+    mode.add_argument('--preset',dest='reference',action='store_false',help='Use the original system-voice pilot')
+    parser.set_defaults(reference=True)
+    reference=parser.parse_args().reference
+    if reference:
+        WORK=WORK.with_name(WORK.name+'_ref')
+        OUT=OUT.with_name('前两日参考声线试片')
+        art=WORK/'art'
+        art.mkdir(parents=True,exist_ok=True)
+        OUT.mkdir(parents=True,exist_ok=True)
+    render(reference)

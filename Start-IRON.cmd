@@ -1,10 +1,12 @@
 @echo off
-chcp 65001 >nul
+setlocal
 set PYTHONUTF8=1
 cd /d "%~dp0"
-if exist ".venv\Scripts\python.exe" (
-  ".venv\Scripts\python.exe" tools\launcher.py
+set "IRON_PYTHON=python"
+if exist ".venv\Scripts\python.exe" set "IRON_PYTHON=.venv\Scripts\python.exe"
+if "%~1"=="" (
+  "%IRON_PYTHON%" tools\native_campaign.py --help
 ) else (
-  python tools\launcher.py
+  "%IRON_PYTHON%" tools\native_campaign.py %*
 )
-pause
+exit /b %errorlevel%
