@@ -3,6 +3,9 @@
   "scenario": {
     "title": "蒂罗尔的两面旗",
     "hours": 168,
+    "public_host_cues": {
+      "2": "山口的控制线和桌上的停火时间是两件事。若双方确实说岔了，可以逗一逗那个用词；切地图时平叙已确认的状态。"
+    },
     "start_date": "1936.9.4.22",
     "war": ["AUS", "ITA"],
     "opening_control": {"671": "AUS", "6673": "ITA"},

@@ -15,6 +15,75 @@ from test_showrunner import CONFIG
 
 
 class NativeCampaignTests(unittest.TestCase):
+    def test_match_id_typo_requires_same_model_confirmation_without_changing_orders(self):
+        observed = observe()
+        raw = {key: observed[key] for key in IDENTITY}
+        raw.update(match_id='mistyped-match', actions=[], reason='原决定不变')
+        confirmed = {**raw, 'match_id': observed['match_id']}
+        metadata = {'requested_model': CONFIG['model']}
+        with tempfile.TemporaryDirectory() as folder, patch('model_trial.complete', side_effect=[(raw, metadata), (confirmed, metadata)]) as model:
+            result = call_country(Path(folder), CONFIG, observed, 'decision', [], tags=['AUS', 'GER', 'FRA'])
+            self.assertEqual(result, confirmed)
+            self.assertEqual(model.call_count, 2)
+            stored = json.loads((Path(folder) / 'model_calls/decision_AUS.json').read_text('utf8'))
+            self.assertEqual(stored['response'], raw)
+            self.assertEqual(stored['match_identity_repair'], 'decision_AUS_match_identity_repair1')
+        changed = {**confirmed, 'reason': '擅改理由'}
+        with tempfile.TemporaryDirectory() as folder, patch('model_trial.complete', side_effect=[(raw, metadata), (changed, metadata)]):
+            with self.assertRaisesRegex(ValueError, 'Match identity repair changed'):
+                call_country(Path(folder), CONFIG, observed, 'decision', [], tags=['AUS', 'GER', 'FRA'])
+
+    def test_native_identity_linewraps_are_removed_only_when_observation_matches(self):
+        observed = observe()
+        identity = {key: observed[key] for key in IDENTITY}
+        identity['date'] = identity['date'][:2] + '\n' + identity['date'][2:]
+        identity['observation_id'] = identity['observation_id'][:3] + '\n' + identity['observation_id'][3:]
+        raw = {'identity': identity, 'actions': [], 'reason': '保持现有命令'}
+        metadata = {'requested_model': CONFIG['model']}
+        with tempfile.TemporaryDirectory() as folder, patch('model_trial.complete', return_value=(raw, metadata)) as model:
+            result = call_country(Path(folder), CONFIG, observed, 'decision', [], tags=['AUS', 'GER', 'FRA'])
+            self.assertEqual(result['date'], observed['date'])
+            self.assertEqual(result['observation_id'], observed['observation_id'])
+            self.assertEqual(result['actions'], raw['actions'])
+            self.assertEqual(model.call_count, 1)
+            stored = json.loads((Path(folder) / 'model_calls/decision_AUS.json').read_text('utf8'))
+            self.assertEqual(stored['response'], raw)
+            self.assertEqual(set(stored['identity_whitespace_projection']['fields']), {'date', 'observation_id'})
+        stale = copy.deepcopy(raw)
+        stale['identity']['date'] = '1900.1.1.1\n'
+        with tempfile.TemporaryDirectory() as folder, patch('model_trial.complete', return_value=(stale, metadata)):
+            with self.assertRaisesRegex(ValueError, 'Request does not match observation: date'):
+                call_country(Path(folder), CONFIG, observed, 'decision', [], tags=['AUS', 'GER', 'FRA'])
+
+    def test_missing_reply_author_uses_bound_call_identity_without_resampling(self):
+        raw = {"replies": [{"to": "GER", "message": "原话保留。"}]}
+        private = {"sent": None, "received": [{"country": "GER", "to": "AUS", "message": "来信"}]}
+        metadata = {"requested_model": CONFIG["model"]}
+        show = settings({"strict_public_context": True}, ["AUS", "GER", "FRA"])
+        with tempfile.TemporaryDirectory() as folder, patch("model_trial.complete", return_value=(raw, metadata)) as model:
+            args = (Path(folder), CONFIG, observe(), "reply", [], private)
+            first = call_country(*args, tags=["AUS", "GER", "FRA"], show_config=show)
+            second = call_country(*args, tags=["AUS", "GER", "FRA"], show_config=show)
+            self.assertEqual(first, {"country": "AUS", **raw})
+            self.assertEqual(first, second)
+            self.assertEqual(model.call_count, 1)
+            stored = json.loads((Path(folder) / "model_calls/reply_AUS.json").read_text("utf8"))
+            self.assertEqual(stored["response"], raw)
+            from verify_native_campaign import Audit, audit_annotation
+            audit = Audit(Path(folder))
+            audit_annotation(audit, stored, {}, "reply")
+            self.assertTrue(all(row["status"] == "passed" for row in audit.checks), audit.checks)
+            stored["identity_projection"]["country"] = "FRA"
+            audit_annotation(audit, stored, {}, "tampered")
+            self.assertTrue(any(row["status"] == "failed" for row in audit.checks))
+
+    def test_explicit_wrong_reply_author_is_not_rebound(self):
+        show = settings({"strict_public_context": True}, ["AUS", "GER", "FRA"])
+        with tempfile.TemporaryDirectory() as folder, patch("model_trial.complete", return_value=({"country": "FRA", "replies": []}, {"requested_model": CONFIG["model"]})):
+            with self.assertRaisesRegex(ValueError, "Invalid reply identity"):
+                call_country(Path(folder), CONFIG, observe(), "reply", [], {"received": []},
+                             tags=["AUS", "GER", "FRA"], show_config=show)
+
     def test_model_budget_starts_trimming_before_rejecting_required_input(self):
         show = {"player_prompt_bytes": 5000, "player_prompt_limits": {"qwen": {"trim_bytes": 600, "max_bytes": 1500}}}
         payload = {"own_observation": {"own_memory": {"records": [{"turn_id": 1, "text": "旧" * 60}]}},

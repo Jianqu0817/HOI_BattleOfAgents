@@ -204,6 +204,7 @@ class ShowrunnerTests(unittest.TestCase):
                     raise RuntimeError("simulated temporary transport failure")
                 value = {"reviews": [{"country": item["country"], "request_sha256": item["request_sha256"],
                                        "approved": True, "reason": "接口有效", "concerns": []} for item in payload["countries"]]}
+                value['reviews'][0]['request_sha256'] = 'mistyped-echo'
             else:
                 tag = payload["own_observation"]["identity"]["country"]
                 target = TAGS[(TAGS.index(tag) + 1) % len(TAGS)]
@@ -241,6 +242,9 @@ class ShowrunnerTests(unittest.TestCase):
             interrupted["status"] = "private_decisions"
             result_path.write_text(json.dumps(interrupted), encoding="utf-8")
             decide(directory, CONFIG, TAGS, resume=True, communication_rounds=2, private_diplomacy=True, show_config=self.show)
+            referee_record = json.loads((directory / 'model_calls/referee.json').read_text('utf8'))
+            self.assertEqual(referee_record['response']['reviews'][0]['request_sha256'], 'mistyped-echo')
+            self.assertNotEqual(referee_record['normalized_response'], referee_record['response'])
             self.assertEqual(len(recorded), calls_before_resume + 1)
             self.assertEqual(before, {p.name: p.read_bytes() for p in (directory / "private_decisions").glob("*.json")})
             result = json.loads((directory / "decision_result.json").read_text(encoding="utf-8"))

@@ -253,7 +253,9 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
                                     "若没有新议题，可用一两句自然的闺蜜式闲聊、调侃、关心或回怼接话，展现角色关系，避免重复战报。"
                                     "以公开发言与可观察结果接话，不自动公开私信或密封命令；主动转述本人参与的私信仍只是你的新主张。"
                                     "不读取他国未授权秘密，不编造战果，不为节目效果强行改变策略或宣战。")
-                if show.get("public_callbacks"):
+                if show.get("public_callbacks") and show.get("spoken_style"):
+                    payload["task"] += " 听着有意思的旧话可以顺口提，觉得没意思也可以让它过去。"
+                elif show.get("public_callbacks"):
                     payload["task"] += (" 挑对方刚才一句最有意思的原话接梗：可以顺着她的比喻说下去、"
                                         "拿自己的旧话自嘲，或把先前的吹嘘还给她。一个包袱说完就收。")
             if show.get("strict_public_context"):
@@ -288,6 +290,8 @@ def extend_prompt(messages, observed, phase, show, tags, intent=None, private=No
                            "如果改变事前计划，在reason中简短说明发生了什么新信息；不用展开内部推理。")
     if private is not None:
         payload["own_private_diplomacy"] = private
+    if phase in ("diplomacy", "private", "reply") and show.get("spoken_style"):
+        payload["task"] += "\n消息正文的口吻：" + show["spoken_style"]
     messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
     return messages
 

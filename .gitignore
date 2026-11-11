@@ -14,3 +14,34 @@ exports/
 *.wav
 assets/voices/*/models/
 *.log
+
+# Local credentials and account-bound configuration
+*.pem
+*.key
+credentials/
+secrets/
+/configs/tts.minimax.cast.json
+/configs/characters/*.zip
+
+# Private planning, production workflows and handoffs stay on the production machine
+/AGENTS.md
+/HANDOFF_*.md
+/assets/voices/README.md
+/docs/*
+!/docs/ACTION_CONTRACT.md
+!/docs/ARMY_CONTROL.md
+!/docs/CHARACTERS.md
+!/docs/CHARACTER_ART.md
+!/docs/DIPLOMACY_CONTROL.md
+!/docs/HOI4_KNOWLEDGE_SOURCES.md
+!/docs/MODEL_INTERFACE.md
+!/docs/NATIVE_ACCEPTANCE.md
+!/docs/NATIVE_API.md
+!/docs/NATIVE_CAMPAIGN.md
+!/docs/NATIVE_CAMPAIGN_VALIDATION.md
+!/docs/NATIVE_TURN.md
+!/docs/NAVAL_AIR.md
+!/docs/OBSERVER.md
+!/docs/QUICKSTART.md
+!/docs/SCENARIOS.md
+!/docs/archive/

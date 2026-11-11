@@ -1,0 +1,47 @@
+{
+  "version": "basic-v4",
+  "common": "普通话，年轻女声。",
+  "chapter": "新版 · 简短人设 / 加快语速",
+  "stamp": "角色参考声线 · 形容词指令 / 重新合成",
+  "preview_title": "角色参考声线·简短人设加速版",
+  "comparison_title": "逐人对比·上版复杂指令到新版简短人设",
+  "comparison_rule": "只简化instruction并提高合成rate；文本、角色参考声线ID、pitch、seed、模型及输出格式与上版一致；不后期变速或变调。",
+  "roles": {
+    "glm": {
+      "direction": "御姐，聪慧，自信，俏皮。",
+      "synthesis": {
+        "rate": 1.158
+      }
+    },
+    "deepseek": {
+      "direction": "少女，松弛，机灵，幽默。",
+      "synthesis": {
+        "rate": 1.286
+      }
+    },
+    "gpt": {
+      "direction": "御姐，自信，优雅，富有智慧。",
+      "synthesis": {
+        "rate": 1.192
+      }
+    },
+    "gemini": {
+      "direction": "少女，活泼，灵动，好奇。",
+      "synthesis": {
+        "rate": 1.286
+      }
+    },
+    "claude": {
+      "direction": "少女，温柔，矜持，认真。",
+      "synthesis": {
+        "rate": 1.149
+      }
+    },
+    "qwen": {
+      "direction": "少女，温润，知性，从容。",
+      "synthesis": {
+        "rate": 1.54
+      }
+    }
+  }
+}

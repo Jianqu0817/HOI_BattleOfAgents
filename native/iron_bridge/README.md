@@ -182,4 +182,41 @@ Acceptance changed an air wing task and region, and a naval task force type
 and its parent fleet's sea region. Sibling task forces share fleet regions;
 these checks do not demonstrate actual air or naval combat.
 
+## Native recording view
+
+`build-view.ps1` builds `runs/native-view-v3/iron_view_v3.dll`. Load it with the
+existing injector, then use `tools/native_view.py` with a per-process journal.
+`native_view_v3` runs on the bridge's tick thread; it does not send input, open
+the console, change focus, or advance the game clock.
+
+| Payload | Meaning |
+|---|---|
+| `status` | Read pause/date, actual HUD-hidden flag, camera lock, position and target. |
+| `hud EXPECTED DESIRED` | Set the hidden state (`1` hidden, `0` visible); already-desired requests do not toggle. |
+| `lock_camera EXPECTED DESIRED` | Set the native camera-input lock; prevents edge scrolling while recording. |
+| `center_province ID` | Request the ordinary province-camera transition. Inspect the settled image afterwards. |
+| `frame_province ID HEIGHT` | Center a province and set camera height, an integer 50–1200. Use 90 for a Tyrol military close view; 310 is the central-European overview. |
+
+Mutations require a paused game. The module pins the production executable and
+callee bytes. HUD uses the vanilla `debug_nogui` handler at `0x263D70`, whose
+body only toggles the flag at `0x33DDB19`. Camera lock uses the vanilla handler
+at `0x263AD0`, with readback at camera `+0x6F0`. Province centering calls the
+idler method `0xE347C0` used by vanilla `goto_province` (idler vslot `0x1B8`).
+The idler camera getter is `0xE33A10`; current position is camera `+0x680`,
+target is `+0x698`. `frame_province` uses the ordinary camera-target setter
+`0x12F15C0`, retaining the resolved province's world position. No arbitrary
+command strings or memory-write API is exposed.
+
+`python tools/test_native_view.py` tests registration, thread dispatch, state
+guards, receipt reuse, province bounds and date preservation in the owned host.
+On 2026-11-10, the production bridge read back hidden HUD and a locked camera,
+centered province 671, and OBS confirmed a clean central-European map at the
+unchanged opening date. Per-process receipts and preview are in
+`runs/tyrol_new_table_20261110/preflight_18992/` and
+`runs/tyrol_new_table_20261110/native_clean_locked_preview.png`.
+
+Use `hud 1 0` and `lock_camera 1 0` to restore normal manual viewing, with new
+request IDs after reading the current state. As with other sidecars, do not
+unload or overwrite an already-loaded DLL.
+
 Use `tools/native_campaign.py` for campaign execution. The legacy desktop executor has been removed.

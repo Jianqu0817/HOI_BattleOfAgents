@@ -70,6 +70,21 @@ class NativeCampaignAuditTests(unittest.TestCase):
         self.assertTrue(audit.checks)
         self.assertTrue(all(row["status"] == "passed" for row in audit.checks))
 
+    def test_match_identity_confirmation_preserves_original_orders_and_reason(self):
+        from model_trial import match_identity_repair_messages
+        raw = {**self.request, 'match_id': 'mistyped'}
+        repair_label = 'decision_AUS_match_identity_repair1'
+        self.write('model_calls/decision_AUS.json', {'response': raw, 'metadata': {'requested_model': 'same-model'},
+                                                  'match_identity_repair': repair_label})
+        confirmed = {'phase': 'decision_identity_repair', 'country': 'AUS', 'response': self.request,
+                     'messages': match_identity_repair_messages(raw, self.observations['AUS']),
+                     'metadata': {'requested_model': 'same-model'}}
+        self.write('model_calls/' + repair_label + '.json', confirmed)
+        self.assertTrue(all(row['status'] == 'passed' for row in self.sealed_audit().checks))
+        confirmed['response'] = {**self.request, 'reason': 'Changed'}
+        self.write('model_calls/' + repair_label + '.json', confirmed)
+        self.assertTrue(any(row['status'] == 'failed' for row in self.sealed_audit().checks))
+
     def test_changed_sealed_reason_rejected_even_with_valid_identity(self):
         changed = {**self.request, "reason": "Changed after referee approval"}
         self.write("private_decisions/AUS.json", changed)
@@ -318,6 +333,37 @@ class NativeCampaignAuditTests(unittest.TestCase):
         self.assertEqual(len(record["normalized_response"]["replies"]), 1)
         self.assertEqual([row["reason"] for row in record["delivery_projection"]["rejected"]],
                          ["not_a_current_sender", "duplicate_reply"])
+
+    def test_country_whitespace_receipt_composes_with_reply_delivery(self):
+        record = self.delivery_fixture()
+        record['response']['country'] += '\n'
+        record['identity_whitespace_trimmed'] = True
+        payload = json.loads(record['messages'][1]['content'])
+        payload['own_observation']['identity']['country'] = 'ITA'
+        record['messages'][1]['content'] = json.dumps(payload)
+        audit = Audit(self.path)
+        audit_annotation(audit, record, {}, 'trimmed')
+        self.assertTrue(all(row['status'] == 'passed' for row in audit.checks), audit.checks)
+        record['response']['country'] = 'AUS\n'
+        audit_annotation(audit, record, {}, 'tampered')
+        self.assertTrue(any(row['status'] == 'failed' for row in audit.checks))
+
+    def test_country_whitespace_receipt_composes_with_rejected_public_asides(self):
+        aside = {'about': 'GER', 'stance': '追问', 'ref': 'missing', 'text': '旁注'}
+        raw = {'country': 'AUS\n', 'message': '原话', 'public_asides': [aside]}
+        payload = {'own_observation': {'identity': {'country': 'AUS', 'turn_id': 7}},
+                   'participants': ['AUS', 'GER'], 'public_diplomacy': [], 'public_board': [],
+                   'public_host_messages': [], 'public_history': []}
+        record = {'phase': 'diplomacy', 'country': 'AUS', 'response': raw,
+                  'normalized_response': {**raw, 'country': 'AUS', 'public_asides': []},
+                  'identity_whitespace_trimmed': True, 'messages': [{}, {'content': json.dumps(payload)}],
+                  'aside_projection': {'rejected': [{'aside': aside, 'reason': 'Public aside must reference a supplied public source ID'}]}}
+        audit = Audit(self.path)
+        audit_annotation(audit, record, {}, 'aside')
+        self.assertTrue(all(row['status'] == 'passed' for row in audit.checks), audit.checks)
+        record['aside_projection']['rejected'][0]['reason'] = 'wrong'
+        audit_annotation(audit, record, {}, 'tampered')
+        self.assertTrue(any(row['status'] == 'failed' for row in audit.checks))
 
     def test_reply_route_projection_precedes_literal_commitment_projection(self):
         record = self.delivery_fixture(annotations=True)

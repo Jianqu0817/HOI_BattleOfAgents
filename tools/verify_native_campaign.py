@@ -11,9 +11,9 @@ from pathlib import Path
 
 from campaign import (ROOT, apply_model_switch, config_digest, model_slot_fingerprints, model_usage, name_ok,
                       switch_fingerprint_list, validate_switch_spec)
-from model_trial import compact_native_context, decision_private_context, digest, fit_player_prompt, native_brief, normalize_request, own_history, private_context, validate_trial_request
+from model_trial import compact_native_context, decision_private_context, digest, fit_player_prompt, match_identity_repair_messages, native_brief, normalize_request, own_history, private_context, validate_trial_request
 from native_capture import BUILD, GAME_SHA256
-from native_observation import _digest as observation_digest, to_native_plan
+from native_observation import IDENTITY, _digest as observation_digest, to_native_plan
 from native_turn import NativeTurn
 from native_pacing import select_step_hours, validate_policy, war_review_options
 from story_channels import (check_public_asides, interview_messages, project_interview_answer,
@@ -133,7 +133,25 @@ def audit_sealed(audit, trial, observed, decisions, result, prefix, limit):
             continue
         validate_trial_request(sealed, observation, limit)
         review = reviews.get(tag, {})
-        original = normalize_request(call["response"], allow_review=bool(observation.get("review_options_hours")))
+        flattened = normalize_request(call["response"], allow_review=bool(observation.get("review_options_hours")))
+        original = normalize_request(call["response"], allow_review=bool(observation.get("review_options_hours")), observed=observation)
+        fields = [key for key in IDENTITY if flattened.get(key) != original.get(key)]
+        if fields or "identity_whitespace_projection" in call:
+            audit.add(label + ":identity_whitespace_receipt", call.get("identity_whitespace_projection") == {
+                "method": "observation_identity_whitespace.v1", "fields": fields})
+        if call.get("match_identity_repair"):
+            repair_label = "decision_" + tag + "_match_identity_repair1"
+            repair = audit.read(trial / "model_calls" / (repair_label + ".json"), label + ":match_identity_repair")
+            if repair is not None:
+                confirmed = normalize_request(repair["response"], allow_review=bool(observation.get("review_options_hours")))
+                audit.add(label + ":same_model_match_identity_confirmation",
+                          call["match_identity_repair"] == repair_label and original.get("match_id") != observation["match_id"]
+                          and all(original.get(key) == observation[key] for key in IDENTITY if key != "match_id")
+                          and repair.get("country") == tag and repair.get("phase") == "decision_identity_repair"
+                          and repair["messages"] == match_identity_repair_messages(original, observation)
+                          and repair["metadata"].get("requested_model") == call["metadata"].get("requested_model")
+                          and confirmed == {**original, "match_id": observation["match_id"]})
+                original = confirmed
         audit.add(label + ":unchanged_model_referee_execution", original == sealed == executed == result.get("requests", {}).get(tag)
                   and review.get("approved") is True and review.get("request_sha256") == digest(sealed)
                   and decisions.get("request_hashes", {}).get(tag) == digest(sealed))
@@ -150,6 +168,27 @@ def projected_history(rows):
 
 def audit_annotation(audit, record, calls, label):
     original, normalized = record["response"], response(record)
+    routed_original = original
+    trimmed = record.get("identity_whitespace_trimmed")
+    if trimmed:
+        payload = json.loads(record["messages"][1]["content"])
+        bound = payload.get("own_observation", {}).get("identity", {}).get("country")
+        country = original.get("country")
+        audit.add(label + ":country_whitespace_receipt", isinstance(country, str)
+                  and country != bound and country.strip() == bound == record.get("country"))
+        routed_original = {**original, "country": bound}
+        if record.get("phase") == "intent":
+            audit.add(label + ":intent_whitespace_only", normalized == routed_original)
+            return
+    identity = record.get("identity_projection")
+    if identity is not None:
+        payload = json.loads(record["messages"][1]["content"])
+        bound = payload.get("own_observation", {}).get("identity", {}).get("country")
+        audit.add(label + ":bound_reply_author_receipt",
+                  record.get("phase") == "reply" and "country" not in original
+                  and isinstance(original.get("replies"), list) and bound == record.get("country")
+                  and identity == {"method": "bound_reply_author.v1", "country": bound})
+        routed_original = {"country": bound, **original}
 
     def speech(value):
         return {k: value.get(k) for k in ("country", "to", "message")} | {
@@ -172,7 +211,8 @@ def audit_annotation(audit, record, calls, label):
     projection = record.get("annotation_projection")
     delivery = record.get("delivery_projection")
     chat_actions = record.get("chat_actions_projection")
-    if projection is not None or delivery is not None or chat_actions is not None:
+    asides = record.get("aside_projection")
+    if projection is not None or delivery is not None or chat_actions is not None or identity is not None or trimmed or asides is not None:
         from communication_annotations import project_commitment_quotes, project_reply_routes
         phase = record.get("phase")
         allowed = ({"country", "replies", "commitments"} if phase == "reply" else
@@ -182,7 +222,7 @@ def audit_annotation(audit, record, calls, label):
         if phase == "diplomacy":
             allowed.add("public_asides")
         removed = sorted(set(original) - allowed)
-        typed = {key: value for key, value in original.items() if key in allowed}
+        typed = {key: value for key, value in routed_original.items() if key in allowed}
         if "commitments_note" in typed and typed["commitments_note"] is None:
             typed.pop("commitments_note")
             removed.append("null commitments_note")
@@ -192,6 +232,24 @@ def audit_annotation(audit, record, calls, label):
                       and chat_actions.get("rejected_actions") == original.get("actions"))
         payload = json.loads(record["messages"][1]["content"])
         turn_id = payload.get("own_observation", {}).get("identity", {}).get("turn_id")
+        if asides is not None:
+            rows = payload.get("public_diplomacy", []) + payload.get("public_board", []) + payload.get("public_host_messages", [])
+            for history in payload.get("public_history", []):
+                rows += history.get("public_diplomacy", [])
+            source_ids = {row["id"] for row in rows if isinstance(row.get("id"), str)}
+            kept, rejected = [], []
+            raw_asides = typed.get("public_asides", [])
+            if not isinstance(raw_asides, list):
+                rejected.append({"reason": "Public asides must be a list"})
+                raw_asides = []
+            for aside in raw_asides:
+                try:
+                    check_public_asides({"public_asides": kept + [aside]}, payload.get("participants", []), source_ids)
+                    kept.append(aside)
+                except ValueError as error:
+                    rejected.append({"aside": aside, "reason": str(error)})
+            audit.add(label + ":aside_projection_from_public_sources", phase == "diplomacy" and bool(rejected) and asides == {"rejected": rejected})
+            typed = {**typed, "public_asides": kept}
         routed = typed
         if delivery is not None:
             tag = record.get("country", original.get("country"))
@@ -339,6 +397,8 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
             expected = {**expected, "max_tokens": min(expected["max_tokens"], cap)}
         if phase in ("public_host", "audience_interview"):
             expected = {**expected, "max_tokens": 700 if phase == "public_host" else 600}
+        elif phase == "decision_identity_repair":
+            expected = {**expected, "max_tokens": min(expected["max_tokens"], 600)}
         start, end = audit_model(audit, record, expected, prefix + ":API:" + label)
         usage = record.get("metadata", {}).get("usage", {})
         audit.add(prefix + ":API_usage:" + label, all(type(usage.get(k)) is int and usage[k] >= 0 for k in ("prompt_tokens", "completion_tokens", "total_tokens"))
@@ -361,6 +421,13 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
         if phase in ("communication_quote_repair", "communication_annotation_repair"):
             audit.add(prefix + ":repair_is_annotation_only:" + label,
                       json.loads(record["messages"][1]["content"]).get("original_response", {}).get("country") == tag)
+            continue
+        if phase == "decision_identity_repair":
+            payload = json.loads(record["messages"][1]["content"])
+            original = payload.get("original_request", {})
+            audit.add(prefix + ":match_identity_repair_bound_to_observation:" + label,
+                      payload.get("expected_match_id") == observed[tag]["match_id"]
+                      and all(original.get(key) == observed[tag][key] for key in IDENTITY if key != "match_id"))
             continue
         audit_annotation(audit, record, calls, prefix + ":" + label)
         payload = json.loads(record["messages"][1]["content"])
@@ -404,7 +471,7 @@ def audit_players(audit, trial, config, observed, decisions, prefix, switch_step
         promises = payload.get("own_commitment_memory", [])
         audit.add(prefix + ":own_visible_commitments:" + label, len(visible_promises(promises, tag)) == len(promises))
         if phase == "intent":
-            audit.add(prefix + ":intent_inputs:" + tag, payload["public_diplomacy"] == [] and record["response"] == intents[tag])
+            audit.add(prefix + ":intent_inputs:" + tag, payload["public_diplomacy"] == [] and response(record) == intents[tag])
             if end:
                 intent_ends.append(end)
         elif not strict_public:

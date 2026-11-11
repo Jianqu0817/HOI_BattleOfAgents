@@ -36,6 +36,7 @@
       "decision": 900
     },
     "common_rules_file": "configs/prompts/common_rules.md",
+    "spoken_style": "把口播写成当面说的话。对方刚把时间说清，直接说你能不能等、还缺什么，用不着先谢她澄清，再把时间念一遍。谈判时条件说准，熟人聊天可以省掉彼此知道的半句。意思到了就停；真有疑问再问。称呼、玩笑和口头禅随当时的心情。",
     "guide_file": "configs/prompts/native_guide.md",
     "knowledge_file": "configs/prompts/hoi4_basics.md",
     "profiles": {
@@ -54,6 +55,7 @@
     "quiet_interludes": true,
     "public_callbacks": true,
     "table_host": true,
+    "host_table_brief": "你就在桌边。吐槽给话里有破绽的那个人，局势判断用旁白直接讲。别转向屏幕外招呼人、求回应或布置悬念。有人叫早了停火，可以追问她说的是什么时候；她若已经讲清，就让这句算数。笑话落在当事人的用词和场上的事上，说完留一拍。引号只放逐字原话。环节说明里的“给观众讲解”是幕后用途。成句从场上的事开口，比如“山口两边还是各挂各的旗”。省掉招呼和报幕，下一句直接就是旁白。",
     "host_skills": ["reality-tv-narrative-analyzer", "director-agent"],
     "player_prompt_bytes": 1100000,
     "player_prompt_limits": {

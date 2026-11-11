@@ -263,6 +263,10 @@ def public_commentary_messages(observed, public, question="概括刚才公开发
     payload["task"] = (question + " 输出{commentary:[{ref:给出的公开来源真实id,text:简短评论}]}，最多四条；"
                        "每条必须绑定真实来源，没有合适材料可输出空数组，不强求笑点。")
     payload["visibility"] = "public"
+    if show and show.get("spoken_style"):
+        payload["task"] += "\n主持词的口吻：" + show["spoken_style"]
+    if show and show.get("host_table_brief"):
+        payload["task"] += "\n" + show["host_table_brief"]
     messages[1]["content"] = json.dumps(payload, ensure_ascii=False)
     return messages
 

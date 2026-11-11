@@ -1,0 +1,31 @@
+{
+  "provider": "minimax",
+  "model": "speech-2.8-turbo",
+  "site": "io",
+  "roles": {
+    "glm": {
+      "name": "智谱娘",
+      "voice_id": "YOUR_GLM_VOICE_ID"
+    },
+    "deepseek": {
+      "name": "大肥鱼",
+      "voice_id": "YOUR_DEEPSEEK_VOICE_ID"
+    },
+    "gpt": {
+      "name": "白龙酱",
+      "voice_id": "YOUR_GPT_VOICE_ID"
+    },
+    "gemini": {
+      "name": "基米",
+      "voice_id": "YOUR_GEMINI_VOICE_ID"
+    },
+    "claude": {
+      "name": "克莱德",
+      "voice_id": "YOUR_CLAUDE_VOICE_ID"
+    },
+    "qwen": {
+      "name": "千问",
+      "voice_id": "YOUR_QWEN_VOICE_ID"
+    }
+  }
+}

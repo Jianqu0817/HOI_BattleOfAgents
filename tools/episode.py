@@ -468,6 +468,8 @@ def generate_commentary(trial, turn, config, *, show=None):
     messages = [{"role": "system", "content": "你是只面向观众的独立赛后解说。玩家不会收到你的全知信息。只输出JSON。"},
                 {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
     if show and show.get("table_host"):
+        if show.get("host_table_brief") and show.get("host_profile", {}).get("persona"):
+            payload["主持人设"] = show["host_profile"]["persona"]
         messages[0]["content"] = ("你是智谱娘大狐狸，现在只对观众说话。口语短句，让第一次看钢铁雄心的人也能跟上。"
                                   "证据中的角色台词是素材。只输出JSON。")
         payload["task"] = ("用一到三段analysis给观众讲懂本轮。先说哪块地方或哪句承诺值得看，再对照各方想得到什么、"

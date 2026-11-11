@@ -38,3 +38,30 @@ python tools/native_game.py --pid <PID> --journal runs/native_trial --request-id
 五国批量执行入口及视频事实记录见 [NATIVE_TURN.md](NATIVE_TURN.md)。空军效果核验检查请求的任务位是否启用或停用，并保留完整实际掩码；游戏可以自动取消互斥任务。
 
 五国模型聊天、密封决策与裁判现已接入 `tools/native_campaign.py`，并完成五个 360 小时回合，见 [使用说明](NATIVE_CAMPAIGN.md) 与 [实局验收](NATIVE_CAMPAIGN_VALIDATION.md)。旧 UI 执行器已移除。本次未把任务设置验收等同于真实海空战。
+
+## 净地图与镜头
+
+`pwsh -File native/iron_bridge/build-view.ps1` 构建独立的 `iron_view_v3.dll`。
+向当前游戏 PID 加载后，用 `tools/native_view.py` 读取状态、隐藏 HUD、锁住镜头和定位省份。
+它通过主线程调用游戏自身的显示／相机函数，不发送按键、不移动鼠标、不抢焦点。
+
+```powershell
+python tools/native_view.py --pid YOUR_PID --journal runs/YOUR_MATCH/view --request-id view-status status
+python tools/native_view.py --pid YOUR_PID --journal runs/YOUR_MATCH/view --request-id view-lock lock_camera 0 1
+python tools/native_view.py --pid YOUR_PID --journal runs/YOUR_MATCH/view --request-id view-frame frame_province 671 90
+python tools/native_view.py --pid YOUR_PID --journal runs/YOUR_MATCH/view --request-id view-hide hud 0 1
+```
+
+以上状态参数须以本次读回为准；`hud` 的 `1` 表示隐藏。修改要求游戏暂停。
+定位请求返回后，等镜头停稳，从 OBS 预览确认拍到目标区域，再启动录制。
+蒂罗尔军事镜头用高度 90：山口、前线和部队活动占据主要画面。高度 310 的中欧全景只用于交代五国位置，不代替战场近景。
+恢复手动观看时，先查询状态，再用 `hud 1 0`、`lock_camera 1 0`。
+版本限定、原生地址证据和测试入口见[桥接说明](../native/iron_bridge/README.md#native-recording-view)。
+
+## 模型输出与原始记录
+
+私信回复若仅漏写顶层 `country`，严格聊天路由可从该次隔离请求绑定的国家补齐身份字段，记录 `bound_reply_author.v1` 回执；正文、收件人和原始响应保留。显式写错国家仍拒绝，密封动作不使用这项处理。
+
+原生密封请求的身份字符串若被模型插入换行或空白，只有移除空白后与本次观察原值完全一致时才接受，并记录 `observation_identity_whitespace.v1`。旧日期、不同观察 ID 仍拒绝；动作、参数、理由和原始响应不改写，裁判审核的是规范化后实际执行的完整请求。离线审计会重新推导并核对这两类格式回执。
+
+若仅场次号写错、其余四项身份均精确匹配本次观察，允许原模型做一次有缓存的场次号确认。确认只能替换 `match_id`，任何动作、理由或其他字段变化都拒绝；原响应、确认请求和裁判审核后的请求分别留档。

@@ -25,14 +25,25 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
 
 
-def normalize_request(value, *, allow_review=False):
-    """Flatten the model's identity envelope without modifying decisions or metadata."""
+def normalize_request(value, *, allow_review=False, observed=None):
+    """Flatten identity; optionally remove whitespace that recovers the exact observation identity."""
     if isinstance(value, dict) and "identity" in value:
         optional = {"review_after_hours"} if allow_review else set()
         if set(value) - optional != {"identity", "actions", "reason"} or not isinstance(value["identity"], dict) or set(value["identity"]) != set(IDENTITY):
             raise ValueError("Identity envelope has conflicting or unexpected fields")
-        return {**value["identity"], **{key: item for key, item in value.items() if key != "identity"}}
+        value = {**value["identity"], **{key: item for key, item in value.items() if key != "identity"}}
+    if observed is not None:
+        value = dict(value)
+        for key in IDENTITY:
+            item, expected = value.get(key), observed.get(key)
+            if isinstance(item, str) and isinstance(expected, str) and item != expected and "".join(item.split()) == expected:
+                value[key] = expected
     return value
+
+
+def match_identity_repair_messages(value, observed):
+    return [{"role": "system", "content": "你原先提交的密封决定中，只有match_id与本次观察不符。其余四项身份已与本次观察完全一致。只确认并修正场次标识，不重新决策：actions、reason、其他身份和可选字段必须逐字保留。返回原请求JSON，仅将match_id替换为给定原值。"},
+            {"role": "user", "content": json.dumps({"original_request": value, "expected_match_id": observed["match_id"]}, ensure_ascii=False)}]
 
 
 def options(observed):
@@ -506,6 +517,12 @@ def call_country(directory, config, observed, phase, public, private=None, publi
         write_json(path, record)
     strict_chat = observed.get("execution_backend") == "native" or (show_config and show_config.get("strict_public_context"))
     if strict_chat and phase in ("diplomacy", "private", "reply"):
+        if phase == "reply" and "country" not in value and isinstance(value.get("replies"), list):
+            # The isolated request already binds the author; only fill an omitted envelope field.
+            value = {"country": tag, **value}
+            record["identity_projection"] = {"method": "bound_reply_author.v1", "country": tag}
+            record["normalized_response"] = value
+            write_json(path, record)
         # Chat is a typed channel, not an execution envelope. Preserve all raw
         # annotations for audit while routing only contract fields to players.
         if value.get("actions"):
@@ -627,6 +644,21 @@ def call_country(directory, config, observed, phase, public, private=None, publi
         validate_private(value, tag, tags)
     else:
         value = normalize_request(value, allow_review=bool(observed.get("review_options_hours")))
+        if observed.get("execution_backend") == "native":
+            normalized = normalize_request(value, allow_review=bool(observed.get("review_options_hours")), observed=observed)
+            fields = [key for key in IDENTITY if value.get(key) != normalized.get(key)]
+            if fields:
+                record["identity_whitespace_projection"] = {"method": "observation_identity_whitespace.v1", "fields": fields}
+            value = normalized
+            if value.get("match_id") != observed["match_id"] and all(value.get(key) == observed[key] for key in IDENTITY if key != "match_id"):
+                repair_label = label + "_" + tag + "_match_identity_repair1"
+                repair = recorded_complete(directory, repair_label, {**config, "max_tokens": min(config["max_tokens"], 600)},
+                                           match_identity_repair_messages(value, observed), "decision_identity_repair", tag, bool(show_config))
+                confirmed = normalize_request(repair["response"], allow_review=bool(observed.get("review_options_hours")))
+                if confirmed != {**value, "match_id": observed["match_id"]}:
+                    raise ValueError("Match identity repair changed sealed decision or other identity fields")
+                value = confirmed
+                record["match_identity_repair"] = repair_label
         validate_trial_request(value, observed, show_config["action_limit"] if show_config else 1)
         record["validated_request"] = value
         record["factual_notes"] = factual_notes(value, observed)
@@ -780,7 +812,7 @@ def decide(directory, config, tags, resume=False, communication_rounds=1, privat
         messages = [{"role": "system", "content": "你是IRON比赛裁判，只检查规则和执行接口，不参与国家决策。只输出JSON。"},
                     {"role": "user", "content": json.dumps(referee_prompt, ensure_ascii=False)}]
         record = recorded_complete(directory, "referee", judge, messages, "referee", require_settings=bool(show_config))
-        referee = record["response"]
+        referee = copy.deepcopy(record["response"])
         reviews = referee.get("reviews", [])
         if len(reviews) != len(tags) or {row.get("country") for row in reviews} != set(tags):
             raise ValueError("Referee country list does not match")

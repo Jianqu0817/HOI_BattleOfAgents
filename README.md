@@ -2,17 +2,17 @@
 
 五位 AI 玩家在同一局《钢铁雄心 IV》中选国、谈判和下令，智谱娘主持。节目同时追踪地图上的局势和桌边的人际关系。参赛国家、角色分配和模型由每场配置决定。
 
-**[快速上手](docs/QUICKSTART.md) · [工具目录](tools/README.md) · [节目制作约定](docs/节目制作约定.md)**
+**[快速上手](docs/QUICKSTART.md) · [工具目录](tools/README.md)**
 
 ## 从哪里开始
 
 | 我想做什么 | 入口 |
 | --- | --- |
 | 准备环境、开始或恢复对局 | [快速上手](docs/QUICKSTART.md)和[原生对局说明](docs/NATIVE_CAMPAIGN.md)。Windows 下运行 `Start-IRON.cmd --help` 查看参数。 |
-| 配置场景、玩家与主持人 | [场景设计](docs/SCENARIOS.md)、[角色设定](docs/CHARACTERS.md)和[节目设计](docs/PRODUCT_DIRECTION.md)。 |
+| 配置场景、玩家与主持人 | [场景设计](docs/SCENARIOS.md)和[角色设定](docs/CHARACTERS.md)。 |
 | 录制、观察、核对回合 | [录制与观察席](docs/OBSERVER.md)。游戏通过原生 API 操作，OBS 负责采集。 |
-| 给已录节目配音、加字幕、剪片 | [视频制作工作流](docs/VIDEO_WORKFLOW.md)。合照局开场、七日场和服务器配音包各有对应入口。 |
-| 查看已有测试的适用范围 | [原生验收](docs/NATIVE_ACCEPTANCE.md)和[制作验收记录](docs/PRODUCTION_REVIEW_20261109.md)。具体场次的进度以本机该场记录和存档为准。 |
+| 给已录节目配音、加字幕、剪片 | [制作工具入口](tools/README.md)。配音、字幕、剪辑和混音脚本位于 `tools/tyrol/`。 |
+| 查看已有测试的适用范围 | [原生验收](docs/NATIVE_ACCEPTANCE.md)。具体场次的进度以本机该场记录和存档为准。 |
 
 ## 一回合如何运行
 
@@ -28,11 +28,13 @@
 
 ## 本机数据与开发检查
 
-从项目根目录运行工具。共享配置位于 `configs/`，每场的冻结配置、回执与素材记录写入 `runs/`，交付文件放在 `exports/`。模型密钥从环境变量读取。游戏存档、声线权重、参考 WAV 和原始录像由制作机保存。历史交接和验收文档用于定位当时的证据。
+从项目根目录运行工具。共享配置位于 `configs/`，每场的冻结配置、回执与素材记录写入 `runs/`，交付文件放在 `exports/`。模型密钥从环境变量读取。游戏存档、声线权重、参考 WAV 和原始录像由制作机保存。内部策划、制作工作流、交接记录及账户专属的 `configs/tts.minimax.cast.json` 仅保存在制作机，不随仓库分发。
+
+MiniMax 角色音色配置可从 `configs/tts.minimax.cast.example.json` 复制为 `configs/tts.minimax.cast.json`，再填入自己账户的音色 ID。API 密钥使用 `MINIMAX_API_KEY` 环境变量，不写进配置。
 
 ```powershell
 python -m unittest discover -s tools -p "test_*.py"
 python -I tools/parse_save.py --selftest
 ```
 
-项目协作规则见 [AGENTS.md](AGENTS.md)，依赖和素材来源见[第三方声明](NOTICE.md)。
+依赖和素材来源见[第三方声明](NOTICE.md)。

@@ -281,7 +281,7 @@
       }
     },
     "gpt": {
-      "name": "白色龙娘酱",
+      "name": "白龙酱",
       "card_file": "configs/characters/cards/gpt.json",
       "portraits": {
         "neutral": "assets/characters/poses/gpt/cloud_present/neutral.png",

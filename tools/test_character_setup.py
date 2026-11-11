@@ -40,7 +40,7 @@ class CharacterSetupTests(unittest.TestCase):
             self.assertTrue((ROOT / card["portrait"]).is_file())
 
     def test_approved_cast_and_actual_backend_are_explicit(self):
-        expected = {"GER": "白色龙娘酱", "FRA": "克莱德大小姐", "ITA": "基米",
+        expected = {"GER": "白龙酱", "FRA": "克莱德大小姐", "ITA": "基米",
                     "AUS": "大肥鱼", "SWI": "千问大小姐", None: "大狐狸"}
         self.assertEqual({row["country"]: row["name"] for row in self.show["public_cast"]}, expected)
         for row in self.show["public_cast"]:
